@@ -1,0 +1,960 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div id="food-truck-sim-v2" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #1a1a1a;">
+
+    <!-- ROW 1: Title + Phase Progress -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+        <h2 style="margin: 0; font-size: 1.5em; color: #1e293b;">The (Un)Productive Food Truck</h2>
+        <div id="phaseIndicator" style="display: flex; gap: 4px; align-items: center;">
+            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #2563eb; color: #fff;">Phase 1: Staffing</span>
+            <span style="color: #cbd5e1;">&#9654;</span>
+            <span id="phaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Pricing</span>
+            <span style="color: #cbd5e1;">&#9654;</span>
+            <span id="phaseLabel3" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 3: Full Picture</span>
+        </div>
+    </div>
+
+    <!-- ROW 2: Instruction Panel -->
+    <div id="instructionPanel" style="background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div id="instructionContent"></div>
+            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #2563eb; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+        </div>
+    </div>
+
+    <!-- ROW 3: Controls + Metrics side by side -->
+    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+
+        <!-- Controls Panel -->
+        <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+            <div style="font-weight: 700; font-size: 0.95em; margin-bottom: 12px; color: #334155;">Your Decisions</div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 4px; color: #475569;">
+                    Number of Staff: <span id="staffValue" style="color: #2563eb; font-size: 1.1em;">3</span>
+                </label>
+                <input type="range" id="staffCount" min="1" max="10" value="3" step="1" style="width: 100%; cursor: pointer;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;">
+                    <span>1</span><span>5</span><span>10</span>
+                </div>
+            </div>
+
+            <div id="priceControl" style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 4px; color: #475569;">
+                    Average Price per Meal: $<span id="priceValue" style="color: #2563eb; font-size: 1.1em;">10</span>
+                    <span id="priceLockLabel" style="font-size: 0.8em; color: #ef4444; font-weight: 400;">(locked at $10 for Phase 1)</span>
+                </label>
+                <input type="range" id="itemPrice" min="8" max="25" value="10" step="1" style="width: 100%; cursor: not-allowed; opacity: 0.4;" disabled>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;">
+                    <span>$8</span><span>$16</span><span>$25</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 8px;">
+                <button id="runDayBtn" onclick="void(0)" style="flex: 1; padding: 10px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Run Day</button>
+                <button id="resetBtn" onclick="void(0)" style="padding: 10px 16px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.95em; cursor: pointer;">Reset</button>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard -->
+        <div style="flex: 1.2; min-width: 300px; display: flex; flex-wrap: wrap; gap: 10px; align-content: start;">
+            <div style="width: 100%; font-weight: 700; font-size: 0.95em; color: #334155;">Day <span id="dayCounter">0</span> Results</div>
+
+            <div id="metricCapacity" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Service Capacity</div>
+                <div id="serviceCapacity" style="font-size: 1.4em; font-weight: 700; color: #1e293b;">&mdash;</div>
+                <div style="font-size: 0.7em; color: #94a3b8;">customers/day</div>
+            </div>
+
+            <div id="metricDemand" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Potential Demand</div>
+                <div id="potentialDemand" style="font-size: 1.4em; font-weight: 700; color: #1e293b;">&mdash;</div>
+                <div style="font-size: 0.7em; color: #94a3b8;">customers</div>
+            </div>
+
+            <div id="metricServed" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Customers Served</div>
+                <div id="customersServed" style="font-size: 1.4em; font-weight: 700; color: #1e293b;">&mdash;</div>
+                <div style="font-size: 0.7em; color: #94a3b8;">actual</div>
+            </div>
+
+            <div id="metricRevenue" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Revenue</div>
+                <div style="font-size: 1.4em; font-weight: 700; color: #1e293b;">$<span id="revenue">&mdash;</span></div>
+            </div>
+
+            <div id="metricCosts" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Total Costs</div>
+                <div style="font-size: 1.4em; font-weight: 700; color: #1e293b;">$<span id="totalCosts">&mdash;</span></div>
+            </div>
+
+            <div id="metricProfit" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Daily Profit</div>
+                <div id="dailyProfit" style="font-size: 1.4em; font-weight: 700; color: #1e293b;">$&mdash;</div>
+            </div>
+
+            <!-- SFP Card -->
+            <div id="metricSFP" style="flex: 1; min-width: 160px; padding: 10px; border: 2px solid #2563eb; border-radius: 8px; text-align: center; background: #eff6ff;">
+                <div style="font-size: 0.75em; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Single-Factor Productivity</div>
+                <div style="font-size: 0.8em; color: #64748b; margin: 6px 0 2px 0;">Calculate: Customers Served &divide; (Staff &times; Hours)</div>
+                <div id="sfpRevealedValue" style="display: none;">
+                    <div id="sfpValue" style="font-size: 1.6em; font-weight: 700; color: #1e40af;">&mdash;</div>
+                    <div style="font-size: 0.7em; color: #3b82f6;">customers / staff-hour</div>
+                </div>
+            </div>
+
+            <!-- MFP Card -->
+            <div id="metricMFP" style="flex: 1; min-width: 160px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff; display: none;">
+                <div style="font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; color: #64748b;">Multi-Factor Productivity</div>
+                <div style="font-size: 0.8em; color: #64748b; margin: 6px 0 2px 0;">Calculate: Revenue &divide; Total Costs</div>
+                <div id="mfpRevealedValue" style="display: none;">
+                    <div id="mfpValue" style="font-size: 1.6em; font-weight: 700; color: #1e293b;">&mdash;</div>
+                    <div id="mfpLabel" style="font-size: 0.7em; color: #94a3b8;">revenue / total costs</div>
+                </div>
+            </div>
+
+            <!-- Cumulative Profit -->
+            <div id="metricCumProfit" style="width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <span style="font-size: 0.8em; color: #64748b;">Cumulative Profit: </span>
+                <span id="cumulativeProfit" style="font-size: 1em; font-weight: 700; color: #1e293b;">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 4: Charts -->
+    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+        <div style="flex: 1; min-width: 340px;">
+            <div style="position: relative; height: 40vh; max-height: 350px;">
+                <canvas id="profitChart"></canvas>
+            </div>
+        </div>
+        <div id="demandChartContainer" style="flex: 1; min-width: 340px; display: none;">
+            <div style="position: relative; height: 40vh; max-height: 350px;">
+                <canvas id="demandChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 5: Heatmap -->
+    <div id="heatmapSection" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="margin: 0; font-size: 1.1em; color: #1e293b;">Performance Frontier</h3>
+            <div style="display: flex; gap: 8px;">
+                <button id="heatmapToggleMFP" onclick="void(0)" style="padding: 4px 12px; border-radius: 4px; font-size: 0.8em; cursor: pointer; background: #2563eb; color: #fff; border: none; font-weight: 600;">MFP</button>
+                <button id="heatmapToggleProfit" onclick="void(0)" style="padding: 4px 12px; border-radius: 4px; font-size: 0.8em; cursor: pointer; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">Profit</button>
+            </div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table id="heatmapTable" style="width: 100%; border-collapse: collapse; font-size: 0.8em; text-align: center;"></table>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.75em; color: #64748b;">
+            <span>Low</span>
+            <div style="display: flex; height: 12px; flex: 1; max-width: 200px; border-radius: 3px; overflow: hidden;">
+                <div style="flex:1; background: #fca5a5;"></div>
+                <div style="flex:1; background: #fcd34d;"></div>
+                <div style="flex:1; background: #86efac;"></div>
+                <div style="flex:1; background: #22c55e;"></div>
+            </div>
+            <span>High</span>
+            <span style="margin-left: 12px;">&#9679; = Your explored points</span>
+        </div>
+    </div>
+
+    <!-- ROW 6: History Table -->
+    <div>
+        <h3 style="margin: 0 0 8px 0; font-size: 1.1em; color: #1e293b;">Operations History</h3>
+        <div style="overflow-x: auto;">
+            <table id="historyTable" style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
+                <thead><tr id="historyHeader" style="background: #f8fafc;"></tr></thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ROW 7: Discussion Insights Panel (with embedded overrides) -->
+    <div id="insightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-weight: 700; font-size: 1.05em; color: #1e293b;">Discussion Insights</div>
+            <div id="insightsCounter" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 8</div>
+        </div>
+        <div id="insightsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
+        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #eff6ff; border: 1px solid #2563eb; border-radius: 6px; text-align: center;"></div>
+        <div id="overrideControls" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // === CONSTANTS ===
+    var HOURS_PER_DAY = 8;
+    var FIXED_OVERHEAD = 2000;
+    var MAX_CUSTOMERS_PER_STAFF_HOUR = 12;
+    var BASE_DEMAND = 300;
+    var OPTIMAL_PRICE = 12;
+    var HOURLY_WAGE = 15;
+    var STORAGE_KEY = 'ops802_food_truck_v2';
+
+    // === CHECKPOINT SCHEDULE ===
+    var CHECKPOINT_SCHEDULE = [
+        { phase: 1, turn: 3, insightIndex: 0 },
+        { phase: 1, turn: 5, insightIndex: 1 },
+        { phase: 1, turn: 7, insightIndex: 2 },
+        { phase: 2, turn: 3, insightIndex: 3 },
+        { phase: 2, turn: 6, insightIndex: 4 },
+        { phase: 3, turn: 3, insightIndex: 5 },
+        { phase: 3, turn: 5, insightIndex: 6 },
+        { phase: 3, turn: 7, insightIndex: 7 }
+    ];
+
+    var PHASE_INSIGHTS = { 1: [0,1,2], 2: [3,4], 3: [5,6,7] };
+
+    // === ORDERED INSIGHTS ===
+    var insights = [
+        {
+            id: 1,
+            question: "Look at your results across different staffing levels. What is the maximum number of customers one staff member can serve per hour? Why can\u2019t it go higher?",
+            answer: "SFP never exceeds 12 \u2014 that is the maximum customers one staff member can serve per hour. It is a hard ceiling on labour productivity.",
+            action: null
+        },
+        {
+            id: 2,
+            question: "What happens to your costs and productivity when you have far more capacity than demand? Is there a downside to \u2018playing it safe\u2019 with extra staff?",
+            answer: "When capacity far exceeds demand, staff are idle. You are paying for staff-hours that produce nothing. This drives down productivity and inflates costs.",
+            action: null
+        },
+        {
+            id: 3,
+            question: "Can you calculate your labour productivity using a single formula? What would you divide by what?",
+            answer: "Single-Factor Productivity (SFP) = Customers Served \u00f7 (Staff \u00d7 Hours worked). Your SFP values are now visible in the table and metric card.",
+            action: function() {
+                renderHistoryHeader();
+                rerenderHistory();
+                updateSfpMfpVisibility();
+            }
+        },
+        {
+            id: 4,
+            question: "Now that price is unlocked, how does demand respond to different prices? Is the relationship linear? Where is the sweet spot?",
+            answer: "The demand curve is nonlinear \u2014 there is a sweet spot near $12\u2013$13 where demand peaks at ~300 customers. Below that, customers perceive low quality; above, they are priced out.",
+            action: null
+        },
+        {
+            id: 5,
+            question: "At this optimal price, do you have enough staff to serve everyone? Does your earlier staffing decision still make sense?",
+            answer: "At the demand sweet spot, you may need more staff to serve everyone. Your Phase 1 staffing level might now be a bottleneck \u2014 revisit your decision.",
+            action: null
+        },
+        {
+            id: 6,
+            question: "We have been measuring productivity with a single input (labour). But what if we want a measure that captures all costs \u2014 wages and overhead? How would you compute that?",
+            answer: "Multi-Factor Productivity (MFP) = Revenue \u00f7 Total Costs. When MFP > 1, you get more value out than you put in. This is the threshold for profitability.",
+            action: function() {
+                renderHistoryHeader();
+                rerenderHistory();
+                updateSfpMfpVisibility();
+            }
+        },
+        {
+            id: 7,
+            question: "Is your highest-MFP combination the same as your most profitable one? If not, why might they differ, and which should a manager prioritise?",
+            answer: "The most productive combination (highest MFP) may not be the most profitable one. Managers must decide what to optimise for \u2014 efficiency or absolute returns.",
+            action: null
+        },
+        {
+            id: 8,
+            question: "If you could see every possible staff \u00d7 price combination at once, where would the \u2018best\u2019 region be? What does that surface look like?",
+            answer: "The performance surface shows MFP (or profit) across every staff \u00d7 price combination. The peak region is the performance frontier.",
+            action: function() {
+                state.heatmapVisible = true;
+                el.heatmapSection.style.display = 'block';
+                renderHeatmap();
+            }
+        }
+    ];
+
+    // === STATE ===
+    var state = {
+        currentPhase: 1,
+        currentDay: 0,
+        phaseTurns: 0,
+        questionsShown: 0,
+        insightsRevealed: 0,
+        history: [],
+        cumulativeProfit: 0,
+        instructionExpanded: true,
+        heatmapMode: 'mfp',
+        heatmapVisible: false
+    };
+
+    // === DOM REFS ===
+    var el = {};
+    function cacheDom() {
+        el.staffSlider = document.getElementById('staffCount');
+        el.priceSlider = document.getElementById('itemPrice');
+        el.staffValue = document.getElementById('staffValue');
+        el.priceValue = document.getElementById('priceValue');
+        el.priceLockLabel = document.getElementById('priceLockLabel');
+        el.runDayBtn = document.getElementById('runDayBtn');
+        el.resetBtn = document.getElementById('resetBtn');
+        el.dayCounter = document.getElementById('dayCounter');
+        el.serviceCapacity = document.getElementById('serviceCapacity');
+        el.potentialDemand = document.getElementById('potentialDemand');
+        el.customersServed = document.getElementById('customersServed');
+        el.revenue = document.getElementById('revenue');
+        el.totalCosts = document.getElementById('totalCosts');
+        el.dailyProfit = document.getElementById('dailyProfit');
+        el.sfpValue = document.getElementById('sfpValue');
+        el.sfpRevealedValue = document.getElementById('sfpRevealedValue');
+        el.mfpValue = document.getElementById('mfpValue');
+        el.mfpRevealedValue = document.getElementById('mfpRevealedValue');
+        el.mfpLabel = document.getElementById('mfpLabel');
+        el.metricMFP = document.getElementById('metricMFP');
+        el.cumulativeProfit = document.getElementById('cumulativeProfit');
+        el.instructionContent = document.getElementById('instructionContent');
+        el.toggleInstructions = document.getElementById('toggleInstructions');
+        el.demandChartContainer = document.getElementById('demandChartContainer');
+        el.heatmapSection = document.getElementById('heatmapSection');
+        el.heatmapTable = document.getElementById('heatmapTable');
+        el.historyHeader = document.getElementById('historyHeader');
+        el.historyBody = document.getElementById('historyBody');
+        el.phaseLabel1 = document.getElementById('phaseLabel1');
+        el.phaseLabel2 = document.getElementById('phaseLabel2');
+        el.phaseLabel3 = document.getElementById('phaseLabel3');
+        el.insightsCounter = document.getElementById('insightsCounter');
+        el.insightsList = document.getElementById('insightsList');
+        el.phaseAdvanceArea = document.getElementById('phaseAdvanceArea');
+        el.overrideControls = document.getElementById('overrideControls');
+    }
+
+    // === CORE CALCULATIONS ===
+    function calculateDemand(price) {
+        var baseCalc = BASE_DEMAND * Math.exp(-0.1 * Math.abs(price - OPTIMAL_PRICE));
+        var randomFactor = 0.95 + Math.random() * 0.1;
+        return Math.round(baseCalc * randomFactor);
+    }
+
+    function calculateDemandDeterministic(price) {
+        return BASE_DEMAND * Math.exp(-0.1 * Math.abs(price - OPTIMAL_PRICE));
+    }
+
+    function calculateMetrics(staff, price, demandOverride) {
+        var serviceCapacity = staff * MAX_CUSTOMERS_PER_STAFF_HOUR * HOURS_PER_DAY;
+        var potentialDemand = demandOverride !== undefined ? demandOverride : calculateDemand(price);
+        var actualCustomers = Math.min(potentialDemand, serviceCapacity);
+        var dailyWages = staff * HOURLY_WAGE * HOURS_PER_DAY;
+        var totalCosts = dailyWages + FIXED_OVERHEAD;
+        var revenue = actualCustomers * price;
+        var profit = revenue - totalCosts;
+        var labourInput = staff * HOURS_PER_DAY;
+        var sfp = actualCustomers / labourInput;
+        var mfp = revenue / totalCosts;
+        return {
+            staff: staff, price: price, serviceCapacity: serviceCapacity,
+            potentialDemand: potentialDemand, actualCustomers: actualCustomers,
+            dailyWages: dailyWages, totalCosts: totalCosts, revenue: revenue,
+            profit: profit, labourInput: labourInput, sfp: sfp, mfp: mfp
+        };
+    }
+
+    function fmt(v) { return v.toFixed(2); }
+
+    // === INSTRUCTION TEXT ===
+    var instructionText = {
+        1: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #1e40af;">Phase 1: The Staffing Decision</div>' +
+                '<div style="margin-bottom: 8px;">You manage a food truck in a busy business district. The menu price is currently fixed at <strong>$10 per meal</strong> \u2014 your only decision is <strong>how many staff to hire</strong>.</div>' +
+                '<div style="margin-bottom: 6px;">Key information:</div>' +
+                '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
+                '<li>Each staff member works an <strong>8-hour shift</strong> at <strong>$15/hour</strong></li>' +
+                '<li>Each staff member can serve up to <strong>12 customers per hour</strong></li>' +
+                '<li>Daily overhead costs are <strong>$2,000</strong> (rent, supplies, etc.)</li>' +
+                '<li>Staff are assigned the day before and work a full shift</li>' +
+                '</ul>' +
+                '<div style="color: #1e40af; font-weight: 600;">Your task: Try different staffing levels. Watch how capacity, demand, and profit change. Can you work out your labour productivity?</div>',
+            short: '<span style="font-weight: 700; color: #1e40af;">Phase 1:</span> Experiment with staffing levels (price locked at $10). Watch how capacity, demand, and profit change.'
+        },
+        2: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #7c3aed;">Phase 2: The Pricing Decision</div>' +
+                '<div style="margin-bottom: 8px;">The price slider is now unlocked. Customers are sensitive to price \u2014 <strong>demand follows a curve, not a straight line</strong>. Prices that are too low may signal low quality; prices that are too high drive customers away.</div>' +
+                '<div style="margin-bottom: 6px;">The demand curve chart on the right shows you how many customers <em>want</em> to buy at each price point.</div>' +
+                '<div style="color: #7c3aed; font-weight: 600;">Your task: Find the price that maximises customer demand. Then reconsider your staffing level \u2014 does the optimal number of staff change at different prices?</div>',
+            short: '<span style="font-weight: 700; color: #7c3aed;">Phase 2:</span> Both sliders are active. Find the demand sweet spot using the demand curve chart, then optimise staffing.'
+        },
+        3: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #059669;">Phase 3: The Full Picture</div>' +
+                '<div style="margin-bottom: 8px;">Single-Factor Productivity told part of the story, but does maximising it always maximise profit? Now consider <strong>Multi-Factor Productivity (MFP) = Revenue \u00f7 Total Costs</strong>.</div>' +
+                '<div style="margin-bottom: 6px;">This is a \u201cdollars out per dollar in\u201d measure of performance:</div>' +
+                '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
+                '<li><strong>MFP &gt; 1</strong> = You are getting more value out than you put in (profitable)</li>' +
+                '<li><strong>MFP &lt; 1</strong> = You are putting in more than you get out (losing money)</li>' +
+                '</ul>' +
+                '<div style="color: #059669; font-weight: 600;">Your task: Find the staff-and-price combination that maximises MFP. Is it the same as the one that maximises profit?</div>',
+            short: '<span style="font-weight: 700; color: #059669;">Phase 3:</span> Consider Multi-Factor Productivity. Find the combination that maximises MFP. Does it match max profit?'
+        }
+    };
+
+    // === SFP/MFP VISIBILITY ===
+    function sfpIsRevealed() { return state.insightsRevealed >= 3; }
+    function mfpIsRevealed() { return state.insightsRevealed >= 6; }
+
+    function updateSfpMfpVisibility() {
+        el.sfpRevealedValue.style.display = sfpIsRevealed() ? 'block' : 'none';
+        el.mfpRevealedValue.style.display = mfpIsRevealed() ? 'block' : 'none';
+        if (mfpIsRevealed() && state.history.length > 0) {
+            applyMfpCardStyling(state.history[state.history.length - 1].mfp);
+        }
+    }
+
+    function applyMfpCardStyling(mfp) {
+        var card = el.metricMFP;
+        var rev = mfpIsRevealed();
+        if (mfp < 1) {
+            card.style.background = rev ? '#fef2f2' : '#fff';
+            card.style.borderColor = rev ? '#ef4444' : '#e2e8f0';
+            el.mfpValue.style.color = '#dc2626';
+            el.mfpLabel.textContent = 'UNPROFITABLE (< 1.0)';
+            el.mfpLabel.style.color = '#dc2626';
+        } else if (mfp < 1.2) {
+            card.style.background = rev ? '#fffbeb' : '#fff';
+            card.style.borderColor = rev ? '#eab308' : '#e2e8f0';
+            el.mfpValue.style.color = '#d97706';
+            el.mfpLabel.textContent = 'MARGINALLY PROFITABLE';
+            el.mfpLabel.style.color = '#d97706';
+        } else {
+            card.style.background = rev ? '#f0fdf4' : '#fff';
+            card.style.borderColor = rev ? '#22c55e' : '#e2e8f0';
+            el.mfpValue.style.color = '#16a34a';
+            el.mfpLabel.textContent = 'PROFITABLE (> 1.0)';
+            el.mfpLabel.style.color = '#16a34a';
+        }
+    }
+
+    // === INSIGHTS PANEL (three-state lifecycle) ===
+    function renderInsights() {
+        var total = insights.length;
+        el.insightsCounter.textContent = state.insightsRevealed + ' of ' + total;
+
+        var html = '';
+        for (var i = 0; i < total; i++) {
+            var insight = insights[i];
+
+            if (i < state.insightsRevealed) {
+                // ANSWERED: blue circle, question + answer
+                html += '<div style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0;">';
+                html += '<div style="display: flex; gap: 10px; align-items: start;">';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="flex: 1;">';
+                html += '<div style="font-size: 0.85em; color: #475569; font-style: italic; margin-bottom: 6px;">\u201c' + insight.question + '\u201d</div>';
+                html += '<div style="font-size: 0.9em; color: #1e293b; font-weight: 500; padding: 6px 10px; background: #f0fdf4; border-left: 3px solid #22c55e; border-radius: 0 4px 4px 0;">' + insight.answer + '</div>';
+                html += '</div></div></div>';
+
+            } else if (i < state.questionsShown) {
+                // QUESTION SHOWN: amber circle, question visible, clickable reveal
+                html += '<div data-reveal-index="' + i + '" style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fefce8; border: 1px solid #eab308; cursor: pointer;">';
+                html += '<div style="display: flex; gap: 10px; align-items: start;">';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #eab308; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="flex: 1;">';
+                html += '<div style="font-size: 0.85em; color: #1e293b; font-style: italic; margin-bottom: 6px;">\u201c' + insight.question + '\u201d</div>';
+                if (i === state.insightsRevealed) {
+                    html += '<div style="font-size: 0.8em; color: #92400e; font-weight: 600; padding: 4px 10px; background: #fef9c3; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
+                } else {
+                    html += '<div style="font-size: 0.8em; color: #94a3b8; font-style: italic;">(answer the previous question first)</div>';
+                }
+                html += '</div></div></div>';
+
+            } else {
+                // HIDDEN: grey circle, placeholder
+                html += '<div style="padding: 6px 12px; margin-bottom: 2px;">';
+                html += '<div style="display: flex; gap: 10px; align-items: center;">';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #e5e7eb; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="font-size: 0.82em; color: #cbd5e1; font-style: italic;">(not yet revealed)</div>';
+                html += '</div></div>';
+            }
+        }
+        el.insightsList.innerHTML = html;
+
+        // Phase advance button
+        renderPhaseAdvance();
+
+        // Override controls
+        renderOverrides();
+    }
+
+    function renderPhaseAdvance() {
+        var phase = state.currentPhase;
+        var phaseInsights = PHASE_INSIGHTS[phase];
+        var maxInsightForPhase = phaseInsights[phaseInsights.length - 1];
+        var allPhaseAnswered = state.insightsRevealed > maxInsightForPhase;
+
+        if (allPhaseAnswered && phase < 3) {
+            var nextPhase = phase + 1;
+            el.phaseAdvanceArea.style.display = 'block';
+            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #1e40af; margin-bottom: 8px;">All Phase ' + phase + ' discussion points completed!</div>' +
+                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + nextPhase + ' &#9654;</button>';
+        } else {
+            el.phaseAdvanceArea.style.display = 'none';
+            el.phaseAdvanceArea.innerHTML = '';
+        }
+    }
+
+    function renderOverrides() {
+        var phase = state.currentPhase;
+        var linkStyle = 'background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78em; padding: 2px 6px; text-decoration: underline;';
+        var html = '';
+        if (phase < 2) html += '<button id="overrideSkip2" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 2</button>';
+        if (phase < 3) html += '<button id="overrideSkip3" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 3</button>';
+        html += '<button id="overrideRevealQ" onclick="void(0)" style="' + linkStyle + '">Reveal Next Question</button>';
+        html += '<button id="overrideReset" onclick="void(0)" style="' + linkStyle + '">Full Reset</button>';
+        el.overrideControls.innerHTML = html;
+    }
+
+    // === INSIGHT ACTIONS ===
+    function checkForNewQuestion() {
+        for (var i = 0; i < CHECKPOINT_SCHEDULE.length; i++) {
+            var cp = CHECKPOINT_SCHEDULE[i];
+            if (cp.phase === state.currentPhase && cp.turn === state.phaseTurns && cp.insightIndex >= state.questionsShown) {
+                state.questionsShown = cp.insightIndex + 1;
+                renderInsights();
+                return;
+            }
+        }
+    }
+
+    function revealInsightAnswer(index) {
+        if (index !== state.insightsRevealed) return;
+        if (index >= state.questionsShown) return;
+
+        var insight = insights[index];
+        state.insightsRevealed = index + 1;
+
+        if (typeof insight.action === 'function') {
+            insight.action();
+        }
+
+        renderInsights();
+        rerenderHistory();
+        updateSfpMfpVisibility();
+        saveState();
+    }
+
+    function advancePhase() {
+        if (state.currentPhase >= 3) return;
+        state.phaseTurns = 0;
+        setPhase(state.currentPhase + 1);
+    }
+
+    function skipToPhase(targetPhase) {
+        if (targetPhase <= state.currentPhase || targetPhase > 3) return;
+        // Auto-answer all insights for skipped phases
+        for (var p = state.currentPhase; p < targetPhase; p++) {
+            var phaseInsights = PHASE_INSIGHTS[p];
+            var maxIdx = phaseInsights[phaseInsights.length - 1];
+            if (state.questionsShown <= maxIdx) state.questionsShown = maxIdx + 1;
+            while (state.insightsRevealed <= maxIdx) {
+                var insight = insights[state.insightsRevealed];
+                state.insightsRevealed++;
+                if (typeof insight.action === 'function') insight.action();
+            }
+        }
+        state.phaseTurns = 0;
+        setPhase(targetPhase);
+    }
+
+    function revealNextQuestion() {
+        if (state.questionsShown >= insights.length) return;
+        state.questionsShown++;
+        renderInsights();
+        saveState();
+    }
+
+    // === PHASE MANAGEMENT ===
+    function setPhase(phase) {
+        state.currentPhase = phase;
+        state.phaseTurns = 0;
+
+        var colors = { active: '#2563eb', completed: '#16a34a', upcoming: '#e5e7eb' };
+        var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
+        [1, 2, 3].forEach(function(p) {
+            var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
+            var label = document.getElementById('phaseLabel' + p);
+            label.style.background = colors[status];
+            label.style.color = textColors[status];
+        });
+
+        if (phase === 1) {
+            el.priceSlider.disabled = true;
+            el.priceSlider.style.cursor = 'not-allowed';
+            el.priceSlider.style.opacity = '0.4';
+            el.priceLockLabel.style.display = 'inline';
+            el.priceSlider.value = 10;
+            el.priceValue.textContent = '10';
+        } else {
+            el.priceSlider.disabled = false;
+            el.priceSlider.style.cursor = 'pointer';
+            el.priceSlider.style.opacity = '1';
+            el.priceLockLabel.style.display = 'none';
+        }
+
+        el.metricMFP.style.display = phase >= 3 ? 'block' : 'none';
+
+        el.demandChartContainer.style.display = phase >= 2 ? 'block' : 'none';
+        if (phase >= 2 && !demandChartInstance) initDemandChart();
+        if (phase >= 2 && demandChartInstance) updateDemandChart();
+
+        if (state.heatmapVisible && state.insightsRevealed >= 8) {
+            el.heatmapSection.style.display = 'block';
+            renderHeatmap();
+        } else {
+            el.heatmapSection.style.display = 'none';
+        }
+
+        renderInstructions();
+        updateSfpMfpVisibility();
+        renderHistoryHeader();
+        rerenderHistory();
+        renderInsights();
+        saveState();
+    }
+
+    // === INSTRUCTIONS ===
+    function renderInstructions() {
+        var inst = instructionText[state.currentPhase];
+        el.instructionContent.innerHTML = state.instructionExpanded ? inst.full : inst.short;
+        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
+    }
+
+    // === HISTORY TABLE ===
+    function renderHistoryHeader() {
+        var headers = ['Day', 'Staff', 'Price', 'Capacity', 'Demand', 'Served', 'Revenue', 'Costs', 'Profit', 'SFP'];
+        if (state.currentPhase >= 3) headers.push('MFP');
+        var s = 'padding: 8px 6px; text-align: center; font-weight: 600; font-size: 0.85em; border-bottom: 2px solid #e2e8f0; color: #475569;';
+        el.historyHeader.innerHTML = headers.map(function(h) { return '<th style="' + s + '">' + h + '</th>'; }).join('');
+    }
+
+    function addHistoryRow(m, dayNum) {
+        var cs = 'padding: 6px; text-align: center; border-bottom: 1px solid #f1f5f9;';
+        var sfpColor = m.sfp >= 12 ? '#16a34a' : m.sfp >= 6 ? '#ca8a04' : '#dc2626';
+        var sfpDisplay = sfpIsRevealed()
+            ? '<span style="color:' + sfpColor + '; font-weight: 600;">' + m.sfp.toFixed(1) + '</span>'
+            : '<span style="color: #94a3b8; font-style: italic;">?</span>';
+
+        var cells = [dayNum, m.staff, '$' + fmt(m.price), m.serviceCapacity, m.potentialDemand, m.actualCustomers,
+            '$' + fmt(m.revenue), '$' + fmt(m.totalCosts),
+            '<span style="color:' + (m.profit >= 0 ? '#16a34a' : '#dc2626') + '; font-weight: 600;">$' + fmt(m.profit) + '</span>',
+            sfpDisplay];
+
+        if (state.currentPhase >= 3) {
+            var mfpColor = m.mfp >= 1 ? '#16a34a' : '#dc2626';
+            cells.push(mfpIsRevealed()
+                ? '<span style="color:' + mfpColor + '; font-weight: 600;">' + m.mfp.toFixed(2) + '</span>'
+                : '<span style="color: #94a3b8; font-style: italic;">?</span>');
+        }
+
+        var row = document.createElement('tr');
+        cells.forEach(function(c) {
+            var td = document.createElement('td');
+            td.style.cssText = cs;
+            td.innerHTML = c;
+            row.appendChild(td);
+        });
+        el.historyBody.appendChild(row);
+    }
+
+    function rerenderHistory() {
+        el.historyBody.innerHTML = '';
+        for (var i = 0; i < state.history.length; i++) addHistoryRow(state.history[i], i + 1);
+    }
+
+    // === METRICS DISPLAY ===
+    function updateMetrics(m) {
+        el.dayCounter.textContent = state.currentDay;
+        el.serviceCapacity.textContent = m.serviceCapacity;
+        el.potentialDemand.textContent = m.potentialDemand;
+        el.customersServed.textContent = m.actualCustomers;
+        el.revenue.textContent = fmt(m.revenue);
+        el.totalCosts.textContent = fmt(m.totalCosts);
+        el.dailyProfit.innerHTML = '<span style="color:' + (m.profit >= 0 ? '#16a34a' : '#dc2626') + '">$' + fmt(m.profit) + '</span>';
+        el.cumulativeProfit.innerHTML = '<span style="color:' + (state.cumulativeProfit >= 0 ? '#16a34a' : '#dc2626') + '">$' + fmt(state.cumulativeProfit) + '</span>';
+        el.sfpValue.textContent = m.sfp.toFixed(1);
+        updateSfpMfpVisibility();
+        if (state.currentPhase >= 3) {
+            el.mfpValue.textContent = m.mfp.toFixed(2);
+            applyMfpCardStyling(m.mfp);
+        }
+    }
+
+    // === CHARTS ===
+    var profitChartInstance = null;
+    var demandChartInstance = null;
+
+    function initProfitChart() {
+        var ctx = document.getElementById('profitChart').getContext('2d');
+        profitChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Daily Profit ($)', data: [],
+                backgroundColor: function(c) { return c.raw < 0 ? 'rgba(239,68,68,0.7)' : 'rgba(37,99,235,0.7)'; },
+                borderColor: function(c) { return c.raw < 0 ? '#dc2626' : '#1d4ed8'; },
+                borderWidth: 1.5 }] },
+            options: { responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: false, grid: { display: true, color: '#f1f5f9', lineWidth: 0.5 }, border: { width: 1.5, color: '#334155' }, ticks: { font: { size: 12 }, callback: function(v) { return '$' + v; } } },
+                    x: { grid: { display: false }, border: { width: 1.5, color: '#334155' }, ticks: { font: { size: 12 } } } },
+                plugins: { legend: { display: false }, title: { display: true, text: 'Daily Profit', font: { size: 14, weight: 'bold' }, color: '#1e293b', padding: 10 } } }
+        });
+    }
+
+    function updateProfitChart() {
+        profitChartInstance.data.labels = state.history.map(function(_, i) { return 'Day ' + (i + 1); });
+        profitChartInstance.data.datasets[0].data = state.history.map(function(m) { return m.profit; });
+        profitChartInstance.update();
+    }
+
+    function initDemandChart() {
+        var ctx = document.getElementById('demandChart').getContext('2d');
+        var prices = [], demands = [];
+        for (var p = 8; p <= 25; p += 0.5) { prices.push(p); demands.push(Math.round(calculateDemandDeterministic(p))); }
+        demandChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels: prices, datasets: [
+                { label: 'Potential Demand', data: demands, borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.1)', borderWidth: 2.5, fill: true, pointRadius: 0, tension: 0.3 },
+                { label: 'Your Price', data: [], borderColor: '#ef4444', backgroundColor: '#ef4444', pointRadius: 8, pointStyle: 'circle', showLine: false }
+            ] },
+            options: { responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, max: 320, grid: { display: true, color: '#f1f5f9', lineWidth: 0.5 }, border: { width: 1.5, color: '#334155' }, ticks: { font: { size: 12 } }, title: { display: true, text: 'Customers', font: { size: 12 } } },
+                    x: { grid: { display: false }, border: { width: 1.5, color: '#334155' }, ticks: { font: { size: 11 }, callback: function(v, i) { return i % 4 === 0 ? '$' + this.getLabelForValue(v) : ''; } }, title: { display: true, text: 'Price ($)', font: { size: 12 } } } },
+                plugins: { legend: { display: false }, title: { display: true, text: 'Demand Curve \u2014 How Price Affects Customer Demand', font: { size: 14, weight: 'bold' }, color: '#1e293b', padding: 10 } } }
+        });
+        updateDemandChart();
+    }
+
+    function updateDemandChart() {
+        if (!demandChartInstance) return;
+        var cp = parseFloat(el.priceSlider.value);
+        var cd = Math.round(calculateDemandDeterministic(cp));
+        demandChartInstance.data.datasets[1].data = demandChartInstance.data.labels.map(function(p) { return parseFloat(p) === cp ? cd : null; });
+        demandChartInstance.update('none');
+    }
+
+    // === HEATMAP ===
+    function getHeatmapColor(value, min, max) {
+        var ratio = Math.max(0, Math.min(1, (value - min) / (max - min)));
+        var r, g, b;
+        if (ratio < 0.5) {
+            var t = ratio / 0.5;
+            r = 239; g = Math.round(68 + 132 * t); b = Math.round(68 * (1 - t));
+        } else {
+            var t2 = (ratio - 0.5) / 0.5;
+            r = Math.round(239 - 205 * t2); g = Math.round(200 - 3 * t2); b = Math.round(94 * t2);
+        }
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+    }
+
+    function renderHeatmap() {
+        var mode = state.heatmapMode;
+        var staffRange = [1,2,3,4,5,6,7,8,9,10];
+        var priceRange = []; for (var p = 8; p <= 25; p++) priceRange.push(p);
+        var allValues = [], grid = [];
+        for (var si = 0; si < staffRange.length; si++) {
+            var row = [];
+            for (var pi = 0; pi < priceRange.length; pi++) {
+                var m = calculateMetrics(staffRange[si], priceRange[pi], Math.round(calculateDemandDeterministic(priceRange[pi])));
+                var val = mode === 'mfp' ? m.mfp : m.profit;
+                row.push(val); allValues.push(val);
+            }
+            grid.push(row);
+        }
+        var minVal = Math.min.apply(null, allValues), maxVal = Math.max.apply(null, allValues);
+        var explored = {};
+        state.history.forEach(function(h) { explored[h.staff + '_' + h.price] = true; });
+
+        var thS = 'padding: 4px 6px; font-weight: 600; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.8em; color: #475569;';
+        var html = '<tr><th style="' + thS + '">' + (mode === 'mfp' ? 'MFP' : 'Profit') + '</th>';
+        priceRange.forEach(function(p) { html += '<th style="' + thS + '">$' + p + '</th>'; });
+        html += '</tr>';
+        for (var s = 0; s < staffRange.length; s++) {
+            html += '<tr><th style="' + thS + '">' + staffRange[s] + ' staff</th>';
+            for (var pr = 0; pr < priceRange.length; pr++) {
+                var val = grid[s][pr];
+                var bg = getHeatmapColor(val, minVal, maxVal);
+                var tc = val < (minVal + (maxVal - minVal) * 0.4) ? '#fff' : '#1a1a1a';
+                var isExp = explored[staffRange[s] + '_' + priceRange[pr]];
+                var dv = mode === 'mfp' ? val.toFixed(2) : '$' + Math.round(val);
+                html += '<td style="padding: 3px 4px; border: 1px solid rgba(255,255,255,0.3); background:' + bg + '; color:' + tc + '; font-size: 0.75em; font-weight:' + (isExp ? '700' : '400') + ';">' + dv + (isExp ? ' &#9679;' : '') + '</td>';
+            }
+            html += '</tr>';
+        }
+        el.heatmapTable.innerHTML = html;
+
+        var mfpBtn = document.getElementById('heatmapToggleMFP');
+        var profitBtn = document.getElementById('heatmapToggleProfit');
+        if (mode === 'mfp') {
+            mfpBtn.style.background = '#2563eb'; mfpBtn.style.color = '#fff'; mfpBtn.style.border = 'none';
+            profitBtn.style.background = '#f1f5f9'; profitBtn.style.color = '#475569'; profitBtn.style.border = '1px solid #e2e8f0';
+        } else {
+            profitBtn.style.background = '#2563eb'; profitBtn.style.color = '#fff'; profitBtn.style.border = 'none';
+            mfpBtn.style.background = '#f1f5f9'; mfpBtn.style.color = '#475569'; mfpBtn.style.border = '1px solid #e2e8f0';
+        }
+    }
+
+    // === RUN DAY ===
+    function runDay() {
+        state.currentDay++;
+        state.phaseTurns++;
+        var staff = parseInt(el.staffSlider.value);
+        var price = parseFloat(el.priceSlider.value);
+        var metrics = calculateMetrics(staff, price);
+        state.cumulativeProfit += metrics.profit;
+        state.history.push(metrics);
+        updateMetrics(metrics);
+        addHistoryRow(metrics, state.currentDay);
+        updateProfitChart();
+        if (state.heatmapVisible && state.insightsRevealed >= 8) renderHeatmap();
+        checkForNewQuestion();
+        saveState();
+    }
+
+    // === RESET ===
+    function resetSim() {
+        localStorage.removeItem(STORAGE_KEY);
+        state = {
+            currentPhase: 1, currentDay: 0, phaseTurns: 0, questionsShown: 0,
+            insightsRevealed: 0, history: [], cumulativeProfit: 0,
+            instructionExpanded: true, heatmapMode: 'mfp', heatmapVisible: false
+        };
+        el.staffSlider.value = 3; el.staffValue.textContent = '3';
+        el.priceSlider.value = 10; el.priceValue.textContent = '10';
+        el.historyBody.innerHTML = '';
+        el.dayCounter.textContent = '0';
+        el.serviceCapacity.textContent = '\u2014';
+        el.potentialDemand.textContent = '\u2014';
+        el.customersServed.textContent = '\u2014';
+        el.revenue.textContent = '\u2014';
+        el.totalCosts.textContent = '\u2014';
+        el.dailyProfit.innerHTML = '$\u2014';
+        el.sfpValue.textContent = '\u2014';
+        el.mfpValue.textContent = '\u2014';
+        el.cumulativeProfit.textContent = '$0.00';
+        if (profitChartInstance) { profitChartInstance.data.labels = []; profitChartInstance.data.datasets[0].data = []; profitChartInstance.update(); }
+        if (demandChartInstance) { demandChartInstance.destroy(); demandChartInstance = null; }
+        setPhase(1);
+    }
+
+    // === PERSISTENCE ===
+    function saveState() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function loadState() {
+        try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                state = JSON.parse(saved);
+                if (state.heatmapMode === undefined) state.heatmapMode = 'mfp';
+                if (state.heatmapVisible === undefined) state.heatmapVisible = false;
+                if (state.insightsRevealed === undefined) state.insightsRevealed = 0;
+                if (state.phaseTurns === undefined) state.phaseTurns = 0;
+                if (state.questionsShown === undefined) state.questionsShown = state.insightsRevealed;
+                // Migrate old keys
+                if (state.sfpRevealed !== undefined) {
+                    if (state.sfpRevealed && state.insightsRevealed < 3) { state.insightsRevealed = 3; state.questionsShown = Math.max(state.questionsShown, 3); }
+                    delete state.sfpRevealed;
+                }
+                if (state.mfpRevealed !== undefined) {
+                    if (state.mfpRevealed && state.insightsRevealed < 6) { state.insightsRevealed = 6; state.questionsShown = Math.max(state.questionsShown, 6); }
+                    delete state.mfpRevealed;
+                }
+                if (state.discoveryDismissed !== undefined) delete state.discoveryDismissed;
+                if (state.instructorMode !== undefined) delete state.instructorMode;
+                return true;
+            }
+        } catch (e) { localStorage.removeItem(STORAGE_KEY); }
+        return false;
+    }
+
+    function restoreFromState() {
+        setPhase(state.currentPhase);
+        el.dayCounter.textContent = state.currentDay;
+        el.cumulativeProfit.innerHTML = '<span style="color:' + (state.cumulativeProfit >= 0 ? '#16a34a' : '#dc2626') + '">$' + fmt(state.cumulativeProfit) + '</span>';
+        if (profitChartInstance) {
+            profitChartInstance.data.labels = state.history.map(function(_, i) { return 'Day ' + (i + 1); });
+            profitChartInstance.data.datasets[0].data = state.history.map(function(m) { return m.profit; });
+            profitChartInstance.update();
+        }
+        if (state.history.length > 0) {
+            var last = state.history[state.history.length - 1];
+            updateMetrics(last);
+            el.staffSlider.value = last.staff; el.staffValue.textContent = last.staff;
+            el.priceSlider.value = last.price; el.priceValue.textContent = last.price;
+        }
+        if (state.heatmapVisible && state.insightsRevealed >= 8) {
+            el.heatmapSection.style.display = 'block';
+            renderHeatmap();
+        }
+        updateSfpMfpVisibility();
+        renderInsights();
+    }
+
+    // === EVENT BINDING ===
+    function bindEvents() {
+        el.staffSlider.addEventListener('input', function() { el.staffValue.textContent = this.value; });
+        el.priceSlider.addEventListener('input', function() {
+            el.priceValue.textContent = this.value;
+            if (state.currentPhase >= 2 && demandChartInstance) updateDemandChart();
+        });
+        el.runDayBtn.addEventListener('click', runDay);
+        el.resetBtn.addEventListener('click', resetSim);
+        el.toggleInstructions.addEventListener('click', function() {
+            state.instructionExpanded = !state.instructionExpanded;
+            renderInstructions();
+            saveState();
+        });
+
+        document.getElementById('heatmapToggleMFP').addEventListener('click', function() { state.heatmapMode = 'mfp'; renderHeatmap(); saveState(); });
+        document.getElementById('heatmapToggleProfit').addEventListener('click', function() { state.heatmapMode = 'profit'; renderHeatmap(); saveState(); });
+
+        // Delegated click handler for insights panel
+        document.getElementById('insightsPanel').addEventListener('click', function(e) {
+            // Reveal answer click
+            var revealEl = e.target.closest('[data-reveal-index]');
+            if (revealEl) {
+                var idx = parseInt(revealEl.getAttribute('data-reveal-index'));
+                revealInsightAnswer(idx);
+                return;
+            }
+            // Phase advance button
+            if (e.target.id === 'advancePhaseBtn') {
+                advancePhase();
+                return;
+            }
+            // Override controls
+            if (e.target.id === 'overrideSkip2') { skipToPhase(2); return; }
+            if (e.target.id === 'overrideSkip3') { skipToPhase(3); return; }
+            if (e.target.id === 'overrideRevealQ') { revealNextQuestion(); return; }
+            if (e.target.id === 'overrideReset') { resetSim(); return; }
+        });
+    }
+
+    // === INIT ===
+    function init() {
+        cacheDom();
+        initProfitChart();
+        bindEvents();
+        var restored = loadState();
+        if (restored && state.history.length > 0) {
+            restoreFromState();
+        } else {
+            setPhase(1);
+            renderInsights();
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
+</script>

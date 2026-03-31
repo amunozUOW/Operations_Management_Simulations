@@ -1,0 +1,947 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div id="supermarket-checkout-v2" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #1a1a1a;">
+
+    <!-- ROW 1: Title + Phase Progress -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+        <h2 style="margin: 0; font-size: 1.5em; color: #1e293b;">Supermarket Checkout Operations</h2>
+        <div id="phaseIndicator" style="display: flex; gap: 4px; align-items: center;">
+            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #2563eb; color: #fff;">Phase 1: Applying the Basics</span>
+            <span style="color: #cbd5e1;">&#9654;</span>
+            <span id="phaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Forecasting Demand</span>
+            <span style="color: #cbd5e1;">&#9654;</span>
+            <span id="phaseLabel3" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 3: Managing Forecast Error</span>
+        </div>
+    </div>
+
+    <!-- ROW 2: Instruction Panel -->
+    <div id="instructionPanel" style="background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div id="instructionContent"></div>
+            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #2563eb; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+        </div>
+    </div>
+
+    <!-- ROW 3: Controls + Metrics side by side -->
+    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+
+        <!-- Controls Panel -->
+        <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+            <div style="font-weight: 700; font-size: 0.95em; margin-bottom: 12px; color: #334155;">Your Decisions</div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 4px; color: #475569;">
+                    Number of Staffed Checkout Counters: <span id="staffValue" style="color: #2563eb; font-size: 1.1em;">5</span>
+                </label>
+                <input type="range" id="staffSlider" min="1" max="20" value="5" step="1" style="width: 100%; cursor: pointer;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;">
+                    <span>1</span><span>10</span><span>20</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 8px;">
+                <button id="nextTurnBtn" onclick="void(0)" style="flex: 1; padding: 10px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Next Turn</button>
+                <button id="resetBtn" onclick="void(0)" style="padding: 10px 16px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.95em; cursor: pointer;">Reset</button>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard -->
+        <div style="flex: 1.2; min-width: 300px; display: flex; flex-wrap: wrap; gap: 10px; align-content: start;">
+            <div style="width: 100%; font-weight: 700; font-size: 0.95em; color: #334155;">Turn <span id="turnCounter">0</span> of <span id="maxTurnsDisplay">5</span></div>
+
+            <div id="metricDemand" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Last Turn Demand</div>
+                <div id="demandDisplay" style="font-size: 1.4em; font-weight: 700; color: #1e293b;">&mdash;</div>
+                <div style="font-size: 0.7em; color: #94a3b8;">customers</div>
+            </div>
+
+            <!-- Capacity Card (protected) -->
+            <div id="metricCapacity" style="flex: 1; min-width: 130px; padding: 10px; border: 2px solid #2563eb; border-radius: 8px; text-align: center; background: #eff6ff;">
+                <div style="font-size: 0.75em; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Last Turn Capacity</div>
+                <div id="capacityPrompt" style="font-size: 0.8em; color: #64748b; margin: 6px 0 2px 0;">Calculate: (60 &divide; Service Time) &times; Counters</div>
+                <div id="capacityRevealed" style="display: none;">
+                    <div id="capacityDisplay" style="font-size: 1.4em; font-weight: 700; color: #1e40af;">&mdash;</div>
+                    <div style="font-size: 0.7em; color: #3b82f6;">customers</div>
+                </div>
+            </div>
+
+            <div id="metricProfit" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Last Turn Profit</div>
+                <div id="profitDisplay" style="font-size: 1.4em; font-weight: 700; color: #1e293b;">$&mdash;</div>
+            </div>
+
+            <!-- Utilization Card (protected) -->
+            <div id="metricUtilization" style="flex: 1; min-width: 130px; padding: 10px; border: 2px solid #2563eb; border-radius: 8px; text-align: center; background: #eff6ff;">
+                <div style="font-size: 0.75em; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Last Turn Utilization</div>
+                <div id="utilizationPrompt" style="font-size: 0.8em; color: #64748b; margin: 6px 0 2px 0;">Calculate: (Demand &divide; Capacity) &times; 100</div>
+                <div id="utilizationRevealed" style="display: none;">
+                    <div id="utilizationDisplay" style="font-size: 1.4em; font-weight: 700; color: #1e40af;">&mdash;</div>
+                    <div style="font-size: 0.7em; color: #3b82f6;">%</div>
+                </div>
+            </div>
+
+            <div id="metricThroughput" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Throughput Time</div>
+                <div id="throughputDisplay" style="font-size: 1.4em; font-weight: 700; color: #1e293b;">&mdash;</div>
+                <div style="font-size: 0.7em; color: #94a3b8;">min</div>
+            </div>
+
+            <!-- Total Profit -->
+            <div id="metricTotalProfit" style="width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <span style="font-size: 0.8em; color: #64748b;">Total Profit: </span>
+                <span id="totalProfitDisplay" style="font-size: 1em; font-weight: 700; color: #1e293b;">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 4: Chart -->
+    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+        <div style="flex: 1; min-width: 340px;">
+            <div style="position: relative; height: 40vh; max-height: 350px;">
+                <canvas id="demandCapacityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 5: History Table (collapsible) -->
+    <div id="historySection">
+        <div id="historyToggleBar" onclick="void(0)" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; user-select: none;">
+            <span id="historyToggleLabel" style="font-size: 0.9em; font-weight: 600; color: #64748b;">Historical Performance (0 turns)</span>
+            <span id="historyToggleArrow" style="font-size: 0.8em; color: #94a3b8;">&#9654;</span>
+        </div>
+        <div id="historyContent" style="display: none; overflow-x: auto; margin-top: 4px;">
+            <table id="historyTable" style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
+                <thead><tr id="historyHeader" style="background: #f8fafc;"></tr></thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ROW 6: Discussion Insights Panel -->
+    <div id="insightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-weight: 700; font-size: 1.05em; color: #1e293b;">Discussion Insights</div>
+            <div id="insightsCounter" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 9</div>
+        </div>
+        <div id="insightsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
+        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #eff6ff; border: 1px solid #2563eb; border-radius: 6px; text-align: center;"></div>
+        <div id="overrideControls" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // === CONSTANTS ===
+    var STORAGE_KEY = 'ops802_supermarket_checkout_v2';
+    var FIXED_COST_PER_HOUR = 25;
+    var PENALTY_FACTOR = 100;
+
+    var PHASE_CONFIG = {
+        1: { name: 'Applying the Basics', maxTurns: 5 },
+        2: { name: 'Forecasting Demand', maxTurns: 15 },
+        3: { name: 'Managing Forecast Error', maxTurns: 15 }
+    };
+
+    var PHASE3_DEMAND_PATTERN = [22, 25, 23, 24, 21, 22, 21, 20, 55, 68, 68, 67, 69, 50, 20];
+
+    // === CHECKPOINT SCHEDULE ===
+    var CHECKPOINT_SCHEDULE = [
+        { phase: 1, turn: 2, insightIndex: 0 },
+        { phase: 1, turn: 3, insightIndex: 1 },
+        { phase: 1, turn: 5, insightIndex: 2 },
+        { phase: 2, turn: 3, insightIndex: 3 },
+        { phase: 2, turn: 7, insightIndex: 4 },
+        { phase: 2, turn: 12, insightIndex: 5 },
+        { phase: 3, turn: 3, insightIndex: 6 },
+        { phase: 3, turn: 10, insightIndex: 7 },
+        { phase: 3, turn: 14, insightIndex: 8 }
+    ];
+
+    var PHASE_INSIGHTS = { 1: [0, 1, 2], 2: [3, 4, 5], 3: [6, 7, 8] };
+
+    // === ORDERED INSIGHTS ===
+    var insights = [
+        {
+            id: 1,
+            question: "You already know Little\u2019s Law from the Coffee Shop. Apply it here: if demand ranges from 50 to 70 and service time from 3 to 7 min, what is the min and max number of counters you could need?",
+            answer: "Min: 50\u00d73=150min \u2192 CEIL(150/60)=3 counters. Max: 70\u00d77=490min \u2192 CEIL(490/60)=9 counters. Average: 60\u00d75=300min \u2192 5 counters. Viable range: 3\u20139 counters. Anything outside this range is sub-optimal.",
+            action: function() {
+                renderHistoryHeader();
+                rerenderHistory();
+                updateProtectedVisibility();
+            }
+        },
+        {
+            id: 2,
+            question: "Look at your last two turns. Even with the same counters, your capacity changed. Why? What does this randomness mean for your confidence in any single staffing decision?",
+            answer: "Service time is random (3\u20137 min), so capacity fluctuates each turn. With 5 counters, capacity ranges from ~43 to ~100. No staffing level guarantees a specific outcome. Utilisation tells you how close to the edge you are.",
+            action: function() {
+                renderHistoryHeader();
+                rerenderHistory();
+                updateProtectedVisibility();
+            }
+        },
+        {
+            id: 3,
+            question: "If you could see the next 5 turns of demand, would you change your approach? What staffing would you choose as a safe default with no foresight?",
+            answer: "With foresight: match staffing exactly to each turn. Without: pick a level covering the average case with a buffer (~5\u20137 counters). The gap between these two approaches is the value of forecasting. In Phase 2, demand will change over time \u2014 you\u2019ll need a forecast.",
+            action: null
+        },
+        {
+            id: 4,
+            question: "Look at the demand line. What is happening over time? Based on the first 3 turns, can you estimate what demand will be on turn 10?",
+            answer: "Demand follows a linear trend from ~20 to ~75. The slope is roughly 3.9 customers per turn. Turn 10 forecast: 20 + (3.9\u00d79) \u2248 55 customers. This is a simple linear forecast \u2014 using past data to predict the future.",
+            action: null
+        },
+        {
+            id: 5,
+            question: "Compare two strategies: (A) fixed staffing for all 15 turns, or (B) adapt each turn based on your forecast. What does the capacity vs demand chart look like for each? Which generates more profit?",
+            answer: "Fixed = flat capacity line: overstaffed early (wasted cost) or understaffed late (penalties). Adaptive tracks the demand trend. Adaptive almost always wins because it avoids both wasted costs and penalties simultaneously.",
+            action: null
+        },
+        {
+            id: 6,
+            question: "Using your demand forecast and an average service time of 5 min, apply Little\u2019s Law: how many counters do you need for the next turn? How does the random service time affect this calculation?",
+            answer: "E.g. forecast 63 customers: CEIL(63\u00d75\u00f760)=6 counters. But at worst-case 7 min: CEIL(63\u00d77\u00f760)=8 counters. You must decide: staff for the expected case (cheaper, riskier) or the worst case (safer, more expensive). This is the core trade-off.",
+            action: null
+        },
+        {
+            id: 7,
+            question: "Look at the first 3 turns \u2014 what is different from Phase 2? Would a linear forecast work here?",
+            answer: "Demand is low and flat (~20\u201325), unlike Phase 2\u2019s upward trend. A linear forecast would predict continued low demand \u2014 but a mid-shift surge (~55\u201370) is coming that a simple model will miss. This is the danger of assuming past patterns continue.",
+            action: null
+        },
+        {
+            id: 8,
+            question: "You\u2019ve experienced the surge. The penalty is $100 per unserved customer; each idle counter costs $25/hour. If you expect 60 customers, what\u2019s the cost of being 2 counters short vs 2 counters over?",
+            answer: "2 counters over: 2\u00d7$25=$50 wasted. 2 counters short (at 5 min service): ~12 unserved customers \u00d7 $100 = $1,200 penalty. Understaffing is ~24\u00d7 more costly than overstaffing. When uncertain, err on the side of too many counters.",
+            action: null
+        },
+        {
+            id: 9,
+            question: "Your forecast was inevitably wrong at some point. What strategies \u2014 in this simulation and in real operations \u2014 help manage the cost of forecast errors?",
+            answer: "In this sim: buffer 1\u20132 extra counters, react quickly to new information, accept that the asymmetric penalty rewards caution. Real world: flexible staffing (casual workers), self-checkout technology, express lanes, off-peak promotions, cross-training staff.",
+            action: null
+        }
+    ];
+
+    // === STATE ===
+    var state = {
+        currentPhase: 1,
+        currentTurn: 0,
+        phaseTurns: 0,
+        questionsShown: 0,
+        insightsRevealed: 0,
+        history: [],
+        cumulativeProfit: 0,
+        instructionExpanded: true,
+        historyExpanded: false
+    };
+
+    // === DOM REFS ===
+    var el = {};
+    function cacheDom() {
+        el.staffSlider = document.getElementById('staffSlider');
+        el.staffValue = document.getElementById('staffValue');
+        el.nextTurnBtn = document.getElementById('nextTurnBtn');
+        el.resetBtn = document.getElementById('resetBtn');
+        el.toggleInstructions = document.getElementById('toggleInstructions');
+        el.instructionContent = document.getElementById('instructionContent');
+        el.turnCounter = document.getElementById('turnCounter');
+        el.maxTurnsDisplay = document.getElementById('maxTurnsDisplay');
+        el.demandDisplay = document.getElementById('demandDisplay');
+        el.capacityDisplay = document.getElementById('capacityDisplay');
+        el.capacityPrompt = document.getElementById('capacityPrompt');
+        el.capacityRevealed = document.getElementById('capacityRevealed');
+        el.profitDisplay = document.getElementById('profitDisplay');
+        el.utilizationDisplay = document.getElementById('utilizationDisplay');
+        el.utilizationPrompt = document.getElementById('utilizationPrompt');
+        el.utilizationRevealed = document.getElementById('utilizationRevealed');
+        el.throughputDisplay = document.getElementById('throughputDisplay');
+        el.totalProfitDisplay = document.getElementById('totalProfitDisplay');
+        el.historyToggleBar = document.getElementById('historyToggleBar');
+        el.historyToggleLabel = document.getElementById('historyToggleLabel');
+        el.historyToggleArrow = document.getElementById('historyToggleArrow');
+        el.historyContent = document.getElementById('historyContent');
+        el.historyHeader = document.getElementById('historyHeader');
+        el.historyBody = document.getElementById('historyBody');
+        el.insightsCounter = document.getElementById('insightsCounter');
+        el.insightsList = document.getElementById('insightsList');
+        el.phaseAdvanceArea = document.getElementById('phaseAdvanceArea');
+        el.overrideControls = document.getElementById('overrideControls');
+    }
+
+    // === DEMAND GENERATORS ===
+    function generateDemandPhase1() {
+        return Math.floor(Math.random() * 21) + 50;
+    }
+
+    function generateDemandPhase2(turn) {
+        var minDemand = 20;
+        var maxDemand = 75;
+        var numTurns = 15;
+        var noiseRange = 6;
+        var slope = (maxDemand - minDemand) / (numTurns - 1);
+        var demand = Math.round((slope * (turn - 1)) + minDemand);
+        var noise = Math.floor(Math.random() * (2 * noiseRange + 1)) - noiseRange;
+        return demand + noise;
+    }
+
+    function generateDemandPhase3(turn) {
+        if (turn >= 1 && turn <= PHASE3_DEMAND_PATTERN.length) {
+            var baseDemand = PHASE3_DEMAND_PATTERN[turn - 1];
+            var noiseRange = 6;
+            var noise = Math.floor(Math.random() * (2 * noiseRange + 1)) - noiseRange;
+            return baseDemand + noise;
+        }
+        return 20;
+    }
+
+    function generateDemand(phase, turn) {
+        if (phase === 1) return generateDemandPhase1();
+        if (phase === 2) return generateDemandPhase2(turn);
+        return generateDemandPhase3(turn);
+    }
+
+    // === CORE CALCULATION ===
+    function calculateTurn(staffedCounters, demand) {
+        var serviceTime = Math.floor(Math.random() * 5) + 3;
+        var revenue = Math.floor(Math.random() * 26) + 50;
+
+        var capacity = (60 / serviceTime) * staffedCounters;
+        var utilization = (demand / capacity) * 100;
+        var throughputTime = (serviceTime * demand) / staffedCounters;
+
+        var staffingCosts = staffedCounters * FIXED_COST_PER_HOUR;
+        var penaltyCosts = throughputTime > 60 ? (demand - capacity) * PENALTY_FACTOR : 0;
+        penaltyCosts = Math.max(0, penaltyCosts);
+
+        var turnProfit = (revenue * demand) - staffingCosts - penaltyCosts;
+
+        return {
+            staffedCounters: staffedCounters,
+            demand: demand,
+            serviceTime: serviceTime,
+            revenue: revenue,
+            capacity: capacity,
+            utilization: Math.min(utilization, 100),
+            throughputTime: throughputTime,
+            staffingCosts: staffingCosts,
+            penaltyCosts: penaltyCosts,
+            turnProfit: turnProfit
+        };
+    }
+
+    function fmt(v) { return v.toFixed(2); }
+
+    // === INSTRUCTION TEXT ===
+    var instructionText = {
+        1: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #1e40af;">Phase 1: Applying the Basics (5 turns)</div>' +
+                '<div style="margin-bottom: 8px;">You already know Little\u2019s Law from the Coffee Shop. Now apply it in a new context \u2014 you manage the checkout operations at a busy supermarket. Service time is <strong>random (3\u20137 min)</strong> each turn, so capacity is uncertain. Your job: decide <strong>how many counters to staff</strong> to maximise profit.</div>' +
+                '<div style="margin-bottom: 6px;">Key information:</div>' +
+                '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
+                '<li>Customer demand is <strong>50\u201370 customers per turn</strong> (uniform random)</li>' +
+                '<li>Service time is <strong>3\u20137 minutes</strong> per customer (random each turn)</li>' +
+                '<li>Revenue per customer is <strong>$50\u2013$75</strong> (random each turn)</li>' +
+                '<li>Each staffed counter costs <strong>$25/hour</strong></li>' +
+                '<li>If Throughput Time exceeds 60 minutes, a <strong>$100 penalty per unserved customer</strong> is applied</li>' +
+                '</ul>' +
+                '<div style="color: #1e40af; font-weight: 600;">Apply Little\u2019s Law to determine the viable staffing range. What happens when service time varies?</div>',
+            short: '<span style="font-weight: 700; color: #1e40af;">Phase 1:</span> Apply Little\u2019s Law (demand 50\u201370, service 3\u20137 min). What is the viable staffing range?'
+        },
+        2: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #7c3aed;">Phase 2: Forecasting Demand (15 turns)</div>' +
+                '<div style="margin-bottom: 8px;">Demand is no longer stable \u2014 it trends <strong>upward from ~20 to ~75 customers</strong> over 15 turns. You need to <strong>build a forecast</strong> and adapt your staffing as demand changes.</div>' +
+                '<div style="margin-bottom: 6px;">The first turn will have roughly <strong>20\u201322 customers</strong>. Your task:</div>' +
+                '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
+                '<li>Forecast what demand will be on the next turn</li>' +
+                '<li>Apply Little\u2019s Law using your forecast</li>' +
+                '<li>Keep the capacity line just above the demand line</li>' +
+                '</ul>' +
+                '<div style="color: #7c3aed; font-weight: 600;">Forecast demand, apply Little\u2019s Law, adapt turn by turn.</div>',
+            short: '<span style="font-weight: 700; color: #7c3aed;">Phase 2:</span> Demand trends upward (20\u219275). Forecast demand and adapt staffing to match.'
+        },
+        3: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #059669;">Phase 3: Managing Forecast Error (15 turns)</div>' +
+                '<div style="margin-bottom: 8px;">Demand follows a <strong>new, unpredictable pattern</strong> with peaks and troughs. Your Phase 2 forecast approach won\u2019t work here. You need to think about what happens <strong>when your forecast is wrong</strong>.</div>' +
+                '<div style="margin-bottom: 6px;">Your task:</div>' +
+                '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
+                '<li>Identify the demand pattern as it unfolds</li>' +
+                '<li>Manage the <strong>cost of being wrong</strong> \u2014 understaffing vs overstaffing</li>' +
+                '<li>Think about staffing buffers and when caution pays off</li>' +
+                '</ul>' +
+                '<div style="color: #059669; font-weight: 600;">Watch the pattern. When your forecast is wrong, which direction is cheaper to be wrong in?</div>',
+            short: '<span style="font-weight: 700; color: #059669;">Phase 3:</span> Demand is unpredictable. Manage forecast error and the cost of being wrong.'
+        }
+    };
+
+    // === PROTECTED METRIC VISIBILITY ===
+    function capacityIsRevealed() { return state.insightsRevealed >= 1; }
+    function utilizationIsRevealed() { return state.insightsRevealed >= 2; }
+
+    function updateProtectedVisibility() {
+        el.capacityPrompt.style.display = capacityIsRevealed() ? 'none' : 'block';
+        el.capacityRevealed.style.display = capacityIsRevealed() ? 'block' : 'none';
+        el.utilizationPrompt.style.display = utilizationIsRevealed() ? 'none' : 'block';
+        el.utilizationRevealed.style.display = utilizationIsRevealed() ? 'block' : 'none';
+
+        // Update card styling when revealed
+        var capCard = document.getElementById('metricCapacity');
+        var utilCard = document.getElementById('metricUtilization');
+        if (capacityIsRevealed()) {
+            capCard.style.border = '1px solid #e2e8f0';
+            capCard.style.background = '#fff';
+        } else {
+            capCard.style.border = '2px solid #2563eb';
+            capCard.style.background = '#eff6ff';
+        }
+        if (utilizationIsRevealed()) {
+            utilCard.style.border = '1px solid #e2e8f0';
+            utilCard.style.background = '#fff';
+        } else {
+            utilCard.style.border = '2px solid #2563eb';
+            utilCard.style.background = '#eff6ff';
+        }
+    }
+
+    // === INSIGHTS PANEL (three-state lifecycle) ===
+    function renderInsights() {
+        var total = insights.length;
+        el.insightsCounter.textContent = state.insightsRevealed + ' of ' + total;
+
+        var html = '';
+        for (var i = 0; i < total; i++) {
+            var insight = insights[i];
+
+            if (i < state.insightsRevealed) {
+                html += '<div style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0;">';
+                html += '<div style="display: flex; gap: 10px; align-items: start;">';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="flex: 1;">';
+                html += '<div style="font-size: 0.85em; color: #475569; font-style: italic; margin-bottom: 6px;">\u201c' + insight.question + '\u201d</div>';
+                html += '<div style="font-size: 0.9em; color: #1e293b; font-weight: 500; padding: 6px 10px; background: #f0fdf4; border-left: 3px solid #22c55e; border-radius: 0 4px 4px 0;">' + insight.answer + '</div>';
+                html += '</div></div></div>';
+
+            } else if (i < state.questionsShown) {
+                html += '<div data-reveal-index="' + i + '" style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fefce8; border: 1px solid #eab308; cursor: pointer;">';
+                html += '<div style="display: flex; gap: 10px; align-items: start;">';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #eab308; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="flex: 1;">';
+                html += '<div style="font-size: 0.85em; color: #1e293b; font-style: italic; margin-bottom: 6px;">\u201c' + insight.question + '\u201d</div>';
+                if (i === state.insightsRevealed) {
+                    html += '<div style="font-size: 0.8em; color: #92400e; font-weight: 600; padding: 4px 10px; background: #fef9c3; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
+                } else {
+                    html += '<div style="font-size: 0.8em; color: #94a3b8; font-style: italic;">(answer the previous question first)</div>';
+                }
+                html += '</div></div></div>';
+
+            } else {
+                html += '<div style="padding: 6px 12px; margin-bottom: 2px;">';
+                html += '<div style="display: flex; gap: 10px; align-items: center;">';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #e5e7eb; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="font-size: 0.82em; color: #cbd5e1; font-style: italic;">(not yet revealed)</div>';
+                html += '</div></div>';
+            }
+        }
+        el.insightsList.innerHTML = html;
+
+        renderPhaseAdvance();
+        renderOverrides();
+    }
+
+    function renderPhaseAdvance() {
+        var phase = state.currentPhase;
+        var phaseInsights = PHASE_INSIGHTS[phase];
+        var maxInsightForPhase = phaseInsights[phaseInsights.length - 1];
+        var allPhaseAnswered = state.insightsRevealed > maxInsightForPhase;
+
+        if (allPhaseAnswered && phase < 3) {
+            var nextPhase = phase + 1;
+            el.phaseAdvanceArea.style.display = 'block';
+            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #1e40af; margin-bottom: 8px;">All Phase ' + phase + ' discussion points completed!</div>' +
+                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + nextPhase + ' &#9654;</button>';
+        } else {
+            el.phaseAdvanceArea.style.display = 'none';
+            el.phaseAdvanceArea.innerHTML = '';
+        }
+    }
+
+    function renderOverrides() {
+        var phase = state.currentPhase;
+        var linkStyle = 'background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78em; padding: 2px 6px; text-decoration: underline;';
+        var html = '';
+        if (phase < 2) html += '<button id="overrideSkip2" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 2</button>';
+        if (phase < 3) html += '<button id="overrideSkip3" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 3</button>';
+        html += '<button id="overrideRevealQ" onclick="void(0)" style="' + linkStyle + '">Reveal Next Question</button>';
+        html += '<button id="overrideReset" onclick="void(0)" style="' + linkStyle + '">Full Reset</button>';
+        el.overrideControls.innerHTML = html;
+    }
+
+    // === INSIGHT ACTIONS ===
+    function checkForNewQuestion() {
+        for (var i = 0; i < CHECKPOINT_SCHEDULE.length; i++) {
+            var cp = CHECKPOINT_SCHEDULE[i];
+            if (cp.phase === state.currentPhase && cp.turn === state.phaseTurns && cp.insightIndex >= state.questionsShown) {
+                state.questionsShown = cp.insightIndex + 1;
+                renderInsights();
+                return;
+            }
+        }
+    }
+
+    function revealInsightAnswer(index) {
+        if (index !== state.insightsRevealed) return;
+        if (index >= state.questionsShown) return;
+
+        var insight = insights[index];
+        state.insightsRevealed = index + 1;
+
+        if (typeof insight.action === 'function') {
+            insight.action();
+        }
+
+        renderInsights();
+        rerenderHistory();
+        updateProtectedVisibility();
+        saveState();
+    }
+
+    function advancePhase() {
+        if (state.currentPhase >= 3) return;
+        setPhase(state.currentPhase + 1);
+    }
+
+    function skipToPhase(targetPhase) {
+        if (targetPhase <= state.currentPhase || targetPhase > 3) return;
+        for (var p = state.currentPhase; p < targetPhase; p++) {
+            var phaseIns = PHASE_INSIGHTS[p];
+            var maxIdx = phaseIns[phaseIns.length - 1];
+            if (state.questionsShown <= maxIdx) state.questionsShown = maxIdx + 1;
+            while (state.insightsRevealed <= maxIdx) {
+                var insight = insights[state.insightsRevealed];
+                state.insightsRevealed++;
+                if (typeof insight.action === 'function') insight.action();
+            }
+        }
+        setPhase(targetPhase);
+    }
+
+    function revealNextQuestion() {
+        if (state.questionsShown >= insights.length) return;
+        state.questionsShown++;
+        renderInsights();
+        saveState();
+    }
+
+    // === PHASE MANAGEMENT ===
+    function setPhase(phase) {
+        state.currentPhase = phase;
+        state.currentTurn = 0;
+        state.phaseTurns = 0;
+        state.history = [];
+
+        var colors = { active: '#2563eb', completed: '#16a34a', upcoming: '#e5e7eb' };
+        var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
+        [1, 2, 3].forEach(function(p) {
+            var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
+            var label = document.getElementById('phaseLabel' + p);
+            label.style.background = colors[status];
+            label.style.color = textColors[status];
+        });
+
+        el.maxTurnsDisplay.textContent = PHASE_CONFIG[phase].maxTurns;
+
+        // Re-enable Next Turn button
+        el.nextTurnBtn.disabled = false;
+        el.nextTurnBtn.style.backgroundColor = '#2563eb';
+        el.nextTurnBtn.style.cursor = 'pointer';
+        el.staffSlider.disabled = false;
+
+        // Reset metrics display
+        el.turnCounter.textContent = '0';
+        el.demandDisplay.textContent = '\u2014';
+        el.capacityDisplay.textContent = '\u2014';
+        el.profitDisplay.innerHTML = '$\u2014';
+        el.utilizationDisplay.textContent = '\u2014';
+        el.throughputDisplay.textContent = '\u2014';
+
+        // Clear history table
+        el.historyBody.innerHTML = '';
+        el.historyToggleLabel.textContent = 'Historical Performance (0 turns)';
+
+        // Reinitialize chart
+        initChart();
+
+        renderInstructions();
+        updateProtectedVisibility();
+        renderHistoryHeader();
+        renderInsights();
+        saveState();
+    }
+
+    // === INSTRUCTIONS ===
+    function renderInstructions() {
+        var inst = instructionText[state.currentPhase];
+        el.instructionContent.innerHTML = state.instructionExpanded ? inst.full : inst.short;
+        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
+    }
+
+    // === HISTORY TABLE ===
+    function renderHistoryHeader() {
+        var headers = ['Turn', 'Staffed<br>Counters', 'Actual<br>Demand', 'Service<br>Time', 'Revenue<br>per Cust.', 'Capacity', 'Utilization', 'Throughput<br>Time', 'Staffing<br>Costs', 'Penalty<br>Costs', 'Profit'];
+        var s = 'padding: 8px 6px; text-align: center; font-weight: 600; font-size: 0.8em; border-bottom: 2px solid #e2e8f0; color: #475569;';
+        el.historyHeader.innerHTML = headers.map(function(h) { return '<th style="' + s + '">' + h + '</th>'; }).join('');
+    }
+
+    function addHistoryRow(m, turnNum) {
+        var cs = 'padding: 6px; text-align: center; border-bottom: 1px solid #f1f5f9;';
+
+        var capDisplay = capacityIsRevealed()
+            ? m.capacity.toFixed(0)
+            : '<span style="color: #94a3b8; font-style: italic;">?</span>';
+
+        var utilDisplay = utilizationIsRevealed()
+            ? m.utilization.toFixed(0) + '%'
+            : '<span style="color: #94a3b8; font-style: italic;">?</span>';
+
+        var profitColor = m.turnProfit >= 0 ? '#16a34a' : '#dc2626';
+        var throughputColor = m.throughputTime > 60 ? '#dc2626' : '#1e293b';
+
+        var cells = [
+            turnNum,
+            m.staffedCounters,
+            m.demand,
+            m.serviceTime + ' min',
+            '$' + fmt(m.revenue),
+            capDisplay,
+            utilDisplay,
+            '<span style="color:' + throughputColor + ';">' + m.throughputTime.toFixed(0) + ' min</span>',
+            '$' + fmt(m.staffingCosts),
+            '$' + fmt(m.penaltyCosts),
+            '<span style="color:' + profitColor + '; font-weight: 600;">$' + fmt(m.turnProfit) + '</span>'
+        ];
+
+        var row = document.createElement('tr');
+        if ((turnNum - 1) % 2 === 0) row.style.backgroundColor = '#f9f9f9';
+        cells.forEach(function(c) {
+            var td = document.createElement('td');
+            td.style.cssText = cs;
+            td.innerHTML = c;
+            row.appendChild(td);
+        });
+        el.historyBody.appendChild(row);
+    }
+
+    function rerenderHistory() {
+        el.historyBody.innerHTML = '';
+        for (var i = 0; i < state.history.length; i++) addHistoryRow(state.history[i], i + 1);
+    }
+
+    // === METRICS DISPLAY ===
+    function updateMetrics(m) {
+        el.turnCounter.textContent = state.currentTurn;
+        el.demandDisplay.textContent = m.demand;
+        el.capacityDisplay.textContent = m.capacity.toFixed(0);
+        el.profitDisplay.innerHTML = '<span style="color:' + (m.turnProfit >= 0 ? '#16a34a' : '#dc2626') + '">$' + fmt(m.turnProfit) + '</span>';
+        el.utilizationDisplay.textContent = m.utilization.toFixed(0);
+        el.throughputDisplay.innerHTML = '<span style="color:' + (m.throughputTime > 60 ? '#dc2626' : '#1e293b') + '">' + m.throughputTime.toFixed(0) + '</span>';
+        el.totalProfitDisplay.innerHTML = '<span style="color:' + (state.cumulativeProfit >= 0 ? '#16a34a' : '#dc2626') + '">$' + fmt(state.cumulativeProfit) + '</span>';
+        updateProtectedVisibility();
+    }
+
+    // === CHART ===
+    var chartInstance = null;
+
+    function initChart() {
+        if (chartInstance) chartInstance.destroy();
+        var maxTurns = PHASE_CONFIG[state.currentPhase].maxTurns;
+        var labels = [];
+        for (var i = 1; i <= maxTurns; i++) labels.push(String(i));
+
+        var ctx = document.getElementById('demandCapacityChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Capacity',
+                        data: Array(maxTurns).fill(null),
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgb(54, 162, 235)',
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: 'rgb(54, 162, 235)',
+                        legendBorderColor: '#666',
+                        legendBackgroundColor: 'rgb(54, 162, 235)'
+                    },
+                    {
+                        label: 'Actual Demand',
+                        data: Array(maxTurns).fill(null),
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgb(255, 159, 64)',
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: 'rgb(255, 159, 64)',
+                        legendBorderColor: '#666',
+                        legendBackgroundColor: 'rgb(255, 159, 64)'
+                    }
+                ]
+            },
+            options: {
+                animation: { duration: 800, easing: 'easeOutQuart' },
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Turn', font: { size: 16, weight: 'bold' } },
+                        grid: { display: true, color: '#e5e5e5', lineWidth: 0.5 },
+                        border: { width: 1.5, color: '#333' },
+                        ticks: { font: { size: 14 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: '', font: { size: 16, weight: 'bold' } },
+                        grid: { color: '#e5e5e5', lineWidth: 0.5 },
+                        border: { width: 1.5, color: '#333' },
+                        ticks: { font: { size: 14 } }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'rect',
+                            font: { size: 14 },
+                            generateLabels: function(chart) {
+                                var datasets = chart.data.datasets;
+                                return datasets.map(function(dataset, i) {
+                                    return {
+                                        text: dataset.label,
+                                        fillStyle: dataset.legendBackgroundColor,
+                                        strokeStyle: dataset.legendBorderColor,
+                                        lineWidth: 1,
+                                        hidden: !chart.isDatasetVisible(i),
+                                        index: i
+                                    };
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        if (!chartInstance) return;
+        var maxTurns = PHASE_CONFIG[state.currentPhase].maxTurns;
+        var capacityData = Array(maxTurns).fill(null);
+        var demandData = Array(maxTurns).fill(null);
+
+        state.history.forEach(function(data, index) {
+            capacityData[index] = data.capacity;
+            demandData[index] = data.demand;
+        });
+
+        chartInstance.data.datasets[0].data = capacityData;
+        chartInstance.data.datasets[1].data = demandData;
+        chartInstance.update();
+    }
+
+    // === RUN TURN ===
+    function runTurn() {
+        var maxTurns = PHASE_CONFIG[state.currentPhase].maxTurns;
+        if (state.currentTurn >= maxTurns) return;
+
+        state.currentTurn++;
+        state.phaseTurns++;
+
+        var staffedCounters = parseInt(el.staffSlider.value);
+        var demand = generateDemand(state.currentPhase, state.currentTurn);
+        var metrics = calculateTurn(staffedCounters, demand);
+
+        state.cumulativeProfit += metrics.turnProfit;
+        state.history.push(metrics);
+
+        updateMetrics(metrics);
+        addHistoryRow(metrics, state.currentTurn);
+        el.historyToggleLabel.textContent = 'Historical Performance (' + state.history.length + ' turns)';
+        updateChart();
+        checkForNewQuestion();
+        saveState();
+
+        // Check if phase turns exhausted
+        if (state.currentTurn >= maxTurns) {
+            el.nextTurnBtn.disabled = true;
+            el.nextTurnBtn.style.backgroundColor = '#999';
+            el.nextTurnBtn.style.cursor = 'default';
+            el.staffSlider.disabled = true;
+        }
+    }
+
+    // === RESET ===
+    function resetSim() {
+        localStorage.removeItem(STORAGE_KEY);
+        state = {
+            currentPhase: 1,
+            currentTurn: 0,
+            phaseTurns: 0,
+            questionsShown: 0,
+            insightsRevealed: 0,
+            history: [],
+            cumulativeProfit: 0,
+            instructionExpanded: true,
+            historyExpanded: false
+        };
+        el.staffSlider.value = 5;
+        el.staffValue.textContent = '5';
+        el.totalProfitDisplay.textContent = '$0.00';
+        el.historyContent.style.display = 'none';
+        el.historyToggleArrow.innerHTML = '&#9654;';
+        setPhase(1);
+    }
+
+    // === PERSISTENCE ===
+    function saveState() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function loadState() {
+        try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                state = JSON.parse(saved);
+                if (state.phaseTurns === undefined) state.phaseTurns = state.currentTurn;
+                if (state.questionsShown === undefined) state.questionsShown = state.insightsRevealed;
+                if (state.historyExpanded === undefined) state.historyExpanded = false;
+                if (state.instructionExpanded === undefined) state.instructionExpanded = true;
+                return true;
+            }
+        } catch (e) { localStorage.removeItem(STORAGE_KEY); }
+        return false;
+    }
+
+    function restoreFromState() {
+        // Set phase without resetting history
+        var phase = state.currentPhase;
+
+        var colors = { active: '#2563eb', completed: '#16a34a', upcoming: '#e5e7eb' };
+        var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
+        [1, 2, 3].forEach(function(p) {
+            var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
+            var label = document.getElementById('phaseLabel' + p);
+            label.style.background = colors[status];
+            label.style.color = textColors[status];
+        });
+
+        el.maxTurnsDisplay.textContent = PHASE_CONFIG[phase].maxTurns;
+        el.turnCounter.textContent = state.currentTurn;
+        el.totalProfitDisplay.innerHTML = '<span style="color:' + (state.cumulativeProfit >= 0 ? '#16a34a' : '#dc2626') + '">$' + fmt(state.cumulativeProfit) + '</span>';
+
+        // Check if phase is exhausted
+        var maxTurns = PHASE_CONFIG[phase].maxTurns;
+        if (state.currentTurn >= maxTurns) {
+            el.nextTurnBtn.disabled = true;
+            el.nextTurnBtn.style.backgroundColor = '#999';
+            el.nextTurnBtn.style.cursor = 'default';
+            el.staffSlider.disabled = true;
+        } else {
+            el.nextTurnBtn.disabled = false;
+            el.nextTurnBtn.style.backgroundColor = '#2563eb';
+            el.nextTurnBtn.style.cursor = 'pointer';
+            el.staffSlider.disabled = false;
+        }
+
+        // Init chart and rebuild from history
+        initChart();
+        updateChart();
+
+        // Rebuild history table
+        renderHistoryHeader();
+        rerenderHistory();
+        el.historyToggleLabel.textContent = 'Historical Performance (' + state.history.length + ' turns)';
+
+        // Restore history toggle
+        el.historyContent.style.display = state.historyExpanded ? 'block' : 'none';
+        el.historyToggleArrow.innerHTML = state.historyExpanded ? '&#9660;' : '&#9654;';
+
+        // Restore last metrics
+        if (state.history.length > 0) {
+            var last = state.history[state.history.length - 1];
+            updateMetrics(last);
+            el.staffSlider.value = last.staffedCounters;
+            el.staffValue.textContent = last.staffedCounters;
+        }
+
+        renderInstructions();
+        updateProtectedVisibility();
+        renderInsights();
+    }
+
+    // === EVENT BINDING ===
+    function bindEvents() {
+        el.staffSlider.addEventListener('input', function() {
+            el.staffValue.textContent = this.value;
+        });
+        el.nextTurnBtn.addEventListener('click', runTurn);
+        el.resetBtn.addEventListener('click', resetSim);
+        el.toggleInstructions.addEventListener('click', function() {
+            state.instructionExpanded = !state.instructionExpanded;
+            renderInstructions();
+            saveState();
+        });
+        el.historyToggleBar.addEventListener('click', function() {
+            state.historyExpanded = !state.historyExpanded;
+            el.historyContent.style.display = state.historyExpanded ? 'block' : 'none';
+            el.historyToggleArrow.innerHTML = state.historyExpanded ? '&#9660;' : '&#9654;';
+            saveState();
+        });
+
+        // Delegated click handler for insights panel
+        document.getElementById('insightsPanel').addEventListener('click', function(e) {
+            var revealEl = e.target.closest('[data-reveal-index]');
+            if (revealEl) {
+                var idx = parseInt(revealEl.getAttribute('data-reveal-index'));
+                revealInsightAnswer(idx);
+                return;
+            }
+            if (e.target.id === 'advancePhaseBtn') { advancePhase(); return; }
+            if (e.target.id === 'overrideSkip2') { skipToPhase(2); return; }
+            if (e.target.id === 'overrideSkip3') { skipToPhase(3); return; }
+            if (e.target.id === 'overrideRevealQ') { revealNextQuestion(); return; }
+            if (e.target.id === 'overrideReset') { resetSim(); return; }
+        });
+    }
+
+    // === INIT ===
+    function init() {
+        cacheDom();
+        bindEvents();
+        var restored = loadState();
+        if (restored && state.history.length > 0) {
+            restoreFromState();
+        } else {
+            initChart();
+            setPhase(1);
+            renderInsights();
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>

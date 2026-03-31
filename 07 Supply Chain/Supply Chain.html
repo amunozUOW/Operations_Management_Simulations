@@ -1,0 +1,779 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div id="supply-chain-sim-v1" style="display:flex !important; flex-direction:column !important; gap:14px !important; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important; max-width:1200px !important; margin:0 auto !important; padding:16px !important; color:#1a1a1a !important; line-height:1.4 !important;">
+
+    <!-- Title + Phase Indicator -->
+    <div style="display:flex !important; flex-wrap:wrap !important; align-items:center !important; justify-content:space-between !important; gap:10px !important;">
+        <h2 style="margin:0 !important; font-size:1.5em !important; color:#1e293b !important;">Supply Chain Management</h2>
+        <div style="display:flex !important; gap:4px !important; align-items:center !important;">
+            <span id="phaseLabel1" style="padding:5px 12px !important; border-radius:6px !important; font-size:0.8em !important; font-weight:600 !important; background:#2563eb !important; color:#fff !important;">Phase 1</span>
+            <span style="color:#cbd5e1 !important;">&#9654;</span>
+            <span id="phaseLabel2" style="padding:5px 12px !important; border-radius:6px !important; font-size:0.8em !important; font-weight:600 !important; background:#e5e7eb !important; color:#94a3b8 !important;">Phase 2</span>
+            <span style="color:#cbd5e1 !important;">&#9654;</span>
+            <span id="phaseLabel3" style="padding:5px 12px !important; border-radius:6px !important; font-size:0.8em !important; font-weight:600 !important; background:#e5e7eb !important; color:#94a3b8 !important;">Phase 3</span>
+        </div>
+    </div>
+
+    <!-- Instruction Panel -->
+    <div style="background:#eff6ff !important; border-left:4px solid #2563eb !important; border-radius:0 8px 8px 0 !important; padding:14px 18px !important; line-height:1.6 !important;">
+        <div style="display:flex !important; justify-content:space-between !important; align-items:start !important;">
+            <div id="instructionContent" style="flex:1 !important;"></div>
+            <button id="toggleInstructions" onclick="void(0)" style="background:none !important; border:none !important; color:#2563eb !important; cursor:pointer !important; font-size:0.85em !important; white-space:nowrap !important; padding:0 0 0 12px !important;">Show Less</button>
+        </div>
+    </div>
+
+    <!-- Controls + Status Row -->
+    <div style="display:flex !important; flex-wrap:wrap !important; gap:14px !important;">
+        <!-- Slider Controls -->
+        <div style="flex:1 !important; min-width:280px !important; background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px !important;">
+            <div style="font-weight:700 !important; font-size:0.95em !important; margin-bottom:12px !important; color:#334155 !important;">Order Quantities (Q)</div>
+            <div style="margin-bottom:12px !important;">
+                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#1e40af !important; margin-bottom:4px !important;">Factory Q: <span id="factoryValueDisplay">12</span></label>
+                <input type="range" id="factorySlider" min="0" max="20" value="12" style="width:100% !important;">
+            </div>
+            <div id="manufacturerSliderGroup" style="display:none !important; margin-bottom:12px !important;">
+                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#f97316 !important; margin-bottom:4px !important;">Manufacturer Q: <span id="manufacturerValueDisplay">12</span></label>
+                <input type="range" id="manufacturerSlider" min="0" max="20" value="12" style="width:100% !important;">
+            </div>
+            <div style="margin-bottom:12px !important;">
+                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#0d9488 !important; margin-bottom:4px !important;">Retailer Q: <span id="retailerValueDisplay">12</span></label>
+                <input type="range" id="retailerSlider" min="0" max="20" value="12" style="width:100% !important;">
+            </div>
+            <button id="nextTurnBtn" onclick="void(0)" style="width:100% !important; padding:10px 16px !important; background:#2563eb !important; color:#fff !important; border:none !important; border-radius:6px !important; font-size:0.95em !important; font-weight:600 !important; cursor:pointer !important;">Next Turn</button>
+            <div id="statusMessage" style="display:none !important; margin-top:10px !important; padding:8px 12px !important; border-radius:6px !important; font-size:0.85em !important;"></div>
+        </div>
+        <!-- Status Metrics -->
+        <div style="flex:1.2 !important; min-width:280px !important; display:flex !important; flex-wrap:wrap !important; gap:10px !important; align-content:start !important;">
+            <div style="width:100% !important; display:flex !important; justify-content:space-between !important; align-items:center !important;">
+                <div style="font-weight:700 !important; font-size:0.95em !important; color:#334155 !important;">Turn <span id="turnCounter">0</span> of 30</div>
+                <div style="font-size:0.85em !important; color:#64748b !important;">Demand: <span id="metricDemand" style="font-weight:700 !important; color:#1e293b !important;">&mdash;</span></div>
+            </div>
+            <div style="width:100% !important; padding:12px !important; border:2px solid #2563eb !important; border-radius:8px !important; text-align:center !important; background:#eff6ff !important;">
+                <div style="font-size:0.75em !important; color:#1e40af !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Total Profit</div>
+                <div id="metricProfit" style="font-size:1.8em !important; font-weight:700 !important; color:#1e40af !important;">$0.00</div>
+            </div>
+            <div style="flex:1 !important; min-width:120px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
+                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important;">Turn Revenue</div>
+                <div id="metricRevenue" style="font-size:1.2em !important; font-weight:700 !important; color:#16a34a !important;">&mdash;</div>
+            </div>
+            <div style="flex:1 !important; min-width:120px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
+                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important;">Turn Cost</div>
+                <div id="metricCost" style="font-size:1.2em !important; font-weight:700 !important; color:#dc2626 !important;">&mdash;</div>
+            </div>
+            <div style="flex:1 !important; min-width:120px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
+                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important;">Sales</div>
+                <div id="metricSales" style="font-size:1.2em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+            </div>
+            <!-- Protected Metric: Bullwhip Ratio -->
+            <div id="bullwhipCard" style="width:100% !important; padding:10px !important; border:2px dashed #93c5fd !important; border-radius:8px !important; text-align:center !important; background:#f0f7ff !important;">
+                <div style="font-size:0.75em !important; color:#1e40af !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Bullwhip Ratio</div>
+                <div id="bullwhipPrompt" style="font-size:0.85em !important; color:#64748b !important; margin-top:4px !important;">Var(Orders) / Var(Demand)</div>
+                <div id="bullwhipRevealed" style="display:none !important;">
+                    <div id="bullwhipValue" style="font-size:1.4em !important; font-weight:700 !important; color:#1e40af !important;">&mdash;</div>
+                    <div style="font-size:0.7em !important; color:#3b82f6 !important;">Higher = more amplification</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supply Chain Diagram -->
+    <div id="scDiagram" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px !important; overflow-x:auto !important;">
+        <div style="display:flex !important; align-items:center !important; justify-content:center !important; gap:0 !important; min-width:600px !important;">
+            <!-- Reservoir -->
+            <div style="padding:8px 12px !important; background:#e0e7ff !important; border:1px solid #a5b4fc !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:70px !important;">
+                <div style="font-weight:600 !important; color:#4338ca !important;">Reservoir</div>
+                <div style="color:#6366f1 !important;">&infin;</div>
+            </div>
+            <div style="padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
+            <!-- Factory -->
+            <div style="padding:8px 12px !important; background:#dbeafe !important; border:2px solid rgb(54,162,235) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
+                <div style="font-weight:700 !important; color:#1e40af !important;">Factory</div>
+                <div style="font-size:1.3em !important; font-weight:700 !important;" id="diagFactoryEI">EI: 12</div>
+                <div style="color:#64748b !important;">Q: <span id="diagFactoryQ">12</span> &bull; R: <span id="diagFactoryR">12</span></div>
+            </div>
+            <div style="padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
+            <!-- Manufacturer (hidden in Phase 1&2) -->
+            <div id="diagManufacturerNode" style="display:none !important; padding:8px 12px !important; background:#fff7ed !important; border:2px solid rgb(255,159,64) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
+                <div style="font-weight:700 !important; color:#c2410c !important;">Manufacturer</div>
+                <div style="font-size:1.3em !important; font-weight:700 !important;" id="diagManufacturerEI">EI: 12</div>
+                <div style="color:#64748b !important;">Q: <span id="diagManufacturerQ">12</span> &bull; R: <span id="diagManufacturerR">12</span></div>
+            </div>
+            <div id="diagManufacturerArrow" style="display:none !important; padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
+            <!-- Retailer -->
+            <div style="padding:8px 12px !important; background:#f0fdfa !important; border:2px solid rgb(75,192,192) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
+                <div style="font-weight:700 !important; color:#0f766e !important;">Retailer</div>
+                <div style="font-size:1.3em !important; font-weight:700 !important;" id="diagRetailerEI">EI: 12</div>
+                <div style="color:#64748b !important;">Q: <span id="diagRetailerQ">12</span> &bull; R: <span id="diagRetailerR">12</span></div>
+            </div>
+            <div style="padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
+            <!-- Customer -->
+            <div style="padding:8px 12px !important; background:#fef2f2 !important; border:1px solid #fca5a5 !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:80px !important;">
+                <div style="font-weight:600 !important; color:#b91c1c !important;">Customer</div>
+                <div id="diagDemand" style="font-weight:700 !important;">&mdash;</div>
+                <div style="color:#64748b !important;">Sales: <span id="diagSales">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div style="display:flex !important; flex-wrap:wrap !important; gap:14px !important;">
+        <div style="flex:1 !important; min-width:340px !important;">
+            <div style="font-weight:600 !important; font-size:0.9em !important; color:#334155 !important; margin-bottom:6px !important;">Effective Inventories</div>
+            <div style="position:relative !important; height:40vh !important; max-height:350px !important;">
+                <canvas id="eiChart"></canvas>
+            </div>
+        </div>
+        <div style="flex:1 !important; min-width:340px !important;">
+            <div style="font-weight:600 !important; font-size:0.9em !important; color:#334155 !important; margin-bottom:6px !important;">Order Quantities</div>
+            <div style="position:relative !important; height:40vh !important; max-height:350px !important;">
+                <canvas id="qChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div>
+        <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:8px !important;">
+            <h3 style="margin:0 !important; font-size:1.1em !important; color:#1e293b !important;">Turn History</h3>
+            <button id="toggleHistory" onclick="void(0)" style="background:none !important; border:none !important; color:#2563eb !important; cursor:pointer !important; font-size:0.85em !important;">Hide Table</button>
+        </div>
+        <div id="historyContainer" style="overflow-x:auto !important;">
+            <table id="historyTable" style="width:100% !important; border-collapse:collapse !important; font-size:0.8em !important;">
+                <thead><tr id="historyHeader" style="background:#f8fafc !important;"></tr></thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Discussion Insights -->
+    <div style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px 18px !important;">
+        <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:12px !important;">
+            <div style="font-weight:700 !important; font-size:1.05em !important; color:#1e293b !important;">Discussion Insights</div>
+            <div id="insightsCounter" style="font-size:0.85em !important; color:#64748b !important; font-weight:600 !important;">0 of 9</div>
+        </div>
+        <div id="insightsList" style="display:flex !important; flex-direction:column !important; gap:0px !important;"></div>
+        <div id="phaseAdvanceArea" style="display:none !important; margin-top:12px !important; padding:10px 12px !important; background:#eff6ff !important; border:1px solid #2563eb !important; border-radius:6px !important; text-align:center !important;"></div>
+        <div id="overrideControls" style="margin-top:12px !important; padding-top:10px !important; border-top:1px dashed #e2e8f0 !important; display:flex !important; flex-wrap:wrap !important; gap:8px !important; justify-content:center !important;"></div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    var STORAGE_KEY = 'ops802_supply_chain_v1';
+    var MAX_TURNS = 30;
+    var COST_B = 1.0;
+    var COST_I = 0.50;
+    var SALE_PRICE = 5.0;
+    var INIT_EI = 12;
+    var INIT_R = 12;
+    var TOTAL_INSIGHTS = 9;
+    var TOTAL_PHASES = 3;
+
+    var PHASE_INSIGHTS = { 1: [0,1,2], 2: [3,4,5], 3: [6,7,8] };
+
+    var CHECKPOINT_SCHEDULE = [
+        { phase: 1, turn: 8, insightIndex: 0 },
+        { phase: 1, turn: 16, insightIndex: 1 },
+        { phase: 1, turn: 25, insightIndex: 2 },
+        { phase: 2, turn: 5, insightIndex: 3 },
+        { phase: 2, turn: 15, insightIndex: 4 },
+        { phase: 2, turn: 25, insightIndex: 5 },
+        { phase: 3, turn: 8, insightIndex: 6 },
+        { phase: 3, turn: 16, insightIndex: 7 },
+        { phase: 3, turn: 25, insightIndex: 8 }
+    ];
+
+    var INSIGHTS = [
+        { phase:1, question:'With steady demand of 4\u20135 units, what ordering quantities keep effective inventory stable without excessive build-up or backlog?', answer:'Matching orders to expected demand (~4\u20135 units) keeps EI stable. Ordering significantly more builds costly excess inventory ($0.50/unit); ordering less creates backlog ($1.00/unit). A small buffer above demand provides insurance against the 1-turn ordering lag.', action:null },
+        { phase:1, question:'What happens to the retailer when the factory develops a backlog? How does the ordering lag affect downstream performance?', answer:'When the factory cannot fulfil the retailer\u2019s order, the retailer receives less than expected (R < Q). This shortfall hits the retailer one turn later due to the ordering delay. The retailer then faces its own backlog with customers, demonstrating how disruptions cascade downstream.', action:null },
+        { phase:1, question:'Compare the cost of holding excess inventory ($0.50/unit) vs. running a backlog ($1.00/unit). What does this imply about your safety stock strategy?', answer:'Backlog costs are double holding costs. This means it is cheaper to hold a small buffer of excess inventory than to risk stockouts. The optimal strategy slightly favours over-ordering, especially given the 1-turn lag between ordering and receiving.', action:null },
+        { phase:2, question:'Demand has shifted! What happened to your supply chain when demand jumped? How quickly were you able to adapt?', answer:'The demand jump from ~7\u20138 to ~15\u201319 creates an immediate backlog at the retailer. The factory, still receiving orders based on old demand levels, cannot supply enough. The 1-turn lag means adaptation takes several turns \u2014 during which backlogs and costs accumulate rapidly.', action:null },
+        { phase:2, question:'Compare the effective inventory patterns of the factory vs. retailer. Which fluctuates more, and why?', answer:'The factory\u2019s EI typically fluctuates more because it absorbs amplified ordering from the retailer. When the retailer faces a backlog, it tends to over-order to recover, sending a larger signal upstream. This amplification of order variability upstream is called the bullwhip effect.', action:'revealBullwhip' },
+        { phase:2, question:'What strategies could reduce the impact of sudden demand changes on your supply chain?', answer:'Strategies include: (1) sharing demand information upstream so the factory can anticipate changes, (2) smoothing orders rather than reacting sharply to backlogs, (3) maintaining safety stock to absorb shocks. The key insight is that reducing information lag reduces amplification.', action:null },
+        { phase:3, question:'With a third echelon (manufacturer) and highly variable demand (0\u201326), how do supply chain dynamics change compared to the 2-echelon setup?', answer:'Adding a middle echelon creates an additional buffer but also an additional ordering delay. With demand ranging 0\u201326, the variability is much harder to predict. Each echelon\u2019s orders amplify the uncertainty, and the factory (furthest from the customer) sees the most volatile patterns.', action:null },
+        { phase:3, question:'Compare ordering patterns across all three echelons. Where is the bullwhip effect most visible?', answer:'The bullwhip effect is most visible at the factory. Each echelon amplifies order variability: the retailer reacts to customer demand, the manufacturer reacts to retailer orders, and the factory reacts to manufacturer orders. By the time the signal reaches the factory, it bears little resemblance to actual customer demand.', action:'updateBullwhip' },
+        { phase:3, question:'Across all three phases, what have you learned about supply chain design? What is the fundamental trade-off?', answer:'More echelons mean more amplification and lag. The fundamental trade-off is between decentralised responsiveness (each node reacts independently) and centralised accuracy (sharing real demand data). The bullwhip effect shows that independent decision-making with limited information leads to system-wide inefficiency.', action:null }
+    ];
+
+    var INSTRUCTIONS = {
+        1: {
+            full:'<strong>Phase 1: Two-Echelon Supply Chain \u2014 Steady Demand</strong><br><br>You manage a 2-echelon supply chain: <strong>Factory \u2192 Retailer \u2192 Customer</strong>. The factory orders from an infinite reservoir. Each location orders quantity Q per turn and receives its order the following turn.<br><br><em>Key parameters:</em><br>\u2022 Demand: 4\u20135 units/turn (steady) &bull; Sale price: $5.00/unit<br>\u2022 Holding cost: $0.50/unit &bull; Backlog cost: $1.00/unit<br>\u2022 30 turns &bull; Starting EI: 12 at each location<br><br><strong>Your task:</strong> Set order quantities for Factory and Retailer each turn. Maximise profit by balancing inventory costs against backlog costs. <em>(Hint: What if demand is lower than expected?)</em>',
+            short:'Phase 1: 2-echelon chain, steady demand (4\u20135). Set Factory Q and Retailer Q to maximise profit over 30 turns.'
+        },
+        2: {
+            full:'<strong>Phase 2: Demand Disruption \u2014 The Bullwhip Effect</strong><br><br>Same 2-echelon chain, but <strong>demand will change</strong>. Early turns have moderate demand, then demand increases significantly. Your supply chain must adapt.<br><br><em>Key parameters:</em> Same as Phase 1, but demand pattern changes mid-game.<br><br><strong>Your task:</strong> Manage the transition. Watch how disruptions propagate through the chain. <em>(Hint: Demand is likely to change \u2014 what do you do?)</em>',
+            short:'Phase 2: 2-echelon chain with a <strong>demand shift</strong> mid-game. Adapt your strategy as demand changes.'
+        },
+        3: {
+            full:'<strong>Phase 3: Three-Echelon Chain \u2014 High Variability</strong><br><br>The chain now includes a <strong>Manufacturer</strong> between Factory and Retailer: <strong>Factory \u2192 Manufacturer \u2192 Retailer \u2192 Customer</strong>. Customer demand is highly variable (0\u201326 units/turn).<br><br><em>Key parameters:</em> Same costs. You now control <strong>three</strong> order quantities.<br><br><strong>Your task:</strong> Manage a longer chain with unpredictable demand. Observe how order variability amplifies upstream. <em>(Hint: With more echelons come more possibilities \u2014 both benefits and risks.)</em>',
+            short:'Phase 3: <strong>3-echelon</strong> chain with high variability (0\u201326). Control Factory, Manufacturer, and Retailer orders.'
+        }
+    };
+
+    /* ====================================================================== STATE ====================================================================== */
+    function defaultState() {
+        return {
+            currentPhase: 1, turnNumber: 0, totalProfit: 0, lastDemand: 0, lastRevenue: 0, lastCost: 0, lastSales: 0,
+            questionsShown: 0, insightsRevealed: 0,
+            factoryQ:[], retailerQ:[], manufacturerQ:[],
+            factoryI:[INIT_EI], retailerI:[INIT_EI], manufacturerI:[INIT_EI],
+            factoryR:[INIT_R], retailerR:[INIT_R], manufacturerR:[INIT_R],
+            factoryB:[0], retailerB:[0], manufacturerB:[0],
+            retailerSales:[0],
+            factoryIData:[], retailerIData:[], manufacturerIData:[],
+            factoryQData:[], retailerQData:[], manufacturerQData:[],
+            history:[], instructionExpanded:true, historyVisible:true,
+            bullwhipRevealed:false, gameOver:false
+        };
+    }
+    var state = defaultState();
+
+    /* ====================================================================== DOM ====================================================================== */
+    var el = {};
+    function cacheDom() {
+        var r = document.getElementById('supply-chain-sim-v1');
+        if (!r) return;
+        el.phaseLabel1=r.querySelector('#phaseLabel1'); el.phaseLabel2=r.querySelector('#phaseLabel2'); el.phaseLabel3=r.querySelector('#phaseLabel3');
+        el.instructionContent=r.querySelector('#instructionContent'); el.toggleInstructions=r.querySelector('#toggleInstructions');
+        el.factorySlider=r.querySelector('#factorySlider'); el.manufacturerSlider=r.querySelector('#manufacturerSlider'); el.retailerSlider=r.querySelector('#retailerSlider');
+        el.factoryValueDisplay=r.querySelector('#factoryValueDisplay'); el.manufacturerValueDisplay=r.querySelector('#manufacturerValueDisplay'); el.retailerValueDisplay=r.querySelector('#retailerValueDisplay');
+        el.manufacturerSliderGroup=r.querySelector('#manufacturerSliderGroup');
+        el.nextTurnBtn=r.querySelector('#nextTurnBtn'); el.statusMessage=r.querySelector('#statusMessage');
+        el.turnCounter=r.querySelector('#turnCounter'); el.metricDemand=r.querySelector('#metricDemand');
+        el.metricProfit=r.querySelector('#metricProfit'); el.metricRevenue=r.querySelector('#metricRevenue'); el.metricCost=r.querySelector('#metricCost'); el.metricSales=r.querySelector('#metricSales');
+        el.bullwhipCard=r.querySelector('#bullwhipCard'); el.bullwhipPrompt=r.querySelector('#bullwhipPrompt'); el.bullwhipRevealed=r.querySelector('#bullwhipRevealed'); el.bullwhipValue=r.querySelector('#bullwhipValue');
+        el.diagFactoryEI=r.querySelector('#diagFactoryEI'); el.diagFactoryQ=r.querySelector('#diagFactoryQ'); el.diagFactoryR=r.querySelector('#diagFactoryR');
+        el.diagManufacturerNode=r.querySelector('#diagManufacturerNode'); el.diagManufacturerArrow=r.querySelector('#diagManufacturerArrow');
+        el.diagManufacturerEI=r.querySelector('#diagManufacturerEI'); el.diagManufacturerQ=r.querySelector('#diagManufacturerQ'); el.diagManufacturerR=r.querySelector('#diagManufacturerR');
+        el.diagRetailerEI=r.querySelector('#diagRetailerEI'); el.diagRetailerQ=r.querySelector('#diagRetailerQ'); el.diagRetailerR=r.querySelector('#diagRetailerR');
+        el.diagDemand=r.querySelector('#diagDemand'); el.diagSales=r.querySelector('#diagSales');
+        el.eiChart=r.querySelector('#eiChart'); el.qChart=r.querySelector('#qChart');
+        el.toggleHistory=r.querySelector('#toggleHistory'); el.historyContainer=r.querySelector('#historyContainer');
+        el.historyHeader=r.querySelector('#historyHeader'); el.historyBody=r.querySelector('#historyBody');
+        el.insightsCounter=r.querySelector('#insightsCounter'); el.insightsList=r.querySelector('#insightsList');
+        el.phaseAdvanceArea=r.querySelector('#phaseAdvanceArea'); el.overrideControls=r.querySelector('#overrideControls');
+    }
+
+    /* ====================================================================== CHARTS ====================================================================== */
+    var eiChartObj=null, qChartObj=null;
+
+    function initCharts() {
+        if (eiChartObj) eiChartObj.destroy();
+        if (qChartObj) qChartObj.destroy();
+        var is3 = state.currentPhase === 3;
+        var eiDatasets = [
+            { label:'Factory EI', data:state.factoryIData.slice(), borderColor:'rgb(54,162,235)', backgroundColor:'rgba(54,162,235,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(54,162,235)' },
+            { label:'Retailer EI', data:state.retailerIData.slice(), borderColor:'rgb(75,192,192)', backgroundColor:'rgba(75,192,192,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(75,192,192)' }
+        ];
+        var qDatasets = [
+            { label:'Factory Q', data:state.factoryQData.slice(), borderColor:'rgb(54,162,235)', backgroundColor:'rgba(54,162,235,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(54,162,235)' },
+            { label:'Retailer Q', data:state.retailerQData.slice(), borderColor:'rgb(75,192,192)', backgroundColor:'rgba(75,192,192,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(75,192,192)' }
+        ];
+        if (is3) {
+            eiDatasets.splice(1,0,{ label:'Manufacturer EI', data:state.manufacturerIData.slice(), borderColor:'rgb(255,159,64)', backgroundColor:'rgba(255,159,64,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(255,159,64)' });
+            qDatasets.splice(1,0,{ label:'Manufacturer Q', data:state.manufacturerQData.slice(), borderColor:'rgb(255,159,64)', backgroundColor:'rgba(255,159,64,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(255,159,64)' });
+        }
+        var labels = [];
+        for (var i = 0; i <= state.turnNumber; i++) labels.push(i);
+        var commonOpts = { responsive:true, maintainAspectRatio:false, animation:{duration:400}, scales:{ x:{title:{display:true,text:'Turn',font:{weight:'bold'}}}, y:{beginAtZero:true} }, plugins:{legend:{display:true,position:'top'}} };
+        eiChartObj = new Chart(el.eiChart.getContext('2d'), { type:'line', data:{labels:labels, datasets:eiDatasets}, options:Object.assign({},commonOpts,{scales:{x:commonOpts.scales.x, y:{beginAtZero:false, title:{display:true,text:'Effective Inventory',font:{weight:'bold'}}}}}) });
+        qChartObj = new Chart(el.qChart.getContext('2d'), { type:'line', data:{labels:labels, datasets:qDatasets}, options:Object.assign({},commonOpts,{scales:{x:commonOpts.scales.x, y:{beginAtZero:true, title:{display:true,text:'Order Quantity',font:{weight:'bold'}}}}}) });
+    }
+
+    function updateCharts() {
+        if (!eiChartObj || !qChartObj) return;
+        var labels = [];
+        for (var i = 0; i <= state.turnNumber; i++) labels.push(i);
+        var is3 = state.currentPhase === 3;
+        eiChartObj.data.labels = labels;
+        eiChartObj.data.datasets[0].data = state.factoryIData.slice();
+        if (is3) {
+            eiChartObj.data.datasets[1].data = state.manufacturerIData.slice();
+            eiChartObj.data.datasets[2].data = state.retailerIData.slice();
+        } else {
+            eiChartObj.data.datasets[1].data = state.retailerIData.slice();
+        }
+        eiChartObj.update();
+        qChartObj.data.labels = labels;
+        qChartObj.data.datasets[0].data = state.factoryQData.slice();
+        if (is3) {
+            qChartObj.data.datasets[1].data = state.manufacturerQData.slice();
+            qChartObj.data.datasets[2].data = state.retailerQData.slice();
+        } else {
+            qChartObj.data.datasets[1].data = state.retailerQData.slice();
+        }
+        qChartObj.update();
+    }
+
+    /* ====================================================================== CORE LOGIC (PRESERVED) ====================================================================== */
+    function generateDemand() {
+        if (state.currentPhase === 1) return Math.floor(Math.random() * 2) + 4;
+        if (state.currentPhase === 2) {
+            if (state.turnNumber < 5) return Math.floor(Math.random() * 2) + 7;
+            return Math.floor(Math.random() * 5) + 15;
+        }
+        return Math.floor(Math.random() * 27);
+    }
+
+    // Generic echelon fulfillment - exact same conditional tree as original
+    function processEchelonFulfill(t, eI, eR, eB, downOrder, downR) {
+        if ((eI[t-1] + eR[t-1]) <= 0) {
+            if (eR[t-1] == 0) {
+                downR[t] = 0;
+                eB[t] = eB[t-1] + downOrder;
+                eI[t] = -1 * eB[t];
+            }
+            if (eR[t-1] > 0 && (eR[t-1] < downOrder)) {
+                downR[t] = eR[t-1];
+                eB[t] = eB[t-1] + (downOrder - eR[t-1]);
+                eI[t] = -1 * eB[t];
+            }
+            if (eR[t-1] >= downOrder) {
+                if (eR[t-1] >= (downOrder + eB[t-1])) {
+                    downR[t] = eB[t-1] + downOrder;
+                    eB[t] = 0;
+                    eI[t] = eR[t-1] - downR[t];
+                } else {
+                    downR[t] = eR[t-1];
+                    eB[t] = (downOrder + eB[t-1]) - eR[t-1];
+                    eI[t] = -1 * eB[t];
+                }
+            }
+        }
+        if ((eI[t-1] + eR[t-1]) > 0) {
+            if ((eI[t-1] + eR[t-1]) < downOrder) {
+                if (eB[t-1] == 0) {
+                    downR[t] = eI[t-1] + eR[t-1];
+                    eB[t] = downOrder - downR[t];
+                    eI[t] = -1 * eB[t];
+                } else {
+                    downR[t] = eR[t-1];
+                    eB[t] = eB[t-1] + (downOrder - eR[t-1]);
+                    eI[t] = -1 * eB[t];
+                }
+            }
+            if (((eI[t-1] + eR[t-1]) >= downOrder) && (eB[t-1] == 0)) {
+                downR[t] = downOrder;
+                eB[t] = 0;
+                eI[t] = (eI[t-1] + eR[t-1]) - downOrder;
+            }
+            if (((eI[t-1] + eR[t-1]) >= downOrder) && (eB[t-1] > 0)) {
+                if (eR[t-1] >= (eB[t-1] + downOrder)) {
+                    downR[t] = eB[t-1] + downOrder;
+                    eB[t] = 0;
+                    eI[t] = eR[t-1] - downR[t];
+                } else {
+                    downR[t] = eR[t-1];
+                    eB[t] = (eB[t-1] + downOrder) - eR[t-1];
+                    eI[t] = -1 * eB[t];
+                }
+            }
+        }
+    }
+
+    function echelonCost(ei) { return ei > 0 ? ei * COST_I : -1 * ei * COST_B; }
+
+    function advanceTurn() {
+        if (state.gameOver || state.turnNumber >= MAX_TURNS) return;
+        state.turnNumber++;
+        var t = state.turnNumber;
+        var demand = generateDemand();
+        state.lastDemand = demand;
+        var is3 = state.currentPhase === 3;
+
+        state.factoryQ[t] = parseInt(el.factorySlider.value);
+        state.retailerQ[t] = parseInt(el.retailerSlider.value);
+        if (is3) state.manufacturerQ[t] = parseInt(el.manufacturerSlider.value);
+
+        if (t > 0) {
+            state.factoryR[t] = state.factoryQ[t-1];
+            if (is3) {
+                // Factory fulfils manufacturer orders
+                processEchelonFulfill(t, state.factoryI, state.factoryR, state.factoryB, state.manufacturerQ[t-1], state.manufacturerR);
+                // Manufacturer fulfils retailer orders
+                processEchelonFulfill(t, state.manufacturerI, state.manufacturerR, state.manufacturerB, state.retailerQ[t-1], state.retailerR);
+            } else {
+                // Factory fulfils retailer orders directly
+                processEchelonFulfill(t, state.factoryI, state.factoryR, state.factoryB, state.retailerQ[t-1], state.retailerR);
+            }
+            // Retailer fulfils customer demand
+            processEchelonFulfill(t, state.retailerI, state.retailerR, state.retailerB, demand, state.retailerSales);
+
+            var totalcost = echelonCost(state.factoryI[t]) + echelonCost(state.retailerI[t]);
+            if (is3) totalcost += echelonCost(state.manufacturerI[t]);
+            var revenue = state.retailerSales[t] * SALE_PRICE;
+            state.totalProfit += revenue - totalcost;
+            state.lastRevenue = revenue;
+            state.lastCost = totalcost;
+            state.lastSales = state.retailerSales[t];
+
+            // Chart data
+            state.factoryIData.push(state.factoryI[t]);
+            state.retailerIData.push(state.retailerI[t]);
+            state.factoryQData.push(state.factoryQ[t]);
+            state.retailerQData.push(state.retailerQ[t]);
+            if (is3) {
+                state.manufacturerIData.push(state.manufacturerI[t]);
+                state.manufacturerQData.push(state.manufacturerQ[t]);
+            }
+
+            // History
+            var row = { turn:t, demand:demand, factoryQ:state.factoryQ[t], factoryEI:state.factoryI[t], retailerQ:state.retailerQ[t], retailerEI:state.retailerI[t], sales:state.retailerSales[t], cost:totalcost, revenue:revenue, profit:revenue-totalcost, cumProfit:state.totalProfit };
+            if (is3) { row.manufacturerQ = state.manufacturerQ[t]; row.manufacturerEI = state.manufacturerI[t]; }
+            state.history.push(row);
+        }
+
+        updateDisplay();
+        updateCharts();
+        addHistoryRow(state.history[state.history.length - 1]);
+
+        if (state.turnNumber >= MAX_TURNS) {
+            showStatus('Phase ' + state.currentPhase + ' complete! All 30 turns finished.', false);
+            state.gameOver = true;
+            el.nextTurnBtn.disabled = true;
+            el.nextTurnBtn.style.opacity = '0.5';
+        }
+        checkForNewQuestion();
+        renderOverrides();
+        if (state.bullwhipRevealed) updateBullwhipDisplay();
+        saveState();
+    }
+
+    /* ====================================================================== DISPLAY ====================================================================== */
+    function fmt(n) { return '$' + n.toFixed(2); }
+
+    function updateDisplay() {
+        el.turnCounter.textContent = state.turnNumber;
+        el.metricDemand.textContent = state.turnNumber > 0 ? state.lastDemand : '\u2014';
+        el.metricProfit.textContent = fmt(state.totalProfit);
+        el.metricProfit.style.color = state.totalProfit >= 0 ? '#1e40af' : '#dc2626';
+        if (state.turnNumber > 0) {
+            el.metricRevenue.textContent = fmt(state.lastRevenue);
+            el.metricCost.textContent = fmt(state.lastCost);
+            el.metricSales.textContent = state.lastSales;
+        }
+        // Diagram
+        var t = state.turnNumber;
+        if (t > 0) {
+            var eiColor = function(v) { return v >= 0 ? '#1e293b' : '#dc2626'; };
+            el.diagFactoryEI.textContent = 'EI: ' + state.factoryI[t];
+            el.diagFactoryEI.style.color = eiColor(state.factoryI[t]);
+            el.diagFactoryQ.textContent = state.factoryQ[t];
+            el.diagFactoryR.textContent = state.factoryR[t];
+            el.diagRetailerEI.textContent = 'EI: ' + state.retailerI[t];
+            el.diagRetailerEI.style.color = eiColor(state.retailerI[t]);
+            el.diagRetailerQ.textContent = state.retailerQ[t];
+            el.diagRetailerR.textContent = state.retailerR[t];
+            el.diagDemand.textContent = state.lastDemand;
+            el.diagSales.textContent = state.retailerSales[t];
+            if (state.currentPhase === 3) {
+                el.diagManufacturerEI.textContent = 'EI: ' + state.manufacturerI[t];
+                el.diagManufacturerEI.style.color = eiColor(state.manufacturerI[t]);
+                el.diagManufacturerQ.textContent = state.manufacturerQ[t];
+                el.diagManufacturerR.textContent = state.manufacturerR[t];
+            }
+        }
+    }
+
+    function renderHistoryHeader() {
+        el.historyHeader.innerHTML = '';
+        var thStyle = 'padding:6px 8px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important; white-space:nowrap !important;';
+        var cols = ['Turn','Demand','Fac Q','Fac EI'];
+        if (state.currentPhase === 3) cols.push('Mfr Q','Mfr EI');
+        cols.push('Ret Q','Ret EI','Sales','Cost','Revenue','Cum. Profit');
+        for (var i = 0; i < cols.length; i++) {
+            var th = document.createElement('th');
+            th.style.cssText = thStyle;
+            th.textContent = cols[i];
+            el.historyHeader.appendChild(th);
+        }
+    }
+
+    function addHistoryRow(h) {
+        if (!h) return;
+        var row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f1f5f9';
+        var cells = [h.turn, h.demand, h.factoryQ, h.factoryEI];
+        if (state.currentPhase === 3) cells.push(h.manufacturerQ, h.manufacturerEI);
+        cells.push(h.retailerQ, h.retailerEI, h.sales, fmt(h.cost), fmt(h.revenue), fmt(h.cumProfit));
+        for (var i = 0; i < cells.length; i++) {
+            var td = document.createElement('td');
+            td.style.cssText = 'padding:5px 8px !important; text-align:center !important;';
+            td.textContent = cells[i];
+            row.appendChild(td);
+        }
+        el.historyBody.insertBefore(row, el.historyBody.firstChild);
+    }
+
+    function rerenderHistory() {
+        el.historyBody.innerHTML = '';
+        for (var i = state.history.length - 1; i >= 0; i--) addHistoryRow(state.history[i]);
+    }
+
+    function showStatus(msg, isError) {
+        el.statusMessage.style.display = 'block';
+        el.statusMessage.textContent = msg;
+        el.statusMessage.style.background = isError ? '#fef2f2' : '#f0fdf4';
+        el.statusMessage.style.color = isError ? '#dc2626' : '#16a34a';
+        el.statusMessage.style.border = '1px solid ' + (isError ? '#fecaca' : '#bbf7d0');
+    }
+
+    function updateBullwhipDisplay() {
+        if (!state.bullwhipRevealed || state.retailerQData.length < 3) return;
+        // Calculate variance of retailer orders vs variance of demands
+        var demands = []; var orders = [];
+        for (var i = 0; i < state.history.length; i++) { demands.push(state.history[i].demand); orders.push(state.history[i].retailerQ); }
+        function variance(arr) { if (arr.length < 2) return 0; var m = 0; for (var j = 0; j < arr.length; j++) m += arr[j]; m /= arr.length; var s = 0; for (var k = 0; k < arr.length; k++) s += (arr[k]-m)*(arr[k]-m); return s/(arr.length-1); }
+        var vD = variance(demands); var vQ = variance(orders);
+        var ratio = vD > 0 ? (vQ / vD).toFixed(2) : '\u2014';
+        el.bullwhipValue.textContent = ratio;
+        el.bullwhipPrompt.style.display = 'none';
+        el.bullwhipRevealed.style.display = 'block';
+        el.bullwhipCard.style.borderStyle = 'solid';
+        el.bullwhipCard.style.borderColor = '#2563eb';
+    }
+
+    /* ====================================================================== INSTRUCTIONS ====================================================================== */
+    function renderInstructions() {
+        var p = state.currentPhase;
+        el.instructionContent.innerHTML = state.instructionExpanded ? INSTRUCTIONS[p].full : INSTRUCTIONS[p].short;
+        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
+    }
+
+    /* ====================================================================== PHASE MANAGEMENT ====================================================================== */
+    function setPhase(phase) {
+        state.currentPhase = phase;
+        var labels = [el.phaseLabel1, el.phaseLabel2, el.phaseLabel3];
+        for (var i = 0; i < 3; i++) {
+            if (i + 1 < phase) { labels[i].style.background = '#16a34a'; labels[i].style.color = '#fff'; }
+            else if (i + 1 === phase) { labels[i].style.background = '#2563eb'; labels[i].style.color = '#fff'; }
+            else { labels[i].style.background = '#e5e7eb'; labels[i].style.color = '#94a3b8'; }
+        }
+        // Show/hide manufacturer
+        var show3 = phase === 3;
+        el.manufacturerSliderGroup.style.display = show3 ? 'block' : 'none';
+        el.diagManufacturerNode.style.display = show3 ? 'block' : 'none';
+        el.diagManufacturerArrow.style.display = show3 ? 'block' : 'none';
+        resetPhaseData();
+        renderInstructions();
+        renderHistoryHeader();
+        initCharts();
+        renderInsights();
+        renderOverrides();
+        if (state.bullwhipRevealed) updateBullwhipDisplay();
+        saveState();
+    }
+
+    function resetPhaseData() {
+        state.turnNumber = 0; state.totalProfit = 0; state.lastDemand = 0; state.lastRevenue = 0; state.lastCost = 0; state.lastSales = 0; state.gameOver = false;
+        state.factoryQ=[]; state.retailerQ=[]; state.manufacturerQ=[];
+        state.factoryI=[INIT_EI]; state.retailerI=[INIT_EI]; state.manufacturerI=[INIT_EI];
+        state.factoryR=[INIT_R]; state.retailerR=[INIT_R]; state.manufacturerR=[INIT_R];
+        state.factoryB=[0]; state.retailerB=[0]; state.manufacturerB=[0];
+        state.retailerSales=[0];
+        state.factoryIData=[INIT_EI]; state.retailerIData=[INIT_EI]; state.manufacturerIData=[INIT_EI];
+        state.factoryQData=[]; state.retailerQData=[]; state.manufacturerQData=[];
+        state.history = [];
+        // Push initial Q values
+        var initQ = parseInt(el.factorySlider.value);
+        state.factoryQ[0] = initQ; state.retailerQ[0] = parseInt(el.retailerSlider.value);
+        if (state.currentPhase === 3) state.manufacturerQ[0] = parseInt(el.manufacturerSlider.value);
+        state.factoryQData.push(state.factoryQ[0]); state.retailerQData.push(state.retailerQ[0]);
+        if (state.currentPhase === 3) state.manufacturerQData.push(state.manufacturerQ[0]);
+        // Reset UI
+        el.nextTurnBtn.disabled = false; el.nextTurnBtn.style.opacity = '1';
+        el.turnCounter.textContent = '0';
+        el.metricProfit.textContent = '$0.00'; el.metricProfit.style.color = '#1e40af';
+        el.metricRevenue.textContent = '\u2014'; el.metricCost.textContent = '\u2014'; el.metricSales.textContent = '\u2014'; el.metricDemand.textContent = '\u2014';
+        el.diagFactoryEI.textContent = 'EI: 12'; el.diagFactoryEI.style.color = '#1e293b';
+        el.diagRetailerEI.textContent = 'EI: 12'; el.diagRetailerEI.style.color = '#1e293b';
+        el.diagManufacturerEI.textContent = 'EI: 12'; el.diagManufacturerEI.style.color = '#1e293b';
+        el.diagFactoryQ.textContent = '12'; el.diagFactoryR.textContent = '12';
+        el.diagRetailerQ.textContent = '12'; el.diagRetailerR.textContent = '12';
+        el.diagManufacturerQ.textContent = '12'; el.diagManufacturerR.textContent = '12';
+        el.diagDemand.textContent = '\u2014'; el.diagSales.textContent = '0';
+        el.historyBody.innerHTML = '';
+        el.statusMessage.style.display = 'none';
+    }
+
+    function advancePhase() {
+        if (state.currentPhase >= TOTAL_PHASES) return;
+        setPhase(state.currentPhase + 1);
+    }
+
+    function skipToPhase(target) {
+        if (target === state.currentPhase) return;
+        var maxIns = 0;
+        for (var i = 0; i < TOTAL_INSIGHTS; i++) { if (INSIGHTS[i].phase < target) maxIns = i + 1; }
+        state.questionsShown = Math.max(state.questionsShown, maxIns);
+        state.insightsRevealed = Math.max(state.insightsRevealed, maxIns);
+        for (var j = 0; j < maxIns; j++) applyInsightAction(j);
+        setPhase(target);
+    }
+
+    /* ====================================================================== INSIGHTS ====================================================================== */
+    function checkForNewQuestion() {
+        for (var i = 0; i < CHECKPOINT_SCHEDULE.length; i++) {
+            var cp = CHECKPOINT_SCHEDULE[i];
+            if (cp.phase === state.currentPhase && state.turnNumber >= cp.turn && state.questionsShown <= cp.insightIndex) {
+                state.questionsShown = cp.insightIndex + 1;
+            }
+        }
+        renderInsights(); saveState();
+    }
+
+    function applyInsightAction(index) {
+        var action = INSIGHTS[index].action;
+        if (!action) return;
+        if (action === 'revealBullwhip' || action === 'updateBullwhip') {
+            state.bullwhipRevealed = true;
+            updateBullwhipDisplay();
+        }
+    }
+
+    function revealInsightAnswer(index) {
+        if (index !== state.insightsRevealed) return;
+        state.insightsRevealed = index + 1;
+        applyInsightAction(index);
+        renderInsights(); renderPhaseAdvance(); saveState();
+    }
+
+    function renderInsights() {
+        el.insightsCounter.textContent = state.insightsRevealed + ' of ' + TOTAL_INSIGHTS;
+        el.insightsList.innerHTML = '';
+        for (var i = 0; i < state.questionsShown; i++) {
+            var ins = INSIGHTS[i];
+            var div = document.createElement('div');
+            div.style.cssText = 'padding:10px 12px !important; border-left:3px solid ' + (i < state.insightsRevealed ? '#16a34a' : '#f59e0b') + ' !important; margin-bottom:8px !important; background:' + (i < state.insightsRevealed ? '#f0fdf4' : '#fffbeb') + ' !important; border-radius:0 6px 6px 0 !important;';
+            var label = document.createElement('div');
+            label.style.cssText = 'font-size:0.75em !important; font-weight:600 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; color:' + (i < state.insightsRevealed ? '#16a34a' : '#d97706') + ' !important; margin-bottom:4px !important;';
+            label.textContent = (i < state.insightsRevealed ? '\u2713 ' : '') + 'Insight ' + (i+1) + ' (Phase ' + ins.phase + ')';
+            div.appendChild(label);
+            var q = document.createElement('div');
+            q.style.cssText = 'font-weight:600 !important; color:#1e293b !important; margin-bottom:6px !important;';
+            q.textContent = ins.question;
+            div.appendChild(q);
+            if (i < state.insightsRevealed) {
+                var a = document.createElement('div');
+                a.style.cssText = 'color:#475569 !important; font-size:0.92em !important; padding:8px 10px !important; background:#fff !important; border-radius:4px !important; border:1px solid #e2e8f0 !important;';
+                a.textContent = ins.answer;
+                div.appendChild(a);
+            } else if (i === state.insightsRevealed) {
+                var btn = document.createElement('button');
+                btn.style.cssText = 'padding:6px 14px !important; background:#f59e0b !important; color:#fff !important; border:none !important; border-radius:4px !important; font-size:0.85em !important; font-weight:600 !important; cursor:pointer !important;';
+                btn.textContent = 'Reveal Answer';
+                btn.onclick = (function(idx){return function(){revealInsightAnswer(idx);};})(i);
+                div.appendChild(btn);
+            }
+            el.insightsList.appendChild(div);
+        }
+        renderPhaseAdvance();
+    }
+
+    function renderPhaseAdvance() {
+        var pIns = PHASE_INSIGHTS[state.currentPhase];
+        var allDone = true;
+        for (var i = 0; i < pIns.length; i++) { if (pIns[i] >= state.insightsRevealed) { allDone = false; break; } }
+        if (allDone && state.currentPhase < TOTAL_PHASES) {
+            el.phaseAdvanceArea.style.display = 'block';
+            el.phaseAdvanceArea.innerHTML = '<strong>All Phase ' + state.currentPhase + ' insights revealed!</strong><br><button onclick="void(0)" id="advPhaseBtn" style="margin-top:8px !important; padding:8px 20px !important; background:#2563eb !important; color:#fff !important; border:none !important; border-radius:6px !important; font-weight:600 !important; cursor:pointer !important;">Advance to Phase ' + (state.currentPhase+1) + '</button>';
+            document.getElementById('advPhaseBtn').addEventListener('click', function(){ advancePhase(); });
+        } else if (allDone && state.currentPhase === TOTAL_PHASES) {
+            el.phaseAdvanceArea.style.display = 'block';
+            el.phaseAdvanceArea.innerHTML = '<strong style="color:#16a34a !important;">All insights revealed! Simulation complete.</strong>';
+        } else { el.phaseAdvanceArea.style.display = 'none'; }
+    }
+
+    function renderOverrides() {
+        el.overrideControls.innerHTML = '';
+        var style = 'font-size:0.78em !important; color:#94a3b8 !important; cursor:pointer !important; text-decoration:underline !important; background:none !important; border:none !important; padding:2px 4px !important;';
+        for (var p = state.currentPhase + 1; p <= TOTAL_PHASES; p++) {
+            (function(target) {
+                var b = document.createElement('button'); b.style.cssText = style;
+                b.textContent = 'Skip to Phase ' + target;
+                b.onclick = function(){ skipToPhase(target); };
+                el.overrideControls.appendChild(b);
+            })(p);
+        }
+        if (state.questionsShown > state.insightsRevealed) {
+            var rb = document.createElement('button'); rb.style.cssText = style; rb.textContent = 'Reveal Next Insight';
+            rb.onclick = function(){ revealInsightAnswer(state.insightsRevealed); };
+            el.overrideControls.appendChild(rb);
+        }
+        var resetBtn = document.createElement('button'); resetBtn.style.cssText = style; resetBtn.textContent = 'Full Reset';
+        resetBtn.onclick = function(){ resetSim(); };
+        el.overrideControls.appendChild(resetBtn);
+    }
+
+    /* ====================================================================== RESET ====================================================================== */
+    function resetSim() {
+        localStorage.removeItem(STORAGE_KEY);
+        state = defaultState();
+        el.manufacturerSliderGroup.style.display = 'none';
+        el.diagManufacturerNode.style.display = 'none';
+        el.diagManufacturerArrow.style.display = 'none';
+        el.bullwhipPrompt.style.display = 'block';
+        el.bullwhipRevealed.style.display = 'none';
+        el.bullwhipCard.style.borderStyle = 'dashed'; el.bullwhipCard.style.borderColor = '#93c5fd';
+        el.historyContainer.style.display = 'block'; el.toggleHistory.textContent = 'Hide Table';
+        state.historyVisible = true; state.instructionExpanded = true;
+        setPhase(1);
+    }
+
+    /* ====================================================================== PERSISTENCE ====================================================================== */
+    function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){} }
+
+    function loadState() {
+        try {
+            var s = localStorage.getItem(STORAGE_KEY);
+            if (s) { var p = JSON.parse(s); var d = defaultState(); for (var k in d) { if (p.hasOwnProperty(k)) state[k] = p[k]; } return true; }
+        } catch(e){}
+        return false;
+    }
+
+    function restoreFromState() {
+        var labels = [el.phaseLabel1, el.phaseLabel2, el.phaseLabel3];
+        for (var i = 0; i < 3; i++) {
+            if (i+1 < state.currentPhase) { labels[i].style.background = '#16a34a'; labels[i].style.color = '#fff'; }
+            else if (i+1 === state.currentPhase) { labels[i].style.background = '#2563eb'; labels[i].style.color = '#fff'; }
+            else { labels[i].style.background = '#e5e7eb'; labels[i].style.color = '#94a3b8'; }
+        }
+        var is3 = state.currentPhase === 3;
+        el.manufacturerSliderGroup.style.display = is3 ? 'block' : 'none';
+        el.diagManufacturerNode.style.display = is3 ? 'block' : 'none';
+        el.diagManufacturerArrow.style.display = is3 ? 'block' : 'none';
+        if (!state.instructionExpanded) el.toggleInstructions.textContent = 'Show More';
+        if (!state.historyVisible) { el.historyContainer.style.display = 'none'; el.toggleHistory.textContent = 'Show Table'; }
+        renderInstructions(); renderHistoryHeader(); updateDisplay();
+        initCharts(); updateCharts();
+        rerenderHistory();
+        if (state.gameOver || state.turnNumber >= MAX_TURNS) { el.nextTurnBtn.disabled = true; el.nextTurnBtn.style.opacity = '0.5'; }
+        if (state.bullwhipRevealed) updateBullwhipDisplay();
+        renderInsights(); renderOverrides();
+    }
+
+    /* ====================================================================== EVENTS ====================================================================== */
+    function bindEvents() {
+        el.nextTurnBtn.addEventListener('click', advanceTurn);
+        el.factorySlider.addEventListener('input', function() { el.factoryValueDisplay.textContent = el.factorySlider.value; });
+        el.manufacturerSlider.addEventListener('input', function() { el.manufacturerValueDisplay.textContent = el.manufacturerSlider.value; });
+        el.retailerSlider.addEventListener('input', function() { el.retailerValueDisplay.textContent = el.retailerSlider.value; });
+        el.toggleInstructions.addEventListener('click', function() { state.instructionExpanded = !state.instructionExpanded; renderInstructions(); saveState(); });
+        el.toggleHistory.addEventListener('click', function() { state.historyVisible = !state.historyVisible; el.historyContainer.style.display = state.historyVisible ? 'block' : 'none'; el.toggleHistory.textContent = state.historyVisible ? 'Hide Table' : 'Show Table'; saveState(); });
+    }
+
+    /* ====================================================================== INIT ====================================================================== */
+    function init() {
+        cacheDom();
+        if (!el.nextTurnBtn) return;
+        var hasState = loadState();
+        if (hasState) { restoreFromState(); }
+        else { renderInstructions(); renderHistoryHeader(); initCharts(); renderInsights(); renderOverrides(); }
+        bindEvents();
+    }
+
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+})();
+</script>

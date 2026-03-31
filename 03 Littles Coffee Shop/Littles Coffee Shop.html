@@ -1,0 +1,1515 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div id="littles-coffee-sim-v2" style="display: flex; flex-direction: column; gap: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 12px; color: #1a1a1a;">
+
+    <!-- ROW 1: Title + Phase Progress -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+        <h2 style="margin: 0; font-size: 1.5em; color: #1e293b;">Little's Coffee Shop</h2>
+        <div id="phaseIndicator" style="display: flex; gap: 4px; align-items: center;">
+            <span id="phaseLabel1" style="padding: 4px 10px; border-radius: 6px; font-size: 0.8em; font-weight: 600; background: #2563eb; color: #fff;">Phase 1: Staffing</span>
+            <span style="color: #cbd5e1;">&#9654;</span>
+            <span id="phaseLabel2" style="padding: 4px 10px; border-radius: 6px; font-size: 0.8em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Uncertainty</span>
+            <span style="color: #cbd5e1;">&#9654;</span>
+            <span id="phaseLabel3" style="padding: 4px 10px; border-radius: 6px; font-size: 0.8em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 3: Sequential Ops</span>
+        </div>
+    </div>
+
+    <!-- ROW 2: Instruction Panel -->
+    <div id="instructionPanel" style="background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; padding: 10px 14px; line-height: 1.4;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div id="instructionContent"></div>
+            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #2563eb; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+        </div>
+    </div>
+
+    <!-- ROW 3: LEFT (Controls + Metrics) | RIGHT (Staff Status + Chart) -->
+    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+
+        <!-- LEFT COLUMN: Controls + Metrics stacked -->
+        <div style="flex: 0 0 320px; min-width: 280px; display: flex; flex-direction: column; gap: 10px;">
+
+            <!-- Controls Panel -->
+            <div id="controlsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                <div style="font-weight: 700; font-size: 0.95em; margin-bottom: 8px; color: #334155;">Your Decisions</div>
+                <div id="controlsArea"></div>
+                <div style="display: flex; gap: 10px; margin-top: 8px;">
+                    <button id="goBtn" onclick="void(0)" style="flex: 1; padding: 8px 14px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Go</button>
+                    <button id="resetBtn" onclick="void(0)" style="padding: 8px 14px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.95em; cursor: pointer;">Reset</button>
+                </div>
+            </div>
+
+            <!-- Metrics Dashboard -->
+            <div id="metricsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+                <div style="font-weight: 700; font-size: 0.95em; margin-bottom: 8px; color: #334155;">Run <span id="runCounter">0</span> Results</div>
+                <div id="metricsArea" style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%;"></div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Staff Status + Chart -->
+        <div style="flex: 1; min-width: 340px; display: flex; flex-direction: column; gap: 6px;">
+
+            <!-- Staff Status -->
+            <div id="staffStatusArea" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px;">
+                <div style="font-weight: 700; font-size: 0.9em; color: #334155; margin-bottom: 4px;">Staff Status</div>
+                <div id="staffStatusContent"></div>
+                <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.8em; color: #64748b;">
+                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width: 14px; height: 14px; background: #FF9966; border: 1px solid #333; border-radius: 3px;"></div> Busy</div>
+                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width: 14px; height: 14px; background: #81c784; border: 1px solid #333; border-radius: 3px;"></div> Idle</div>
+                </div>
+            </div>
+
+            <!-- Queue Chart (pedagogical centerpiece) -->
+            <div style="position: relative; flex: 1; min-height: 300px;">
+                <canvas id="queueChart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ROW 4: Run History (collapsed by default) -->
+    <div id="historySection">
+        <div id="historyToggleBar" onclick="void(0)" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; user-select: none;">
+            <span id="historyToggleLabel" style="font-size: 0.9em; font-weight: 600; color: #64748b;">Run History (0 runs)</span>
+            <span id="historyToggleArrow" style="font-size: 0.8em; color: #94a3b8;">&#9654;</span>
+        </div>
+        <div id="historyContent" style="display: none; overflow-x: auto; margin-top: 4px;">
+            <table id="historyTable" style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
+                <thead><tr id="historyHeader" style="background: #f8fafc;"></tr></thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ROW 5: Discussion Insights Panel -->
+    <div id="insightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-weight: 700; font-size: 1.05em; color: #1e293b;">Discussion Insights</div>
+            <div id="insightsCounter" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 10</div>
+        </div>
+        <div id="insightsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
+        <div id="phaseAdvanceArea" style="display: none; margin-top: 8px; padding: 8px 10px; background: #eff6ff; border: 1px solid #2563eb; border-radius: 6px; text-align: center;"></div>
+        <div id="overrideControls" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // === CONSTANTS ===
+    var STORAGE_KEY = 'ops802_littles_coffee_v2';
+
+    // Phase 1: single station, 55 customers/60 min, 2 min service
+    // Phase 2: single station, uniform(30,85) customers/60 min, 2 min service
+    // Phase 3: three stations, 170 customers/240 min, Order=2min, Prep=3min, Serve=1min
+
+    // === CHECKPOINT SCHEDULE ===
+    var CHECKPOINT_SCHEDULE = [
+        { phase: 1, turn: 1, insightIndex: 0 },
+        { phase: 1, turn: 1, insightIndex: 1 },
+        { phase: 1, turn: 2, insightIndex: 2 },
+        { phase: 1, turn: 3, insightIndex: 3 },
+        { phase: 2, turn: 3, insightIndex: 4 },
+        { phase: 2, turn: 5, insightIndex: 5 },
+        { phase: 2, turn: 8, insightIndex: 6 },
+        { phase: 3, turn: 1, insightIndex: 7 },
+        { phase: 3, turn: 2, insightIndex: 8 },
+        { phase: 3, turn: 3, insightIndex: 9 }
+    ];
+
+    var PHASE_INSIGHTS = { 1: [0,1,2,3], 2: [4,5,6], 3: [7,8,9] };
+
+    // === ORDERED INSIGHTS ===
+    var insights = [
+        {
+            id: 1,
+            question: "Run with 1 barista. What happens to the queue? Can 1 barista handle 55 customers in 60 minutes?",
+            answer: "No. 55 customers \u00d7 2 min = 110 min of work. One barista can only complete about 30 customers in 60 min. The queue grows unbounded because demand exceeds capacity.",
+            action: null
+        },
+        {
+            id: 2,
+            question: "What is the total processing time needed? How many baristas do you need at minimum? Write the formula: Staff = CEILING(WIP \u00d7 CT / Duration).",
+            answer: "Total processing = WIP \u00d7 Cycle Time = 55 \u00d7 2 = 110 minutes. Staff needed = CEILING(110 / 60) = 2 baristas minimum. This is Little\u2019s Law applied to staffing.",
+            action: null
+        },
+        {
+            id: 3,
+            question: "Run with 2 baristas, then 3. How does the queue differ? What\u2019s the trade-off?",
+            answer: "With 2 baristas, the queue stays small but baristas are near full capacity. With 3, the queue is virtually zero but one barista is often idle. This is the capacity-vs-efficiency trade-off.",
+            action: null
+        },
+        {
+            id: 4,
+            question: "Calculate utilisation for 1, 2, and 3 baristas. Formula: Utilisation = (Customers \u00d7 Service Time) / (Duration \u00d7 Staff).",
+            answer: "1 barista: 110/60 = 183% (impossible \u2014 queue grows). 2 baristas: 110/120 = 91.7% (near capacity). 3 baristas: 110/180 = 61.1% (substantial idle time).",
+            action: function() {
+                renderMetrics();
+                renderHistoryHeader();
+                rerenderHistory();
+            }
+        },
+        {
+            id: 5,
+            question: "Run several times \u2014 demand varies each run (30\u201385 customers). Does 2 baristas always work? When does it fail?",
+            answer: "2 baristas can handle about 60 customers (120 min / 2 min each). When demand exceeds ~60, queues build. Runs with high demand draws (toward 85) cause significant queuing.",
+            action: null
+        },
+        {
+            id: 6,
+            question: "Calculate staff needed for the best case (30 customers) and worst case (85 customers).",
+            answer: "Best case (30): 30 \u00d7 2 = 60 min \u2192 1 barista needed. Worst case (85): 85 \u00d7 2 = 170 min \u2192 CEILING(170/60) = 3 baristas. The range is 1\u20133 staff \u2014 you never need 4 or 5. But note: 1 barista only works when exactly 30 customers arrive, a 1-in-56 chance (~1.8%). So 1 barista is not a viable staffing plan.",
+            action: null
+        },
+        {
+            id: 7,
+            question: "What is the trade-off between 2 vs 3 baristas? Think productivity (utilisation) vs customer satisfaction (queue length).",
+            answer: "2 baristas: high productivity (~92% util at average demand) but queues form on high-demand days. 3 baristas: lower productivity (~61%) but handles all scenarios. Classic operations trade-off.",
+            action: function() {
+                renderMetrics();
+                renderHistoryHeader();
+                rerenderHistory();
+            }
+        },
+        {
+            id: 8,
+            question: "Watch all three queue lines on the chart. Which station\u2019s queue grows fastest? Why? Start with 1 staff at each station.",
+            answer: "Preparation (3 min service time) grows fastest. At 1 staff it can only process about 80 customers in 240 min, far below the 170 needed. It is the bottleneck.",
+            action: null
+        },
+        {
+            id: 9,
+            question: "Apply Little\u2019s Law to each station independently. For 170 customers in 240 min, how many staff at each? Calculate utilisation at correct staffing (2, 3, 1).",
+            answer: "Order Taking: 170\u00d72=340, CEIL(340/240)=2 staff. Preparation: 170\u00d73=510, CEIL(510/240)=3 staff. Serving: 170\u00d71=170, CEIL(170/240)=1 staff. Total=6. All utilisation = 70.8% \u2014 \u201cswift even flow.\u201d",
+            action: function() {
+                renderMetrics();
+                renderHistoryHeader();
+                rerenderHistory();
+            }
+        },
+        {
+            id: 10,
+            question: "Try mismatched staffing (e.g., Order=3, Prep=2). What happens? Is a queue always bad \u2014 when might waiting benefit the business?",
+            answer: "The bottleneck shifts to Preparation. Orders arrive faster than prep can handle \u2014 a \u201cshifting bottleneck.\u201d Queues can enable cross-selling (e.g., customers see pastries while waiting). Zero queue likely means overstaffed.",
+            action: function() {
+                renderMetrics();
+                renderHistoryHeader();
+                rerenderHistory();
+            }
+        }
+    ];
+
+    // === STATE ===
+    var state = {
+        currentPhase: 1,
+        currentRun: 0,
+        phaseTurns: 0,
+        questionsShown: 0,
+        insightsRevealed: 0,
+        instructionExpanded: true,
+        history: [],
+        lastSliders: { staff: 1, orderStaff: 1, prepStaff: 1, serveStaff: 1 },
+        historyExpanded: false
+    };
+
+    // === SIMULATION STATE (resets each run) ===
+    var sim = {
+        // single station
+        queue: [],
+        inService: new Map(),
+        staff: [],
+        completedCustomers: [],
+        arrivalTimestamps: [],
+        simulatedTime: 0,
+        isRunning: false,
+        intervalId: null,
+        maxQueueLength: 0,
+        totalStaffMinutes: 0,
+        // Phase 2 specific
+        targetCustomers: 55,
+        // Phase 3 specific
+        queues: { orderTaking: [], preparation: [], serving: [] },
+        inServiceMulti: { orderTaking: new Map(), preparation: new Map(), serving: new Map() },
+        staffMulti: { orderTaking: [], preparation: [], serving: [] },
+        maxQueues: { orderTaking: 0, preparation: 0, serving: 0 },
+        totalStaffMinutesMulti: { orderTaking: 0, preparation: 0, serving: 0 }
+    };
+
+    // === DOM REFS ===
+    var el = {};
+    function cacheDom() {
+        el.goBtn = document.getElementById('goBtn');
+        el.resetBtn = document.getElementById('resetBtn');
+        el.controlsArea = document.getElementById('controlsArea');
+        el.metricsArea = document.getElementById('metricsArea');
+        el.staffStatusContent = document.getElementById('staffStatusContent');
+        el.runCounter = document.getElementById('runCounter');
+        el.instructionContent = document.getElementById('instructionContent');
+        el.toggleInstructions = document.getElementById('toggleInstructions');
+        el.historyHeader = document.getElementById('historyHeader');
+        el.historyBody = document.getElementById('historyBody');
+        el.historyToggleBar = document.getElementById('historyToggleBar');
+        el.historyToggleLabel = document.getElementById('historyToggleLabel');
+        el.historyToggleArrow = document.getElementById('historyToggleArrow');
+        el.historyContent = document.getElementById('historyContent');
+        el.phaseLabel1 = document.getElementById('phaseLabel1');
+        el.phaseLabel2 = document.getElementById('phaseLabel2');
+        el.phaseLabel3 = document.getElementById('phaseLabel3');
+        el.insightsCounter = document.getElementById('insightsCounter');
+        el.insightsList = document.getElementById('insightsList');
+        el.phaseAdvanceArea = document.getElementById('phaseAdvanceArea');
+        el.overrideControls = document.getElementById('overrideControls');
+    }
+
+    // === CHART ===
+    var queueChartInstance = null;
+
+    function destroyChart() {
+        if (queueChartInstance) {
+            queueChartInstance.destroy();
+            queueChartInstance = null;
+        }
+    }
+
+    function initChart() {
+        destroyChart();
+        var ctx = document.getElementById('queueChart').getContext('2d');
+        var datasets;
+        if (state.currentPhase <= 2) {
+            datasets = [{
+                label: 'Queue Length',
+                data: [],
+                borderColor: 'rgb(54, 162, 235)',
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 0
+            }];
+        } else {
+            datasets = [
+                { label: 'Order Taking', data: [], borderColor: 'rgb(54, 162, 235)', borderWidth: 2, fill: false, pointRadius: 0 },
+                { label: 'Preparation', data: [], borderColor: 'rgb(75, 192, 192)', borderWidth: 2, fill: false, pointRadius: 0 },
+                { label: 'Serving', data: [], borderColor: 'rgb(255, 159, 64)', borderWidth: 2, fill: false, pointRadius: 0 }
+            ];
+        }
+        queueChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels: [], datasets: datasets },
+            options: {
+                animation: false,
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Time (minutes)', font: { size: 14, weight: 'bold' } },
+                        grid: { display: true, color: '#e5e5e5', lineWidth: 0.5 },
+                        border: { width: 1.5, color: '#333' },
+                        ticks: { font: { size: 12 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Customers in Queue', font: { size: 14, weight: 'bold' } },
+                        grid: { color: '#e5e5e5', lineWidth: 0.5 },
+                        border: { width: 1.5, color: '#333' },
+                        ticks: { font: { size: 12 } }
+                    }
+                },
+                plugins: {
+                    legend: { display: state.currentPhase === 3 }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        if (!queueChartInstance) return;
+        var windowSize = 60;
+        queueChartInstance.data.labels.push(sim.simulatedTime);
+        if (state.currentPhase <= 2) {
+            queueChartInstance.data.datasets[0].data.push(sim.queue.length);
+        } else {
+            queueChartInstance.data.datasets[0].data.push(sim.queues.orderTaking.length);
+            queueChartInstance.data.datasets[1].data.push(sim.queues.preparation.length);
+            queueChartInstance.data.datasets[2].data.push(sim.queues.serving.length);
+        }
+        if (queueChartInstance.data.labels.length > windowSize) {
+            queueChartInstance.data.labels.shift();
+            queueChartInstance.data.datasets.forEach(function(ds) { ds.data.shift(); });
+        }
+        queueChartInstance.update('none');
+    }
+
+    // === INSTRUCTION TEXT ===
+    var instructionText = {
+        1: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 4px; color: #1e40af;">Phase 1: The Staffing Decision</div>' +
+                '<div style="margin-bottom: 4px;">Little\u2019s Coffee Shop experiences a morning rush from 8\u20139 AM. <strong>55 customers</strong> are expected to arrive in the hour. Each coffee takes exactly <strong>2 minutes</strong> to prepare, and a barista can only prepare one drink at a time.</div>' +
+                '<div style="margin-bottom: 3px;">Key information:</div>' +
+                '<ul style="margin: 0 0 4px 0; padding-left: 20px; line-height: 1.4;">' +
+                '<li>Arrival rate: ~55 customers per hour (~0.92 customers/min)</li>' +
+                '<li>Service time: <strong>2 minutes per customer</strong> (fixed)</li>' +
+                '<li>Each barista serves one customer at a time</li>' +
+                '<li>The simulation runs for 60 minutes (1 hour)</li>' +
+                '</ul>' +
+                '<div style="color: #1e40af; font-weight: 600;">Your task: Start with 1 barista and observe what happens. Commit to your staffing decision for the full hour \u2014 changing mid-shift is disruptive. After each run, reflect on the outcome and try a different level. Can you work out the minimum number of baristas needed?</div>',
+            short: '<span style="font-weight: 700; color: #1e40af;">Phase 1:</span> 55 customers, 2 min/customer, 60 min rush. Commit to a staffing level each run. Can you find the minimum baristas needed?'
+        },
+        2: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 4px; color: #7c3aed;">Phase 2: Demand Uncertainty</div>' +
+                '<div style="margin-bottom: 4px;">The coffee shop now faces <strong>uncertain demand</strong>. Each day, somewhere between <strong>30 and 85 customers</strong> arrive during the rush hour (uniformly distributed). The service time is still 2 minutes per customer.</div>' +
+                '<div style="margin-bottom: 3px;">Key changes from Phase 1:</div>' +
+                '<ul style="margin: 0 0 4px 0; padding-left: 20px; line-height: 1.4;">' +
+                '<li>Demand varies <strong>each run</strong> \u2014 you won\u2019t know the exact number until it happens</li>' +
+                '<li>The \u201cDemand This Run\u201d card shows how many customers will arrive</li>' +
+                '<li>Service time is still 2 minutes per customer</li>' +
+                '</ul>' +
+                '<div style="color: #7c3aed; font-weight: 600;">Your task: Run the simulation multiple times. How do you staff when demand is uncertain? Can you calculate the range of staff you might need?</div>',
+            short: '<span style="font-weight: 700; color: #7c3aed;">Phase 2:</span> Demand varies 30\u201385 customers/hour. How do you staff for uncertainty?'
+        },
+        3: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 4px; color: #059669;">Phase 3: Sequential Operations</div>' +
+                '<div style="margin-bottom: 4px;">As customer volume grows, simply adding baristas to one counter is not enough. The shop has split its operation into <strong>three specialised sequential stations</strong> to improve throughput and allow targeted staffing. Each customer passes through all three in order. You need to serve <strong>170 customers</strong> over a <strong>4-hour shift</strong> (240 minutes).</div>' +
+                '<div style="margin-bottom: 3px;">The three stations:</div>' +
+                '<ul style="margin: 0 0 4px 0; padding-left: 20px; line-height: 1.4;">' +
+                '<li><strong>Order Taking:</strong> 2 minutes per customer</li>' +
+                '<li><strong>Preparation:</strong> 3 minutes per customer (grinding, brewing, steaming)</li>' +
+                '<li><strong>Serving:</strong> 1 minute per customer</li>' +
+                '</ul>' +
+                '<div style="margin-bottom: 3px;">Each station has its own queue and staff. Customers must finish one station before moving to the next. <strong>In this phase, you can adjust staffing mid-shift</strong> \u2014 watch how queues respond in real time.</div>' +
+                '<div style="color: #059669; font-weight: 600;">Your task: Start with 1 staff at each station. Where does the bottleneck form? Try changing staffing at one station and watch the bottleneck shift. Apply Little\u2019s Law to each station independently to find the right balance.</div>',
+            short: '<span style="font-weight: 700; color: #059669;">Phase 3:</span> Three stations (Order 2min, Prep 3min, Serve 1min), 170 customers in 240 min. Adjust staffing mid-shift and watch bottlenecks form and shift.'
+        }
+    };
+
+    // === HELPER: METRIC CARD HTML ===
+    function metricCard(id, label, unit, isProtected, prompt) {
+        var html = '<div id="metric_' + id + '" style="flex: 1; min-width: 110px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">';
+        html += '<div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">' + label + '</div>';
+        if (isProtected) {
+            html += '<div id="' + id + 'Prompt" style="font-size: 0.8em; color: #64748b; margin: 4px 0 2px 0;">' + prompt + '</div>';
+            html += '<div id="' + id + 'Revealed" style="display: none;">';
+            html += '<div id="' + id + 'Value" style="font-size: 1.25em; font-weight: 700; color: #1e293b;">&mdash;</div>';
+            if (unit) html += '<div style="font-size: 0.7em; color: #94a3b8;">' + unit + '</div>';
+            html += '</div>';
+        } else {
+            html += '<div id="' + id + 'Value" style="font-size: 1.25em; font-weight: 700; color: #1e293b;">&mdash;</div>';
+            if (unit) html += '<div style="font-size: 0.7em; color: #94a3b8;">' + unit + '</div>';
+        }
+        html += '</div>';
+        return html;
+    }
+
+    // === PROTECTED METRIC VISIBILITY ===
+    function isUtilRevealed() {
+        if (state.currentPhase === 1) return state.insightsRevealed >= 4;
+        if (state.currentPhase === 2) return state.insightsRevealed >= 7;
+        if (state.currentPhase === 3) return state.insightsRevealed >= 9;
+        return false;
+    }
+
+    function isWRevealed() {
+        if (state.currentPhase === 1) return state.insightsRevealed >= 4;
+        if (state.currentPhase === 2) return state.insightsRevealed >= 7;
+        if (state.currentPhase === 3) return state.insightsRevealed >= 10;
+        return false;
+    }
+
+    function updateProtectedVisibility() {
+        var utilRev = isUtilRevealed();
+        var wRev = isWRevealed();
+        var promptEl, revealedEl;
+
+        if (state.currentPhase <= 2) {
+            promptEl = document.getElementById('utilisationPrompt');
+            revealedEl = document.getElementById('utilisationRevealed');
+            if (promptEl) promptEl.style.display = utilRev ? 'none' : 'block';
+            if (revealedEl) revealedEl.style.display = utilRev ? 'block' : 'none';
+
+            promptEl = document.getElementById('avgTimePrompt');
+            revealedEl = document.getElementById('avgTimeRevealed');
+            if (promptEl) promptEl.style.display = wRev ? 'none' : 'block';
+            if (revealedEl) revealedEl.style.display = wRev ? 'block' : 'none';
+        } else {
+            var stations = ['orderUtil', 'prepUtil', 'serveUtil', 'aggUtil'];
+            for (var i = 0; i < stations.length; i++) {
+                promptEl = document.getElementById(stations[i] + 'Prompt');
+                revealedEl = document.getElementById(stations[i] + 'Revealed');
+                if (promptEl) promptEl.style.display = utilRev ? 'none' : 'block';
+                if (revealedEl) revealedEl.style.display = utilRev ? 'block' : 'none';
+            }
+            promptEl = document.getElementById('avgTimePrompt');
+            revealedEl = document.getElementById('avgTimeRevealed');
+            if (promptEl) promptEl.style.display = wRev ? 'none' : 'block';
+            if (revealedEl) revealedEl.style.display = wRev ? 'block' : 'none';
+        }
+    }
+
+    // === RENDER CONTROLS ===
+    function renderControls() {
+        var html = '';
+        if (state.currentPhase <= 2) {
+            html += '<div style="margin-bottom: 10px;">';
+            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 4px; color: #475569;">';
+            html += 'Number of Baristas: <span id="staffDisplay" style="color: #2563eb; font-size: 1.1em;">1</span>';
+            html += '</label>';
+            html += '<input type="range" id="staffSlider" min="1" max="5" value="1" step="1" style="width: 100%; cursor: pointer;">';
+            html += '<div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>';
+            html += '</div>';
+            if (state.currentPhase === 2) {
+                html += '<div style="padding: 6px 10px; background: #faf5ff; border: 1px solid #c084fc; border-radius: 6px; text-align: center; margin-bottom: 6px;">';
+                html += '<div style="font-size: 0.75em; color: #7c3aed; text-transform: uppercase; font-weight: 600;">Demand This Run</div>';
+                html += '<div id="demandDisplay" style="font-size: 1.3em; font-weight: 700; color: #7c3aed;">' + sim.targetCustomers + ' customers</div>';
+                html += '</div>';
+            }
+        } else {
+            html += '<div style="margin-bottom: 8px;">';
+            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 3px; color: #475569;">Order Taking Staff: <span id="orderStaffDisplay" style="color: #2563eb;">1</span></label>';
+            html += '<input type="range" id="orderStaffSlider" min="1" max="5" value="1" step="1" style="width: 100%; cursor: pointer;">';
+            html += '<div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>';
+            html += '</div>';
+            html += '<div style="margin-bottom: 8px;">';
+            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 3px; color: #475569;">Preparation Staff: <span id="prepStaffDisplay" style="color: #2563eb;">1</span></label>';
+            html += '<input type="range" id="prepStaffSlider" min="1" max="5" value="1" step="1" style="width: 100%; cursor: pointer;">';
+            html += '<div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>';
+            html += '</div>';
+            html += '<div style="margin-bottom: 8px;">';
+            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 3px; color: #475569;">Serving Staff: <span id="serveStaffDisplay" style="color: #2563eb;">1</span></label>';
+            html += '<input type="range" id="serveStaffSlider" min="1" max="5" value="1" step="1" style="width: 100%; cursor: pointer;">';
+            html += '<div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>';
+            html += '</div>';
+        }
+        el.controlsArea.innerHTML = html;
+        bindControlEvents();
+    }
+
+    // === RENDER METRICS ===
+    function renderMetrics() {
+        var html = '';
+        if (state.currentPhase <= 2) {
+            html += metricCard('queueLen', 'Queue Length', 'customers', false);
+            html += metricCard('inService', 'In Service', 'customers', false);
+            html += metricCard('totalArrivals', 'Total Arrived', 'customers', false);
+            html += metricCard('totalServed', 'Total Served', 'customers', false);
+            html += metricCard('arrivalRate', 'Arrival Rate (\u03bb)', 'customers/min', false);
+            html += metricCard('simTime', 'Time', 'min', false);
+            html += metricCard('utilisation', 'Utilisation', '%', true, 'Calculate: (Customers \u00d7 Service Time) / (Duration \u00d7 Staff)');
+            html += metricCard('avgTime', 'Avg Time/Customer (W)', 'min', true, 'Calculate: Total Time in System / Customers Served');
+        } else {
+            html += metricCard('totalQueue', 'Total Queue Length', 'customers', false);
+            html += metricCard('inService', 'In Service', 'customers', false);
+            html += metricCard('totalArrivals', 'Total Arrived', 'customers', false);
+            html += metricCard('totalServed', 'Total Served', 'customers', false);
+            html += metricCard('arrivalRate', 'Arrival Rate (\u03bb)', 'customers/min', false);
+            html += metricCard('simTime', 'Time', 'min', false);
+            html += metricCard('orderUtil', 'Order Taking Util', '%', true, 'Calculate: (Customers \u00d7 CT) / (Duration \u00d7 Staff)');
+            html += metricCard('prepUtil', 'Preparation Util', '%', true, 'Calculate: (Customers \u00d7 CT) / (Duration \u00d7 Staff)');
+            html += metricCard('serveUtil', 'Serving Util', '%', true, 'Calculate: (Customers \u00d7 CT) / (Duration \u00d7 Staff)');
+            html += metricCard('aggUtil', 'Aggregate Util', '%', true, 'Weighted average of station utilisations');
+            html += metricCard('avgTime', 'Avg Time/Customer (W)', 'min', true, 'Calculate: Total Time / Customers Served');
+        }
+        el.metricsArea.innerHTML = html;
+        updateProtectedVisibility();
+    }
+
+    // === STAFF STATUS DISPLAY ===
+    function renderStaffStatus() {
+        var html = '';
+        function statusBox(staffMember) {
+            var bg = staffMember.busy ? '#FF9966' : '#81c784';
+            if (staffMember.markedForRemoval) {
+                return '<div style="width: 24px; height: 24px; background-color: ' + bg + '; border: 2px dashed #ef4444; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7em; font-weight: 600; opacity: 0.4; transition: all 0.3s ease;" title="Finishing last customer, then leaving">' + staffMember.id.split('_')[1] + '</div>';
+            }
+            return '<div style="width: 24px; height: 24px; background-color: ' + bg + '; border: 2px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7em; font-weight: 600; transition: all 0.3s ease;">' + staffMember.id.split('_')[1] + '</div>';
+        }
+
+        if (state.currentPhase <= 2) {
+            html += '<div style="display: flex; align-items: center; gap: 4px;">';
+            html += '<span style="font-size: 0.85em; font-weight: 600; margin-right: 8px;">Baristas:</span>';
+            for (var i = 0; i < sim.staff.length; i++) {
+                html += statusBox(sim.staff[i]);
+            }
+            html += '</div>';
+        } else {
+            var stations = [
+                { key: 'orderTaking', label: 'Order Taking:' },
+                { key: 'preparation', label: 'Preparation:' },
+                { key: 'serving', label: 'Serving:' }
+            ];
+            for (var s = 0; s < stations.length; s++) {
+                html += '<div style="display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">';
+                html += '<span style="font-size: 0.85em; font-weight: 600; margin-right: 8px; min-width: 100px;">' + stations[s].label + '</span>';
+                var stationStaff = sim.staffMulti[stations[s].key];
+                for (var j = 0; j < stationStaff.length; j++) {
+                    html += statusBox(stationStaff[j]);
+                }
+                html += '</div>';
+            }
+        }
+        el.staffStatusContent.innerHTML = html;
+    }
+
+    // === CREATE STAFF ===
+    function createStaff(prefix, count) {
+        var arr = [];
+        for (var i = 0; i < count; i++) {
+            arr.push({ id: prefix + '_' + (i + 1), busy: false, totalBusyTime: 0, currentStartTime: null, markedForRemoval: false });
+        }
+        return arr;
+    }
+
+    // === MID-SIM STAFF ADJUSTMENT ===
+    function adjustStaffArray(staffArray, prefix, desiredCount) {
+        var current = staffArray.length;
+
+        if (desiredCount > current) {
+            // Find highest existing number to avoid ID collisions
+            var maxNum = 0;
+            for (var i = 0; i < staffArray.length; i++) {
+                var num = parseInt(staffArray[i].id.split('_')[1]);
+                if (num > maxNum) maxNum = num;
+            }
+            for (var j = 0; j < desiredCount - current; j++) {
+                maxNum++;
+                staffArray.push({
+                    id: prefix + '_' + maxNum,
+                    busy: false,
+                    totalBusyTime: 0,
+                    currentStartTime: null,
+                    markedForRemoval: false
+                });
+            }
+        } else if (desiredCount < current) {
+            var toRemove = current - desiredCount;
+            var removed = 0;
+            // First pass: remove idle staff from end
+            for (var k = staffArray.length - 1; k >= 0 && removed < toRemove; k--) {
+                if (!staffArray[k].busy && !staffArray[k].markedForRemoval) {
+                    staffArray.splice(k, 1);
+                    removed++;
+                }
+            }
+            // Second pass: mark busy staff for deferred removal
+            for (var m = staffArray.length - 1; m >= 0 && removed < toRemove; m--) {
+                if (staffArray[m].busy && !staffArray[m].markedForRemoval) {
+                    staffArray[m].markedForRemoval = true;
+                    removed++;
+                }
+            }
+        }
+
+        // Un-mark staff if slider went back up
+        var activeCount = 0;
+        for (var n = 0; n < staffArray.length; n++) {
+            if (!staffArray[n].markedForRemoval) activeCount++;
+        }
+        var prevActive = -1;
+        while (activeCount < desiredCount) {
+            if (activeCount === prevActive) break; // safety guard
+            prevActive = activeCount;
+            for (var p = 0; p < staffArray.length; p++) {
+                if (staffArray[p].markedForRemoval) {
+                    staffArray[p].markedForRemoval = false;
+                    activeCount++;
+                    break;
+                }
+            }
+        }
+    }
+
+    function setSliderLocked(locked) {
+        if (state.currentPhase >= 3) return; // Phase 3 sliders always interactive
+        var slider = document.getElementById('staffSlider');
+        if (!slider) return;
+        slider.disabled = locked;
+        slider.style.opacity = locked ? '0.4' : '1';
+        slider.style.cursor = locked ? 'not-allowed' : 'pointer';
+    }
+
+    function syncStaffToSlider() {
+        // Mid-sim staff changes only in Phase 3 (bottleneck exploration)
+        // Phases 1-2: students commit to a decision and observe full consequences
+        if (state.currentPhase <= 2) return;
+        // Only sync during an active or paused run
+        if (!sim.isRunning && sim.simulatedTime === 0) return;
+
+        var mappings = [
+            { slider: 'orderStaffSlider', staff: 'orderTaking', prefix: 'ORDER' },
+            { slider: 'prepStaffSlider', staff: 'preparation', prefix: 'PREP' },
+            { slider: 'serveStaffSlider', staff: 'serving', prefix: 'SERVE' }
+        ];
+        for (var i = 0; i < mappings.length; i++) {
+            var s = document.getElementById(mappings[i].slider);
+            if (!s) continue;
+            adjustStaffArray(sim.staffMulti[mappings[i].staff], mappings[i].prefix, parseInt(s.value));
+        }
+        renderStaffStatus();
+    }
+
+    // === RESET SIMULATION STATE ===
+    function resetSimState() {
+        if (sim.intervalId) clearInterval(sim.intervalId);
+        sim.queue = [];
+        sim.inService = new Map();
+        sim.completedCustomers = [];
+        sim.arrivalTimestamps = [];
+        sim.simulatedTime = 0;
+        sim.isRunning = false;
+        sim.intervalId = null;
+        sim.maxQueueLength = 0;
+        sim.totalStaffMinutes = 0;
+        sim.totalStaffMinutesMulti = { orderTaking: 0, preparation: 0, serving: 0 };
+
+        if (state.currentPhase === 2) {
+            sim.targetCustomers = Math.floor(30 + Math.random() * (85 - 30 + 1));
+        } else {
+            sim.targetCustomers = 55;
+        }
+
+        if (state.currentPhase <= 2) {
+            var staffCount = 1;
+            var slider = document.getElementById('staffSlider');
+            if (slider) staffCount = parseInt(slider.value);
+            sim.staff = createStaff('STAFF', staffCount);
+        } else {
+            sim.queues = { orderTaking: [], preparation: [], serving: [] };
+            sim.inServiceMulti = { orderTaking: new Map(), preparation: new Map(), serving: new Map() };
+            sim.maxQueues = { orderTaking: 0, preparation: 0, serving: 0 };
+            var os = document.getElementById('orderStaffSlider');
+            var ps = document.getElementById('prepStaffSlider');
+            var ss = document.getElementById('serveStaffSlider');
+            sim.staffMulti.orderTaking = createStaff('ORDER', os ? parseInt(os.value) : 1);
+            sim.staffMulti.preparation = createStaff('PREP', ps ? parseInt(ps.value) : 1);
+            sim.staffMulti.serving = createStaff('SERVE', ss ? parseInt(ss.value) : 1);
+        }
+    }
+
+    // === SINGLE STATION SIMULATION LOGIC ===
+    function singleStationGenerateCustomer() {
+        var customer = {
+            id: Math.random().toString(36).substr(2, 9),
+            arrivalTime: sim.simulatedTime,
+            serviceStartTime: null,
+            completionTime: null
+        };
+        sim.queue.push(customer);
+        sim.arrivalTimestamps.push(sim.simulatedTime);
+    }
+
+    function singleStationProcessQueue() {
+        var SERVICE_TIME = 2;
+        // Check completions — collect IDs to delete and staff to remove
+        var toDelete = [];
+        var staffToRemove = [];
+        for (var entry of sim.inService) {
+            var customerId = entry[0];
+            var service = entry[1];
+            if (sim.simulatedTime >= service.completionTime) {
+                var staffMember = null;
+                for (var s = 0; s < sim.staff.length; s++) {
+                    if (sim.staff[s].id === service.staffId) { staffMember = sim.staff[s]; break; }
+                }
+                if (staffMember) {
+                    staffMember.totalBusyTime += (sim.simulatedTime - staffMember.currentStartTime);
+                    staffMember.currentStartTime = null;
+                    if (staffMember.markedForRemoval) {
+                        staffToRemove.push(staffMember);
+                    } else {
+                        staffMember.busy = false;
+                    }
+                }
+                service.customer.completionTime = sim.simulatedTime;
+                sim.completedCustomers.push(service.customer);
+                toDelete.push(customerId);
+            }
+        }
+        for (var d = 0; d < toDelete.length; d++) {
+            sim.inService.delete(toDelete[d]);
+        }
+        // Remove marked staff after completion
+        for (var r = 0; r < staffToRemove.length; r++) {
+            var idx = sim.staff.indexOf(staffToRemove[r]);
+            if (idx > -1) sim.staff.splice(idx, 1);
+        }
+        // Assign idle staff (skip marked-for-removal)
+        for (var i = 0; i < sim.staff.length; i++) {
+            if (!sim.staff[i].busy && !sim.staff[i].markedForRemoval && sim.queue.length > 0) {
+                var customer = sim.queue.shift();
+                sim.staff[i].busy = true;
+                sim.staff[i].currentStartTime = sim.simulatedTime;
+                customer.serviceStartTime = sim.simulatedTime;
+                sim.inService.set(customer.id, { customer: customer, staffId: sim.staff[i].id, completionTime: sim.simulatedTime + SERVICE_TIME });
+            }
+        }
+        if (sim.queue.length > sim.maxQueueLength) sim.maxQueueLength = sim.queue.length;
+    }
+
+    function singleStationTick() {
+        sim.simulatedTime += 1;
+        sim.totalStaffMinutes += sim.staff.length;
+        var duration = 60;
+
+        if (sim.simulatedTime >= duration) {
+            completeRun();
+            return;
+        }
+
+        // Generate arrivals
+        if (state.currentPhase === 1) {
+            var arrivalRate = 60 / 55;
+            var variation = arrivalRate * (Math.random() - 0.5) * 0.08;
+            var actualRate = arrivalRate + variation;
+            if (Math.random() < 1 / actualRate) {
+                singleStationGenerateCustomer();
+            }
+        } else {
+            // Phase 2: target-based arrivals
+            var basePerMin = sim.targetCustomers / 60;
+            var arrivals;
+            if (Math.random() < (basePerMin % 1)) {
+                arrivals = Math.ceil(basePerMin);
+            } else {
+                arrivals = Math.floor(basePerMin);
+            }
+            if (Math.random() < 0.2) {
+                arrivals += Math.floor(Math.random() * 2);
+            }
+            for (var a = 0; a < arrivals; a++) {
+                singleStationGenerateCustomer();
+            }
+        }
+
+        singleStationProcessQueue();
+        updateLiveDisplay();
+        updateChart();
+    }
+
+    // === THREE-STATION SIMULATION LOGIC ===
+    var SERVICE_TIMES = { orderTaking: 2, preparation: 3, serving: 1 };
+
+    function threeStationGenerateCustomer() {
+        var customer = {
+            id: Math.random().toString(36).substr(2, 9),
+            arrivalTime: sim.simulatedTime,
+            currentStation: 'orderTaking',
+            orderStartTime: null, orderEndTime: null,
+            prepStartTime: null, prepEndTime: null,
+            serveStartTime: null, completionTime: null
+        };
+        sim.queues.orderTaking.push(customer);
+        sim.arrivalTimestamps.push(sim.simulatedTime);
+    }
+
+    function processStation(station) {
+        var queue = sim.queues[station];
+        var inSvc = sim.inServiceMulti[station];
+        var staff = sim.staffMulti[station];
+        var serviceTime = SERVICE_TIMES[station];
+
+        // Check completions
+        var toDelete = [];
+        var staffToRemove = [];
+        for (var entry of inSvc) {
+            var customerId = entry[0];
+            var service = entry[1];
+            if (sim.simulatedTime >= service.completionTime) {
+                var staffMember = null;
+                for (var s = 0; s < staff.length; s++) {
+                    if (staff[s].id === service.staffId) { staffMember = staff[s]; break; }
+                }
+                if (staffMember) {
+                    staffMember.totalBusyTime += (sim.simulatedTime - staffMember.currentStartTime);
+                    staffMember.currentStartTime = null;
+                    if (staffMember.markedForRemoval) {
+                        staffToRemove.push(staffMember);
+                    } else {
+                        staffMember.busy = false;
+                    }
+                }
+                var customer = service.customer;
+                if (station === 'orderTaking') {
+                    customer.orderEndTime = sim.simulatedTime;
+                    customer.currentStation = 'preparation';
+                    sim.queues.preparation.push(customer);
+                } else if (station === 'preparation') {
+                    customer.prepEndTime = sim.simulatedTime;
+                    customer.currentStation = 'serving';
+                    sim.queues.serving.push(customer);
+                } else {
+                    customer.completionTime = sim.simulatedTime;
+                    sim.completedCustomers.push(customer);
+                }
+                toDelete.push(customerId);
+            }
+        }
+        for (var d = 0; d < toDelete.length; d++) {
+            inSvc.delete(toDelete[d]);
+        }
+        // Remove marked staff after completion
+        for (var r = 0; r < staffToRemove.length; r++) {
+            var idx = staff.indexOf(staffToRemove[r]);
+            if (idx > -1) staff.splice(idx, 1);
+        }
+
+        // Assign idle staff (skip marked-for-removal)
+        for (var i = 0; i < staff.length; i++) {
+            if (!staff[i].busy && !staff[i].markedForRemoval && queue.length > 0) {
+                var cust = queue.shift();
+                staff[i].busy = true;
+                staff[i].currentStartTime = sim.simulatedTime;
+                if (station === 'orderTaking') cust.orderStartTime = sim.simulatedTime;
+                else if (station === 'preparation') cust.prepStartTime = sim.simulatedTime;
+                else cust.serveStartTime = sim.simulatedTime;
+                inSvc.set(cust.id, { customer: cust, staffId: staff[i].id, completionTime: sim.simulatedTime + serviceTime });
+            }
+        }
+        if (queue.length > sim.maxQueues[station]) sim.maxQueues[station] = queue.length;
+    }
+
+    function threeStationTick() {
+        sim.simulatedTime += 1;
+        sim.totalStaffMinutesMulti.orderTaking += sim.staffMulti.orderTaking.length;
+        sim.totalStaffMinutesMulti.preparation += sim.staffMulti.preparation.length;
+        sim.totalStaffMinutesMulti.serving += sim.staffMulti.serving.length;
+        if (sim.simulatedTime >= 240) {
+            completeRun();
+            return;
+        }
+
+        // Generate arrivals (170 customers in 240 minutes)
+        var arrivalRate = 240 / 170;
+        if (Math.random() < 1 / arrivalRate) {
+            threeStationGenerateCustomer();
+        }
+
+        processStation('orderTaking');
+        processStation('preparation');
+        processStation('serving');
+
+        updateLiveDisplay();
+        updateChart();
+    }
+
+    // === CALCULATE METRICS ===
+    function calcUtilSingle() {
+        if (sim.simulatedTime === 0) return 0;
+        var totalBusy = sim.completedCustomers.length * 2;
+        var currentServing = sim.inService.size * 2;
+        var totalAvailable = sim.totalStaffMinutes > 0 ? sim.totalStaffMinutes : sim.simulatedTime * sim.staff.length;
+        return Math.min(((totalBusy + currentServing) / totalAvailable) * 100, 100).toFixed(1);
+    }
+
+    function calcLambda() {
+        if (sim.simulatedTime === 0) return 0;
+        return (sim.arrivalTimestamps.length / sim.simulatedTime).toFixed(2);
+    }
+
+    function calcW() {
+        if (sim.completedCustomers.length === 0) return 0;
+        var total = 0;
+        for (var i = 0; i < sim.completedCustomers.length; i++) {
+            total += sim.completedCustomers[i].completionTime - sim.completedCustomers[i].arrivalTime;
+        }
+        return (total / sim.completedCustomers.length).toFixed(2);
+    }
+
+    function calcStationUtil(station) {
+        if (sim.simulatedTime === 0) return 0;
+        var staff = sim.staffMulti[station];
+        var totalBusy = 0;
+        for (var i = 0; i < staff.length; i++) {
+            totalBusy += staff[i].totalBusyTime;
+            if (staff[i].busy) {
+                totalBusy += sim.simulatedTime - staff[i].currentStartTime;
+            }
+        }
+        var available = sim.totalStaffMinutesMulti[station] > 0 ? sim.totalStaffMinutesMulti[station] : sim.simulatedTime * staff.length;
+        return Math.min((totalBusy / available) * 100, 100).toFixed(1);
+    }
+
+    function calcAggUtil() {
+        if (sim.simulatedTime === 0) return 0;
+        var stations = ['orderTaking', 'preparation', 'serving'];
+        var totalBusy = 0;
+        var totalAvailable = 0;
+        for (var s = 0; s < stations.length; s++) {
+            var staff = sim.staffMulti[stations[s]];
+            for (var i = 0; i < staff.length; i++) {
+                totalBusy += staff[i].totalBusyTime;
+                if (staff[i].busy) totalBusy += sim.simulatedTime - staff[i].currentStartTime;
+            }
+            totalAvailable += sim.totalStaffMinutesMulti[stations[s]] > 0 ? sim.totalStaffMinutesMulti[stations[s]] : sim.simulatedTime * staff.length;
+        }
+        return Math.min((totalBusy / totalAvailable) * 100, 100).toFixed(1);
+    }
+
+    // === UPDATE LIVE DISPLAY ===
+    function updateLiveDisplay() {
+        var setVal = function(id, val) {
+            var e = document.getElementById(id + 'Value');
+            if (e) e.textContent = val;
+        };
+
+        if (state.currentPhase <= 2) {
+            setVal('queueLen', sim.queue.length);
+            setVal('inService', sim.inService.size);
+            setVal('totalArrivals', sim.arrivalTimestamps.length);
+            setVal('totalServed', sim.completedCustomers.length);
+            setVal('arrivalRate', calcLambda());
+            setVal('simTime', sim.simulatedTime);
+            if (isUtilRevealed()) setVal('utilisation', calcUtilSingle());
+            if (isWRevealed()) setVal('avgTime', calcW());
+        } else {
+            var totalQ = sim.queues.orderTaking.length + sim.queues.preparation.length + sim.queues.serving.length;
+            var totalInSvc = sim.inServiceMulti.orderTaking.size + sim.inServiceMulti.preparation.size + sim.inServiceMulti.serving.size;
+            setVal('totalQueue', totalQ);
+            setVal('inService', totalInSvc);
+            setVal('totalArrivals', sim.arrivalTimestamps.length);
+            setVal('totalServed', sim.completedCustomers.length);
+            setVal('arrivalRate', calcLambda());
+            setVal('simTime', sim.simulatedTime);
+            if (isUtilRevealed()) {
+                setVal('orderUtil', calcStationUtil('orderTaking'));
+                setVal('prepUtil', calcStationUtil('preparation'));
+                setVal('serveUtil', calcStationUtil('serving'));
+                setVal('aggUtil', calcAggUtil());
+            }
+            if (isWRevealed()) setVal('avgTime', calcW());
+        }
+        renderStaffStatus();
+    }
+
+    // === RUN MANAGEMENT ===
+    function startRun() {
+        resetSimState();
+        if (state.currentPhase === 2) {
+            var dd = document.getElementById('demandDisplay');
+            if (dd) dd.textContent = sim.targetCustomers + ' customers';
+        }
+        renderStaffStatus();
+        initChart();
+        setSliderLocked(true);
+        sim.isRunning = true;
+        el.goBtn.textContent = 'Pause';
+
+        var tickFn = state.currentPhase <= 2 ? singleStationTick : threeStationTick;
+        sim.intervalId = setInterval(tickFn, 1000);
+    }
+
+    function pauseRun() {
+        if (sim.intervalId) { clearInterval(sim.intervalId); sim.intervalId = null; }
+        sim.isRunning = false;
+        el.goBtn.textContent = 'Resume';
+    }
+
+    function resumeRun() {
+        sim.isRunning = true;
+        el.goBtn.textContent = 'Pause';
+        var tickFn = state.currentPhase <= 2 ? singleStationTick : threeStationTick;
+        sim.intervalId = setInterval(tickFn, 1000);
+    }
+
+    function completeRun() {
+        if (sim.intervalId) { clearInterval(sim.intervalId); sim.intervalId = null; }
+        sim.isRunning = false;
+        setSliderLocked(false);
+
+        // Final processing and display
+        updateLiveDisplay();
+        updateChart();
+
+        // Record run result
+        var result = {};
+        if (state.currentPhase <= 2) {
+            result = {
+                run: state.history.length + 1,
+                phase: state.currentPhase,
+                staff: sim.staff.length,
+                arrivals: sim.arrivalTimestamps.length,
+                served: sim.completedCustomers.length,
+                maxQueue: sim.maxQueueLength,
+                avgTime: parseFloat(calcW()),
+                utilisation: parseFloat(calcUtilSingle())
+            };
+            if (state.currentPhase === 2) {
+                result.targetCustomers = sim.targetCustomers;
+            }
+        } else {
+            result = {
+                run: state.history.length + 1,
+                phase: 3,
+                orderStaff: sim.staffMulti.orderTaking.length,
+                prepStaff: sim.staffMulti.preparation.length,
+                serveStaff: sim.staffMulti.serving.length,
+                arrivals: sim.arrivalTimestamps.length,
+                served: sim.completedCustomers.length,
+                maxQueueOrder: sim.maxQueues.orderTaking,
+                maxQueuePrep: sim.maxQueues.preparation,
+                maxQueueServe: sim.maxQueues.serving,
+                orderUtil: parseFloat(calcStationUtil('orderTaking')),
+                prepUtil: parseFloat(calcStationUtil('preparation')),
+                serveUtil: parseFloat(calcStationUtil('serving')),
+                aggUtil: parseFloat(calcAggUtil()),
+                avgTime: parseFloat(calcW())
+            };
+        }
+
+        state.history.push(result);
+        state.currentRun++;
+        state.phaseTurns++;
+
+        // Save last slider values for restore on reload
+        if (state.currentPhase <= 2) {
+            state.lastSliders.staff = sim.staff.length;
+        } else {
+            state.lastSliders.orderStaff = sim.staffMulti.orderTaking.length;
+            state.lastSliders.prepStaff = sim.staffMulti.preparation.length;
+            state.lastSliders.serveStaff = sim.staffMulti.serving.length;
+        }
+
+        el.runCounter.textContent = state.currentRun;
+        el.goBtn.textContent = 'Go';
+
+        addHistoryRow(result);
+        updateHistoryLabel();
+        checkForNewQuestion();
+        saveState();
+    }
+
+    function toggleSimulation() {
+        if (!sim.isRunning && sim.simulatedTime === 0) {
+            startRun();
+        } else if (sim.isRunning) {
+            pauseRun();
+        } else if (!sim.isRunning && sim.simulatedTime > 0) {
+            // Sim was paused mid-run
+            var duration = state.currentPhase <= 2 ? 60 : 240;
+            if (sim.simulatedTime >= duration) {
+                // Run already completed, start new
+                startRun();
+            } else {
+                resumeRun();
+            }
+        }
+    }
+
+    // === HISTORY TABLE ===
+    function toggleHistory() {
+        state.historyExpanded = !state.historyExpanded;
+        el.historyContent.style.display = state.historyExpanded ? 'block' : 'none';
+        el.historyToggleArrow.innerHTML = state.historyExpanded ? '&#9660;' : '&#9654;';
+        saveState();
+    }
+
+    function updateHistoryLabel() {
+        var count = state.history.filter(function(r) { return r.phase === state.currentPhase; }).length;
+        el.historyToggleLabel.textContent = 'Run History (' + count + (count === 1 ? ' run' : ' runs') + ')';
+    }
+
+    function renderHistoryHeader() {
+        var thStyle = 'padding: 8px 6px; text-align: center; font-weight: 600; font-size: 0.85em; border-bottom: 2px solid #e2e8f0; color: #475569;';
+        var headers;
+        if (state.currentPhase <= 2) {
+            headers = ['Run', 'Staff'];
+            if (state.currentPhase === 2) headers.push('Demand');
+            headers = headers.concat(['Arrivals', 'Served', 'Max Queue', 'Avg Time/Cust', 'Utilisation']);
+        } else {
+            headers = ['Run', 'Order', 'Prep', 'Serve', 'Arrivals', 'Served', 'Max Q (O)', 'Max Q (P)', 'Max Q (S)', 'Avg Time', 'Order Util', 'Prep Util', 'Serve Util', 'Agg Util'];
+        }
+        el.historyHeader.innerHTML = headers.map(function(h) { return '<th style="' + thStyle + '">' + h + '</th>'; }).join('');
+    }
+
+    function addHistoryRow(r) {
+        var cs = 'padding: 6px; text-align: center; border-bottom: 1px solid #f1f5f9;';
+        var cells;
+        var utilRev = isUtilRevealed();
+        var wRev = isWRevealed();
+        var qMark = '<span style="color: #94a3b8; font-style: italic;">?</span>';
+
+        if (r.phase <= 2) {
+            cells = [r.run, r.staff];
+            if (r.phase === 2 || state.currentPhase === 2) cells.push(r.targetCustomers || '-');
+            cells.push(r.arrivals);
+            cells.push(r.served);
+            cells.push(r.maxQueue);
+            cells.push(wRev ? r.avgTime.toFixed(2) + ' min' : qMark);
+            cells.push(utilRev ? r.utilisation.toFixed(1) + '%' : qMark);
+        } else {
+            cells = [r.run, r.orderStaff, r.prepStaff, r.serveStaff, r.arrivals, r.served,
+                r.maxQueueOrder, r.maxQueuePrep, r.maxQueueServe,
+                wRev ? r.avgTime.toFixed(2) : qMark,
+                utilRev ? r.orderUtil.toFixed(1) + '%' : qMark,
+                utilRev ? r.prepUtil.toFixed(1) + '%' : qMark,
+                utilRev ? r.serveUtil.toFixed(1) + '%' : qMark,
+                utilRev ? r.aggUtil.toFixed(1) + '%' : qMark
+            ];
+        }
+
+        var row = document.createElement('tr');
+        for (var i = 0; i < cells.length; i++) {
+            var td = document.createElement('td');
+            td.style.cssText = cs;
+            td.innerHTML = cells[i];
+            row.appendChild(td);
+        }
+        el.historyBody.appendChild(row);
+    }
+
+    function rerenderHistory() {
+        el.historyBody.innerHTML = '';
+        for (var i = 0; i < state.history.length; i++) {
+            if (state.history[i].phase === state.currentPhase) {
+                addHistoryRow(state.history[i]);
+            }
+        }
+        updateHistoryLabel();
+    }
+
+    // === INSIGHTS PANEL ===
+    function renderInsights() {
+        var total = insights.length;
+        el.insightsCounter.textContent = state.insightsRevealed + ' of ' + total;
+
+        var html = '';
+        for (var i = 0; i < total; i++) {
+            var insight = insights[i];
+            if (i < state.insightsRevealed) {
+                // ANSWERED
+                html += '<div style="padding: 8px 10px; margin-bottom: 2px; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0;">';
+                html += '<div style="display: flex; gap: 8px; align-items: start;">';
+                html += '<div style="min-width: 24px; height: 24px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="flex: 1;">';
+                html += '<div style="font-size: 0.85em; color: #475569; font-style: italic; margin-bottom: 4px;">\u201c' + insight.question + '\u201d</div>';
+                html += '<div style="font-size: 0.9em; color: #1e293b; font-weight: 500; padding: 4px 8px; background: #f0fdf4; border-left: 3px solid #22c55e; border-radius: 0 4px 4px 0;">' + insight.answer + '</div>';
+                html += '</div></div></div>';
+            } else if (i < state.questionsShown) {
+                // QUESTION SHOWN
+                html += '<div data-reveal-index="' + i + '" style="padding: 8px 10px; margin-bottom: 2px; border-radius: 6px; background: #fefce8; border: 1px solid #eab308; cursor: pointer;">';
+                html += '<div style="display: flex; gap: 8px; align-items: start;">';
+                html += '<div style="min-width: 24px; height: 24px; border-radius: 50%; background: #eab308; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="flex: 1;">';
+                html += '<div style="font-size: 0.85em; color: #1e293b; font-style: italic; margin-bottom: 4px;">\u201c' + insight.question + '\u201d</div>';
+                if (i === state.insightsRevealed) {
+                    html += '<div style="font-size: 0.8em; color: #92400e; font-weight: 600; padding: 4px 10px; background: #fef9c3; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
+                } else {
+                    html += '<div style="font-size: 0.8em; color: #94a3b8; font-style: italic;">(answer the previous question first)</div>';
+                }
+                html += '</div></div></div>';
+            } else {
+                // HIDDEN
+                html += '<div style="padding: 4px 10px; margin-bottom: 2px;">';
+                html += '<div style="display: flex; gap: 8px; align-items: center;">';
+                html += '<div style="min-width: 24px; height: 24px; border-radius: 50%; background: #e5e7eb; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="font-size: 0.82em; color: #cbd5e1; font-style: italic;">(not yet revealed)</div>';
+                html += '</div></div>';
+            }
+        }
+        el.insightsList.innerHTML = html;
+        renderPhaseAdvance();
+        renderOverrides();
+    }
+
+    function renderPhaseAdvance() {
+        var phase = state.currentPhase;
+        var phaseInsights = PHASE_INSIGHTS[phase];
+        var maxInsightForPhase = phaseInsights[phaseInsights.length - 1];
+        var allPhaseAnswered = state.insightsRevealed > maxInsightForPhase;
+
+        if (allPhaseAnswered && phase < 3) {
+            var nextPhase = phase + 1;
+            el.phaseAdvanceArea.style.display = 'block';
+            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #1e40af; margin-bottom: 8px;">All Phase ' + phase + ' discussion points completed!</div>' +
+                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + nextPhase + ' &#9654;</button>';
+        } else {
+            el.phaseAdvanceArea.style.display = 'none';
+            el.phaseAdvanceArea.innerHTML = '';
+        }
+    }
+
+    function renderOverrides() {
+        var phase = state.currentPhase;
+        var linkStyle = 'background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78em; padding: 2px 6px; text-decoration: underline;';
+        var html = '';
+        if (phase < 2) html += '<button id="overrideSkip2" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 2</button>';
+        if (phase < 3) html += '<button id="overrideSkip3" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 3</button>';
+        html += '<button id="overrideRevealQ" onclick="void(0)" style="' + linkStyle + '">Reveal Next Question</button>';
+        html += '<button id="overrideReset" onclick="void(0)" style="' + linkStyle + '">Full Reset</button>';
+        el.overrideControls.innerHTML = html;
+    }
+
+    // === INSIGHT ACTIONS ===
+    function checkForNewQuestion() {
+        for (var i = 0; i < CHECKPOINT_SCHEDULE.length; i++) {
+            var cp = CHECKPOINT_SCHEDULE[i];
+            if (cp.phase === state.currentPhase && cp.turn === state.phaseTurns && cp.insightIndex >= state.questionsShown) {
+                state.questionsShown = cp.insightIndex + 1;
+                renderInsights();
+                return;
+            }
+        }
+    }
+
+    function revealInsightAnswer(index) {
+        if (index !== state.insightsRevealed) return;
+        if (index >= state.questionsShown) return;
+
+        var insight = insights[index];
+        state.insightsRevealed = index + 1;
+
+        if (typeof insight.action === 'function') {
+            insight.action();
+        }
+
+        updateProtectedVisibility();
+        renderInsights();
+        saveState();
+    }
+
+    function advancePhase() {
+        if (state.currentPhase >= 3) return;
+        if (sim.intervalId) clearInterval(sim.intervalId);
+        sim.isRunning = false;
+        setPhase(state.currentPhase + 1);
+    }
+
+    function skipToPhase(targetPhase) {
+        if (targetPhase <= state.currentPhase || targetPhase > 3) return;
+        // Auto-answer all insights for skipped phases
+        for (var p = state.currentPhase; p < targetPhase; p++) {
+            var phaseInsights = PHASE_INSIGHTS[p];
+            var maxIdx = phaseInsights[phaseInsights.length - 1];
+            if (state.questionsShown <= maxIdx) state.questionsShown = maxIdx + 1;
+            while (state.insightsRevealed <= maxIdx) {
+                var insight = insights[state.insightsRevealed];
+                state.insightsRevealed++;
+                if (typeof insight.action === 'function') insight.action();
+            }
+        }
+        if (sim.intervalId) clearInterval(sim.intervalId);
+        sim.isRunning = false;
+        setPhase(targetPhase);
+    }
+
+    function revealNextQuestion() {
+        if (state.questionsShown >= insights.length) return;
+        state.questionsShown++;
+        renderInsights();
+        saveState();
+    }
+
+    // === PHASE MANAGEMENT ===
+    function setPhase(phase) {
+        state.currentPhase = phase;
+        state.phaseTurns = 0;
+        // Clear history for new phase
+        state.history = state.history.filter(function(r) { return r.phase !== phase; });
+
+        // Update phase indicator
+        var colors = { active: '#2563eb', completed: '#16a34a', upcoming: '#e5e7eb' };
+        var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
+        var phaseNames = { 1: 'Phase 1: Staffing', 2: 'Phase 2: Uncertainty', 3: 'Phase 3: Sequential Ops' };
+        [1, 2, 3].forEach(function(p) {
+            var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
+            var label = document.getElementById('phaseLabel' + p);
+            label.style.background = colors[status];
+            label.style.color = textColors[status];
+            label.textContent = phaseNames[p];
+        });
+
+        // Reset sim
+        if (sim.intervalId) clearInterval(sim.intervalId);
+        sim.simulatedTime = 0;
+        sim.isRunning = false;
+        el.goBtn.textContent = 'Go';
+
+        // Reset sim state first (generates demand draw for Phase 2 before rendering controls)
+        resetSimState();
+
+        // Rebuild UI
+        renderControls();
+        renderMetrics();
+        renderStaffStatus();
+        initChart();
+        renderHistoryHeader();
+        rerenderHistory();
+        renderInstructions();
+        renderInsights();
+        updateProtectedVisibility();
+
+        el.runCounter.textContent = state.currentRun;
+
+        saveState();
+    }
+
+    // === INSTRUCTIONS ===
+    function renderInstructions() {
+        var inst = instructionText[state.currentPhase];
+        el.instructionContent.innerHTML = state.instructionExpanded ? inst.full : inst.short;
+        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
+
+        // Update border color
+        var borderColors = { 1: '#2563eb', 2: '#7c3aed', 3: '#059669' };
+        var bgColors = { 1: '#eff6ff', 2: '#faf5ff', 3: '#ecfdf5' };
+        var panel = document.getElementById('instructionPanel');
+        panel.style.borderLeftColor = borderColors[state.currentPhase];
+        panel.style.background = bgColors[state.currentPhase];
+    }
+
+    // === PERSISTENCE ===
+    function saveState() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function loadState() {
+        try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                var parsed = JSON.parse(saved);
+                state = parsed;
+                if (state.questionsShown === undefined) state.questionsShown = state.insightsRevealed || 0;
+                if (state.phaseTurns === undefined) state.phaseTurns = 0;
+                if (state.instructionExpanded === undefined) state.instructionExpanded = true;
+                if (state.lastSliders === undefined) state.lastSliders = { staff: 1, orderStaff: 1, prepStaff: 1, serveStaff: 1 };
+                if (state.historyExpanded === undefined) state.historyExpanded = false;
+                return true;
+            }
+        } catch (e) { localStorage.removeItem(STORAGE_KEY); }
+        return false;
+    }
+
+    function restoreFromState() {
+        setPhase(state.currentPhase);
+        el.runCounter.textContent = state.currentRun;
+
+        // Restore slider values from last run
+        if (state.lastSliders) {
+            if (state.currentPhase <= 2) {
+                var slider = document.getElementById('staffSlider');
+                var display = document.getElementById('staffDisplay');
+                if (slider && display) {
+                    slider.value = state.lastSliders.staff || 1;
+                    display.textContent = state.lastSliders.staff || 1;
+                }
+            } else {
+                var pairs = [
+                    { slider: 'orderStaffSlider', display: 'orderStaffDisplay', key: 'orderStaff' },
+                    { slider: 'prepStaffSlider', display: 'prepStaffDisplay', key: 'prepStaff' },
+                    { slider: 'serveStaffSlider', display: 'serveStaffDisplay', key: 'serveStaff' }
+                ];
+                for (var i = 0; i < pairs.length; i++) {
+                    var s = document.getElementById(pairs[i].slider);
+                    var d = document.getElementById(pairs[i].display);
+                    var val = state.lastSliders[pairs[i].key] || 1;
+                    if (s && d) { s.value = val; d.textContent = val; }
+                }
+            }
+        }
+
+        rerenderHistory();
+        el.historyContent.style.display = state.historyExpanded ? 'block' : 'none';
+        el.historyToggleArrow.innerHTML = state.historyExpanded ? '&#9660;' : '&#9654;';
+        renderInsights();
+        updateProtectedVisibility();
+    }
+
+    // === RESET ===
+    function resetSim() {
+        localStorage.removeItem(STORAGE_KEY);
+        if (sim.intervalId) clearInterval(sim.intervalId);
+        state = {
+            currentPhase: 1,
+            currentRun: 0,
+            phaseTurns: 0,
+            questionsShown: 0,
+            insightsRevealed: 0,
+            instructionExpanded: true,
+            history: [],
+            lastSliders: { staff: 1, orderStaff: 1, prepStaff: 1, serveStaff: 1 },
+            historyExpanded: false
+        };
+        sim.simulatedTime = 0;
+        sim.isRunning = false;
+        el.goBtn.textContent = 'Go';
+        setPhase(1);
+    }
+
+    // === CONTROL EVENT BINDING ===
+    function bindControlEvents() {
+        if (state.currentPhase <= 2) {
+            var slider = document.getElementById('staffSlider');
+            var display = document.getElementById('staffDisplay');
+            if (slider && display) {
+                slider.addEventListener('input', function() {
+                    display.textContent = this.value;
+                    syncStaffToSlider();
+                });
+            }
+        } else {
+            var pairs = [
+                { slider: 'orderStaffSlider', display: 'orderStaffDisplay' },
+                { slider: 'prepStaffSlider', display: 'prepStaffDisplay' },
+                { slider: 'serveStaffSlider', display: 'serveStaffDisplay' }
+            ];
+            for (var i = 0; i < pairs.length; i++) {
+                (function(p) {
+                    var s = document.getElementById(p.slider);
+                    var d = document.getElementById(p.display);
+                    if (s && d) {
+                        s.addEventListener('input', function() {
+                            d.textContent = this.value;
+                            syncStaffToSlider();
+                        });
+                    }
+                })(pairs[i]);
+            }
+        }
+    }
+
+    // === GLOBAL EVENT BINDING ===
+    function bindEvents() {
+        el.goBtn.addEventListener('click', function() { toggleSimulation(); });
+        el.resetBtn.addEventListener('click', function() { resetSim(); });
+        el.toggleInstructions.addEventListener('click', function() {
+            state.instructionExpanded = !state.instructionExpanded;
+            renderInstructions();
+            saveState();
+        });
+        el.historyToggleBar.addEventListener('click', function() { toggleHistory(); });
+
+        // Delegated click handler for insights panel
+        document.getElementById('insightsPanel').addEventListener('click', function(e) {
+            var revealEl = e.target.closest('[data-reveal-index]');
+            if (revealEl) {
+                var idx = parseInt(revealEl.getAttribute('data-reveal-index'));
+                revealInsightAnswer(idx);
+                return;
+            }
+            if (e.target.id === 'advancePhaseBtn') { advancePhase(); return; }
+            if (e.target.id === 'overrideSkip2') { skipToPhase(2); return; }
+            if (e.target.id === 'overrideSkip3') { skipToPhase(3); return; }
+            if (e.target.id === 'overrideRevealQ') { revealNextQuestion(); return; }
+            if (e.target.id === 'overrideReset') { resetSim(); return; }
+        });
+    }
+
+    // === INIT ===
+    function init() {
+        cacheDom();
+        bindEvents();
+        var restored = loadState();
+        if (restored) {
+            restoreFromState();
+        } else {
+            setPhase(1);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
+</script>

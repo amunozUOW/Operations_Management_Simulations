@@ -1,0 +1,1397 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div id="hammer-shop-sim-v1" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #1a1a1a; position: relative;">
+
+    <!-- ROW 1: Title + Phase Progress -->
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+        <h2 style="margin: 0; font-size: 1.5em; color: #1e293b;">Hammer Shop Simulation</h2>
+        <div style="display: flex; gap: 4px; align-items: center;">
+            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #2563eb; color: #fff;">Phase 1: Service</span>
+            <span style="color: #cbd5e1;">&#9654;</span>
+            <span id="phaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Inventory</span>
+            <span style="color: #cbd5e1;">&#9654;</span>
+            <span id="phaseLabel3" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 3: Optimize</span>
+        </div>
+    </div>
+
+    <!-- ROW 2: Instruction Panel -->
+    <div id="instructionPanel" style="background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div id="instructionContent"></div>
+            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #2563eb; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+        </div>
+    </div>
+
+    <!-- Notification Area -->
+    <div id="notificationArea" style="display: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9em; text-align: center;"></div>
+
+    <!-- Failure Overlay -->
+    <div id="failureOverlay" style="display: none; padding: 16px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; text-align: center;">
+        <div id="failureMessage" style="font-size: 1.1em; font-weight: 700; color: #dc2626;"></div>
+        <div style="font-size: 0.85em; color: #7f1d1d; margin-top: 4px;">Simulation terminated. Press Reset to try again.</div>
+    </div>
+
+    <!-- ROW 3: Controls + Metrics -->
+    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+
+        <!-- Controls Panel -->
+        <div style="flex: 1; min-width: 320px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+
+            <!-- Simulation Controls -->
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 14px;">
+                <button id="toggleBtn" onclick="void(0)" style="flex: 1; padding: 8px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Start</button>
+                <select id="speedSelect" style="padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; cursor: pointer; font-size: 0.85em;">
+                    <option value="3000">Slow</option>
+                    <option value="2000" selected>Medium</option>
+                    <option value="1000">Fast</option>
+                </select>
+                <button id="resetBtn" onclick="void(0)" style="padding: 8px 12px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em; cursor: pointer;">Reset</button>
+            </div>
+
+            <!-- Time Progress Bar -->
+            <div style="margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #64748b; margin-bottom: 4px;">
+                    <span>Minute: <strong id="timeDisplay">0</strong> / 60</span>
+                    <span>Cash: <strong id="cashDisplay" style="color: #16a34a;">$4,000.00</strong></span>
+                </div>
+                <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                    <div id="timeBar" style="height: 100%; width: 0%; background: #2563eb; transition: width 0.3s;"></div>
+                </div>
+            </div>
+
+            <!-- Staffing -->
+            <div style="font-weight: 700; font-size: 0.9em; margin-bottom: 8px; color: #334155;">Staffing</div>
+
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 2px; color: #475569;">
+                    Regular Staff ($5/min, 1 cust/min): <span id="regularStaffValue" style="color: #2563eb;">1</span>
+                </label>
+                <input type="range" id="regularStaffSlider" min="1" max="10" value="1" step="1" style="width: 100%; cursor: pointer;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #94a3b8;"><span>1</span><span>5</span><span>10</span></div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 2px; color: #475569;">
+                    Emergency Staff ($25/min, 2 cust/min): <span id="emergencyStaffValue" style="color: #2563eb;">0</span>
+                    <span id="emergencyLockLabel" style="font-size: 0.8em; color: #ef4444; font-weight: 400;">(locked until Phase 3)</span>
+                </label>
+                <input type="range" id="emergencyStaffSlider" min="0" max="5" value="0" step="1" style="width: 100%; cursor: not-allowed; opacity: 0.4;" disabled>
+                <div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #94a3b8;"><span>0</span><span>2</span><span>5</span></div>
+            </div>
+
+            <!-- Inventory -->
+            <div style="font-weight: 700; font-size: 0.9em; margin-bottom: 8px; color: #334155;">Inventory</div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                <div style="flex: 1; padding: 8px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <div style="font-size: 0.8em; color: #475569; display: flex; align-items: center; gap: 4px;">
+                        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span> Red Stock
+                    </div>
+                    <div id="redInventoryDisplay" style="font-size: 1.2em; font-weight: 700; color: #1e293b;">50</div>
+                    <div id="redWarning" style="display: none; font-size: 0.75em; color: #ef4444; font-weight: 600;">LOW STOCK</div>
+                    <input type="number" id="redOrderQty" min="1" max="100" placeholder="Order qty" style="width: 100%; margin-top: 4px; padding: 4px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.85em;">
+                </div>
+                <div style="flex: 1; padding: 8px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <div style="font-size: 0.8em; color: #475569; display: flex; align-items: center; gap: 4px;">
+                        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span> Blue Stock
+                    </div>
+                    <div id="blueInventoryDisplay" style="font-size: 1.2em; font-weight: 700; color: #1e293b;">50</div>
+                    <div id="blueWarning" style="display: none; font-size: 0.75em; color: #4682B4; font-weight: 600;">LOW STOCK</div>
+                    <input type="number" id="blueOrderQty" min="1" max="100" placeholder="Order qty" style="width: 100%; margin-top: 4px; padding: 4px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.85em;">
+                </div>
+            </div>
+
+            <button id="placeOrderBtn" onclick="void(0)" style="width: 100%; padding: 8px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em; font-weight: 600; cursor: pointer; margin-bottom: 6px;">Place Order (2 min lead time)</button>
+
+            <div id="pendingOrdersArea" style="font-size: 0.82em; color: #64748b; padding: 4px 0;">
+                <div id="noPendingMsg" style="text-align: center; font-style: italic;">No pending orders</div>
+                <div id="pendingRedDiv" style="display: none; align-items: center; gap: 4px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ff4444;"></span>
+                    Red: <span id="pendingRedQty">0</span> arriving in <span id="pendingRedTime">0</span> min
+                </div>
+                <div id="pendingBlueDiv" style="display: none; align-items: center; gap: 4px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4682B4;"></span>
+                    Blue: <span id="pendingBlueQty">0</span> arriving in <span id="pendingBlueTime">0</span> min
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard -->
+        <div style="flex: 1.2; min-width: 300px; display: flex; flex-wrap: wrap; gap: 8px; align-content: start;">
+
+            <!-- Satisfaction -->
+            <div style="flex: 1; min-width: 140px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
+                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Avg Satisfaction</div>
+                <div style="margin-top: 4px; font-size: 0.85em;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span>
+                    Red: <strong id="redSatisfaction">100</strong>%
+                </div>
+                <div style="font-size: 0.85em;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span>
+                    Blue: <strong id="blueSatisfaction">100</strong>%
+                </div>
+            </div>
+
+            <!-- Fill Rate -->
+            <div style="flex: 1; min-width: 140px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
+                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Fill Rate</div>
+                <div style="margin-top: 4px; font-size: 0.85em;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span>
+                    Red: <strong id="redFillRate">100</strong>%
+                </div>
+                <div style="font-size: 0.85em;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span>
+                    Blue: <strong id="blueFillRate">100</strong>%
+                </div>
+            </div>
+
+            <!-- Wait Time -->
+            <div style="flex: 1; min-width: 140px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
+                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Avg Wait Time</div>
+                <div style="margin-top: 4px; font-size: 0.85em;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span>
+                    Red: <strong id="redWaitTime">0.0</strong> min
+                </div>
+                <div style="font-size: 0.85em;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span>
+                    Blue: <strong id="blueWaitTime">0.0</strong> min
+                </div>
+            </div>
+
+            <!-- Queue Length -->
+            <div style="flex: 1; min-width: 140px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
+                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Queue Length</div>
+                <div style="margin-top: 4px; font-size: 0.85em;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span>
+                    Red: <strong id="redQueueLength">0</strong>
+                </div>
+                <div style="font-size: 0.85em;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span>
+                    Blue: <strong id="blueQueueLength">0</strong>
+                </div>
+            </div>
+
+            <!-- Wage Cost -->
+            <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Wage Cost/min</div>
+                <div style="font-size: 1.3em; font-weight: 700; color: #1e293b;">$<span id="wageCostDisplay">0</span></div>
+            </div>
+
+            <!-- Holding Cost -->
+            <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Holding Cost/min</div>
+                <div style="font-size: 1.3em; font-weight: 700; color: #1e293b;">$<span id="holdingCostDisplay">0</span></div>
+            </div>
+
+            <!-- Revenue -->
+            <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Revenue/min</div>
+                <div style="font-size: 1.3em; font-weight: 700; color: #16a34a;">$<span id="revenueDisplay">0</span></div>
+            </div>
+
+            <!-- Profit -->
+            <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
+                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Profit/min</div>
+                <div id="profitDisplay" style="font-size: 1.3em; font-weight: 700; color: #1e293b;">$0</div>
+            </div>
+
+            <!-- Protected Metric: Cost per Customer -->
+            <div id="metricCPC" style="width: 100%; padding: 10px; border: 2px solid #2563eb; border-radius: 8px; text-align: center; background: #eff6ff; display: none;">
+                <div style="font-size: 0.72em; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Cost per Customer Served</div>
+                <div style="font-size: 0.8em; color: #64748b; margin: 4px 0;">Calculate: Total Costs &divide; Customers Served</div>
+                <div id="cpcRevealedValue" style="display: none;">
+                    <div id="cpcValue" style="font-size: 1.5em; font-weight: 700; color: #1e40af;">&mdash;</div>
+                    <div style="font-size: 0.7em; color: #3b82f6;">$ per customer</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 4: Staff Status -->
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+            <div style="font-weight: 700; font-size: 0.9em; color: #334155;">Staff Status:</div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 0.85em; color: #475569; font-weight: 600;">Regular:</span>
+                <div id="regularStaffStatus" style="display: flex; gap: 4px;"></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 0.85em; color: #475569; font-weight: 600;">Emergency:</span>
+                <div id="emergencyStaffStatus" style="display: flex; gap: 4px;"></div>
+            </div>
+            <div style="display: flex; gap: 12px; margin-left: auto; font-size: 0.8em;">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <div style="width: 14px; height: 14px; background: #FF9966; border: 1.5px solid #333; border-radius: 3px;"></div> Busy
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <div style="width: 14px; height: 14px; background: #81c784; border: 1.5px solid #333; border-radius: 3px;"></div> Idle
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 5: Charts -->
+    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+        <div style="flex: 1; min-width: 340px;">
+            <div style="position: relative; height: 40vh; max-height: 350px;">
+                <canvas id="satisfactionChart"></canvas>
+            </div>
+        </div>
+        <div style="flex: 1; min-width: 340px;">
+            <div style="position: relative; height: 40vh; max-height: 350px;">
+                <canvas id="waitTimeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 6: Order History (collapsible) -->
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <h3 style="margin: 0; font-size: 1.05em; color: #1e293b;">Order History</h3>
+            <button id="toggleHistory" onclick="void(0)" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.82em; text-decoration: underline;">Hide</button>
+        </div>
+        <div id="historyWrap" style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
+                <thead>
+                    <tr style="background: #f8fafc;">
+                        <th style="padding: 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #e2e8f0; color: #475569;">Time</th>
+                        <th style="padding: 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #e2e8f0; color: #475569;">Red</th>
+                        <th style="padding: 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #e2e8f0; color: #475569;">Blue</th>
+                        <th style="padding: 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #e2e8f0; color: #475569;">Cost</th>
+                    </tr>
+                </thead>
+                <tbody id="orderHistoryBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ROW 7: Discussion Insights Panel -->
+    <div id="insightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-weight: 700; font-size: 1.05em; color: #1e293b;">Discussion Insights</div>
+            <div id="insightsCounter" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 9</div>
+        </div>
+        <div id="insightsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
+        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #eff6ff; border: 1px solid #2563eb; border-radius: 6px; text-align: center;"></div>
+        <div id="overrideControls" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // === CONSTANTS ===
+    var STORAGE_KEY = 'ops802_hammer_shop_v1';
+    var INITIAL_CASH = 4000;
+    var SIM_DURATION = 60;
+    var PRICES = { red: 25, blue: 50 };
+    var PURCHASE_COSTS = { red: 15, blue: 25 };
+    var HOLDING_COSTS = { red: 2, blue: 4 };
+    var ORDERING_COSTS = { red: 20, blue: 200 };
+    var LEAD_TIMES = { red: 2, blue: 2 };
+    var MAX_INVENTORY = 200;
+    var MAX_ORDER_SIZE = 100;
+    var STAFF_COSTS = { regular: 5, emergency: 25 };
+    var STAFF_RATES = { regular: 1, emergency: 2 };
+    var WAIT_LIMITS = { red: 3, blue: 2 };
+    var FAILURE_MIN_CASH = -1000;
+    var FAILURE_MIN_SAT = 40;
+    var FAILURE_CONSEC_LOW = 5;
+
+    // === CHECKPOINT SCHEDULE ===
+    var CHECKPOINT_SCHEDULE = [
+        { phase: 1, turn: 8, insightIndex: 0 },
+        { phase: 1, turn: 20, insightIndex: 1 },
+        { phase: 1, turn: 40, insightIndex: 2 },
+        { phase: 2, turn: 8, insightIndex: 3 },
+        { phase: 2, turn: 20, insightIndex: 4 },
+        { phase: 2, turn: 40, insightIndex: 5 },
+        { phase: 3, turn: 8, insightIndex: 6 },
+        { phase: 3, turn: 25, insightIndex: 7 },
+        { phase: 3, turn: 45, insightIndex: 8 }
+    ];
+    var PHASE_INSIGHTS = { 1: [0,1,2], 2: [3,4,5], 3: [6,7,8] };
+
+    // === INSIGHTS ===
+    var insights = [
+        {
+            id: 1,
+            question: "How does the number of regular staff affect customer wait times and satisfaction? Try different staffing levels and watch the charts.",
+            answer: "Each regular staff member serves 1 customer per minute. With too few staff, queues build and customers wait beyond tolerance (3 min for red, 2 min for blue). With too many, you pay $5/min per idle worker.",
+            action: null
+        },
+        {
+            id: 2,
+            question: "On average, how many customers arrive per minute? What does this tell you about the minimum number of regular staff needed?",
+            answer: "Red customers: 1\u20134/min (avg ~2.5), Blue customers: 1\u20132/min (avg ~1.5). Total average demand is ~4 customers/min. You need at least 4 regular staff to keep up, but demand variability means 5\u20136 staff provide a safer buffer.",
+            action: null
+        },
+        {
+            id: 3,
+            question: "Why do blue customers tend to have lower satisfaction than red customers, even with adequate staffing?",
+            answer: "Blue customers have a shorter wait tolerance (2 min vs 3 min for red). During demand spikes, both types queue up equally, but blue customers hit their dissatisfaction threshold faster. This makes blue satisfaction harder to maintain.",
+            action: null
+        },
+        {
+            id: 4,
+            question: "When stock runs out, customers are turned away immediately. How does this differ from making customers wait in a queue?",
+            answer: "Stockouts cause immediate rejection \u2014 no sale, no revenue, and low satisfaction (25% for red, 50% for blue). Queue waits at least allow a sale once served. Stockouts damage both fill rate and revenue, making them worse than moderate wait times.",
+            action: null
+        },
+        {
+            id: 5,
+            question: "Red hammers cost $20 to order plus $15/unit. Blue hammers cost $200 to order plus $25/unit. How should your ordering strategy differ?",
+            answer: "Red: Low fixed cost ($20) means frequent small orders are affordable. Blue: High fixed cost ($200) means you should order larger quantities less often to spread the fixed cost. This is the classic economic order quantity trade-off.",
+            action: null
+        },
+        {
+            id: 6,
+            question: "Holding costs are $2/min per red hammer and $4/min per blue hammer. With 50 of each in stock, what is your holding cost per minute? Is that sustainable?",
+            answer: "50 red \u00d7 $2 + 50 blue \u00d7 $4 = $300/min in holding costs alone. That is very expensive. Hold just enough to cover demand during the 2-minute order lead time, not excess stock.",
+            action: function() {
+                el.metricCPC.style.display = 'block';
+            }
+        },
+        {
+            id: 7,
+            question: "Emergency staff serve 2 customers/min but cost $25/min. Regular staff serve 1 customer/min at $5/min. Which is more cost-efficient per customer?",
+            answer: "Regular staff: $5 per customer. Emergency staff: $12.50 per customer. Regular staff are always more cost-efficient. Emergency staff are only justified during temporary demand spikes that would otherwise cause unacceptable wait times.",
+            action: null
+        },
+        {
+            id: 8,
+            question: "Look at your total costs \u2014 wages, inventory holding, and ordering. Which is the largest component and what could you do to reduce it?",
+            answer: "Typically, holding costs dominate if inventory levels are high, while wage costs dominate with many staff. Ordering costs are periodic and smaller. The biggest savings come from right-sizing inventory and matching staffing to demand.",
+            action: null
+        },
+        {
+            id: 9,
+            question: "What is your cost per customer served? Can you write a formula for it?",
+            answer: "Cost per Customer = (Total Wages + Total Holding Costs + Total Ordering Costs) \u00f7 Customers Served. Minimizing this requires balancing all three cost components while maintaining enough capacity and stock to serve customers.",
+            action: function() {
+                el.cpcRevealedValue.style.display = 'block';
+                updateCpcDisplay();
+            }
+        }
+    ];
+
+    // === STATE ===
+    var state = makeDefaultState();
+
+    function makeDefaultState() {
+        var cs = [];
+        for (var i = 0; i < 10; i++) cs.push({ red: [], blue: [] });
+        var rs = [];
+        for (var j = 0; j < 10; j++) rs.push({ red: [], blue: [] });
+        return {
+            currentPhase: 1,
+            questionsShown: 0,
+            insightsRevealed: 0,
+            instructionExpanded: true,
+            historyVisible: true,
+            simulatedTime: 0,
+            isComplete: false,
+            currentCash: INITIAL_CASH,
+            inventoryRed: 50,
+            inventoryBlue: 50,
+            regularStaffCount: 1,
+            emergencyStaffCount: 0,
+            simulationSpeed: 2000,
+            failureOccurred: false,
+            failureReason: null,
+            failureMessage: null,
+            lowSatRed: 0,
+            lowSatBlue: 0,
+            totalRevenue: 0,
+            totalStaffCost: 0,
+            totalHoldingCost: 0,
+            totalOrderCost: 0,
+            curMinRevenue: 0,
+            curMinStaffCost: 0,
+            curMinHoldingCost: 0,
+            curMinOrderCost: 0,
+            completedCustomers: cs,
+            rejectedCustomers: rs,
+            pendingOrders: [],
+            orderHistory: [],
+            chartSatLabels: [],
+            chartSatRed: [],
+            chartSatBlue: [],
+            chartWaitLabels: [],
+            chartWaitRed: [],
+            chartWaitBlue: [],
+            totalCustomersServed: 0
+        };
+    }
+
+    // === TRANSIENT STATE ===
+    var queue = [];
+    var inService = {};
+    var staff = [];
+    var simInterval = null;
+    var notifTimeout = null;
+
+    // === DOM CACHE ===
+    var el = {};
+    function cacheDom() {
+        el.toggleBtn = document.getElementById('toggleBtn');
+        el.speedSelect = document.getElementById('speedSelect');
+        el.resetBtn = document.getElementById('resetBtn');
+        el.timeDisplay = document.getElementById('timeDisplay');
+        el.cashDisplay = document.getElementById('cashDisplay');
+        el.timeBar = document.getElementById('timeBar');
+        el.regularStaffSlider = document.getElementById('regularStaffSlider');
+        el.regularStaffValue = document.getElementById('regularStaffValue');
+        el.emergencyStaffSlider = document.getElementById('emergencyStaffSlider');
+        el.emergencyStaffValue = document.getElementById('emergencyStaffValue');
+        el.emergencyLockLabel = document.getElementById('emergencyLockLabel');
+        el.redInventoryDisplay = document.getElementById('redInventoryDisplay');
+        el.blueInventoryDisplay = document.getElementById('blueInventoryDisplay');
+        el.redWarning = document.getElementById('redWarning');
+        el.blueWarning = document.getElementById('blueWarning');
+        el.redOrderQty = document.getElementById('redOrderQty');
+        el.blueOrderQty = document.getElementById('blueOrderQty');
+        el.placeOrderBtn = document.getElementById('placeOrderBtn');
+        el.noPendingMsg = document.getElementById('noPendingMsg');
+        el.pendingRedDiv = document.getElementById('pendingRedDiv');
+        el.pendingBlueDiv = document.getElementById('pendingBlueDiv');
+        el.pendingRedQty = document.getElementById('pendingRedQty');
+        el.pendingRedTime = document.getElementById('pendingRedTime');
+        el.pendingBlueQty = document.getElementById('pendingBlueQty');
+        el.pendingBlueTime = document.getElementById('pendingBlueTime');
+        el.redSatisfaction = document.getElementById('redSatisfaction');
+        el.blueSatisfaction = document.getElementById('blueSatisfaction');
+        el.redFillRate = document.getElementById('redFillRate');
+        el.blueFillRate = document.getElementById('blueFillRate');
+        el.redWaitTime = document.getElementById('redWaitTime');
+        el.blueWaitTime = document.getElementById('blueWaitTime');
+        el.redQueueLength = document.getElementById('redQueueLength');
+        el.blueQueueLength = document.getElementById('blueQueueLength');
+        el.wageCostDisplay = document.getElementById('wageCostDisplay');
+        el.holdingCostDisplay = document.getElementById('holdingCostDisplay');
+        el.revenueDisplay = document.getElementById('revenueDisplay');
+        el.profitDisplay = document.getElementById('profitDisplay');
+        el.metricCPC = document.getElementById('metricCPC');
+        el.cpcRevealedValue = document.getElementById('cpcRevealedValue');
+        el.cpcValue = document.getElementById('cpcValue');
+        el.regularStaffStatus = document.getElementById('regularStaffStatus');
+        el.emergencyStaffStatus = document.getElementById('emergencyStaffStatus');
+        el.orderHistoryBody = document.getElementById('orderHistoryBody');
+        el.historyWrap = document.getElementById('historyWrap');
+        el.toggleHistory = document.getElementById('toggleHistory');
+        el.instructionContent = document.getElementById('instructionContent');
+        el.toggleInstructions = document.getElementById('toggleInstructions');
+        el.notificationArea = document.getElementById('notificationArea');
+        el.failureOverlay = document.getElementById('failureOverlay');
+        el.failureMessage = document.getElementById('failureMessage');
+        el.phaseLabel1 = document.getElementById('phaseLabel1');
+        el.phaseLabel2 = document.getElementById('phaseLabel2');
+        el.phaseLabel3 = document.getElementById('phaseLabel3');
+        el.insightsCounter = document.getElementById('insightsCounter');
+        el.insightsList = document.getElementById('insightsList');
+        el.phaseAdvanceArea = document.getElementById('phaseAdvanceArea');
+        el.overrideControls = document.getElementById('overrideControls');
+    }
+
+    // === FACTORY FUNCTIONS ===
+    var custIdCounter = 0;
+    function createCustomer(type, arrivalTime, demandQuantity) {
+        return {
+            id: 'c' + (++custIdCounter),
+            type: type,
+            arrivalTime: arrivalTime,
+            demandQuantity: demandQuantity,
+            serviceStartTime: null,
+            completionTime: null,
+            waitTimeLimit: WAIT_LIMITS[type]
+        };
+    }
+
+    var staffIdCounter = 0;
+    function createStaff(type) {
+        return {
+            id: 's' + (++staffIdCounter),
+            type: type,
+            busy: false,
+            serviceRate: STAFF_RATES[type],
+            costPerMinute: STAFF_COSTS[type],
+            currentCustomer: null,
+            totalBusyTime: 0,
+            currentStartTime: null
+        };
+    }
+
+    // === CORE SIMULATION ===
+    function generateRandomDemand(type) {
+        if (type === 'red') {
+            return Math.floor(Math.random() * 2) + 1;
+        } else {
+            return Math.floor(Math.random() * 4) + 1;
+        }
+    }
+
+    function generateNewCustomers() {
+        var redArrivals = Math.floor(Math.random() * 4) + 1;
+        for (var i = 0; i < redArrivals; i++) {
+            var demand = generateRandomDemand('red');
+            if (state.inventoryRed >= demand) {
+                queue.push(createCustomer('red', state.simulatedTime, demand));
+            } else {
+                state.rejectedCustomers[state.simulatedTime % 10].red.push({
+                    time: state.simulatedTime, satisfaction: 25
+                });
+            }
+        }
+        var blueArrivals = Math.floor(Math.random() * 2) + 1;
+        for (var j = 0; j < blueArrivals; j++) {
+            var bDemand = generateRandomDemand('blue');
+            if (state.inventoryBlue >= bDemand) {
+                queue.push(createCustomer('blue', state.simulatedTime, bDemand));
+            } else {
+                state.rejectedCustomers[state.simulatedTime % 10].blue.push({
+                    time: state.simulatedTime, satisfaction: 50
+                });
+            }
+        }
+    }
+
+    function calculateStaffCosts() {
+        var total = 0;
+        for (var i = 0; i < staff.length; i++) total += staff[i].costPerMinute;
+        state.curMinStaffCost = total;
+    }
+
+    function calculateCurrentCosts() {
+        calculateStaffCosts();
+        state.curMinHoldingCost = state.inventoryRed * HOLDING_COSTS.red + state.inventoryBlue * HOLDING_COSTS.blue;
+    }
+
+    function applyMinuteCosts() {
+        state.totalStaffCost += state.curMinStaffCost;
+        state.totalHoldingCost += state.curMinHoldingCost;
+        var curProfit = state.curMinRevenue - state.curMinStaffCost - state.curMinHoldingCost - state.curMinOrderCost;
+        state.currentCash -= state.curMinStaffCost;
+        state.currentCash -= state.curMinHoldingCost;
+    }
+
+    function processCustomer(customer, staffMember) {
+        var type = customer.type;
+        var inv = type === 'red' ? state.inventoryRed : state.inventoryBlue;
+        if (inv >= customer.demandQuantity) {
+            if (type === 'red') state.inventoryRed -= customer.demandQuantity;
+            else state.inventoryBlue -= customer.demandQuantity;
+            staffMember.busy = true;
+            staffMember.currentCustomer = customer;
+            staffMember.currentStartTime = state.simulatedTime;
+            customer.serviceStartTime = state.simulatedTime;
+            var serviceTime = 1 / staffMember.serviceRate;
+            inService[customer.id] = {
+                customer: customer,
+                staffId: staffMember.id,
+                completionTime: state.simulatedTime + serviceTime
+            };
+            calculateCurrentCosts();
+            return true;
+        }
+        return false;
+    }
+
+    function calculateSatisfaction(customer) {
+        var waitTime = customer.serviceStartTime - customer.arrivalTime;
+        if (customer.type === 'red') {
+            return waitTime <= 3 ? 100 : Math.max(0, 100 - ((waitTime - 3) * 10));
+        } else {
+            return waitTime <= 2 ? 100 : Math.max(0, 100 - ((waitTime - 2) * 25));
+        }
+    }
+
+    function checkServiceCompletions() {
+        var keys = Object.keys(inService);
+        for (var k = 0; k < keys.length; k++) {
+            var service = inService[keys[k]];
+            if (state.simulatedTime >= service.completionTime) {
+                var sm = null;
+                for (var s = 0; s < staff.length; s++) {
+                    if (staff[s].id === service.staffId) { sm = staff[s]; break; }
+                }
+                if (sm) {
+                    sm.busy = false;
+                    sm.totalBusyTime += (state.simulatedTime - sm.currentStartTime);
+                    sm.currentCustomer = null;
+                }
+                var customer = service.customer;
+                customer.completionTime = state.simulatedTime;
+                var saleRevenue = PRICES[customer.type] * customer.demandQuantity;
+                state.totalRevenue += saleRevenue;
+                state.curMinRevenue += saleRevenue;
+                state.currentCash += saleRevenue;
+                state.totalCustomersServed++;
+                var sat = calculateSatisfaction(customer);
+                state.completedCustomers[state.simulatedTime % 10][customer.type].push({
+                    time: state.simulatedTime,
+                    waitTime: customer.serviceStartTime - customer.arrivalTime,
+                    satisfaction: sat
+                });
+                delete inService[keys[k]];
+            }
+        }
+        var availableStaff = [];
+        for (var a = 0; a < staff.length; a++) {
+            if (!staff[a].busy) availableStaff.push(staff[a]);
+        }
+        while (availableStaff.length > 0 && queue.length > 0) {
+            var nextStaff = availableStaff.pop();
+            var nextCust = queue.shift();
+            if (!processCustomer(nextCust, nextStaff)) {
+                state.rejectedCustomers[state.simulatedTime % 10][nextCust.type].push({
+                    time: state.simulatedTime,
+                    satisfaction: nextCust.type === 'red' ? 25 : 50
+                });
+            }
+        }
+    }
+
+    function calculateMovingAverages() {
+        var now = state.simulatedTime;
+        var redAll = [], blueAll = [];
+        for (var i = 0; i < 10; i++) {
+            var cm = state.completedCustomers[i];
+            var rm = state.rejectedCustomers[i];
+            for (var r = 0; r < cm.red.length; r++) if (cm.red[r].time > now - 10) redAll.push(cm.red[r]);
+            for (var rb = 0; rb < rm.red.length; rb++) if (rm.red[rb].time > now - 10) redAll.push(rm.red[rb]);
+            for (var b = 0; b < cm.blue.length; b++) if (cm.blue[b].time > now - 10) blueAll.push(cm.blue[b]);
+            for (var bb = 0; bb < rm.blue.length; bb++) if (rm.blue[bb].time > now - 10) blueAll.push(rm.blue[bb]);
+        }
+        var redSat = 100, blueSat = 100, redWait = 0, blueWait = 0, redFill = 100, blueFill = 100;
+        if (redAll.length > 0) {
+            var satSum = 0; for (var rs = 0; rs < redAll.length; rs++) satSum += redAll[rs].satisfaction;
+            redSat = satSum / redAll.length;
+            var waitArr = []; for (var rw = 0; rw < redAll.length; rw++) if (redAll[rw].waitTime !== undefined) waitArr.push(redAll[rw]);
+            if (waitArr.length > 0) {
+                var wSum = 0; for (var w = 0; w < waitArr.length; w++) wSum += waitArr[w].waitTime;
+                redWait = wSum / waitArr.length;
+            }
+            redFill = waitArr.length / redAll.length * 100;
+        }
+        if (blueAll.length > 0) {
+            var bSatSum = 0; for (var bs = 0; bs < blueAll.length; bs++) bSatSum += blueAll[bs].satisfaction;
+            blueSat = bSatSum / blueAll.length;
+            var bWaitArr = []; for (var bw = 0; bw < blueAll.length; bw++) if (blueAll[bw].waitTime !== undefined) bWaitArr.push(blueAll[bw]);
+            if (bWaitArr.length > 0) {
+                var bwSum = 0; for (var bw2 = 0; bw2 < bWaitArr.length; bw2++) bwSum += bWaitArr[bw2].waitTime;
+                blueWait = bwSum / bWaitArr.length;
+            }
+            blueFill = bWaitArr.length / blueAll.length * 100;
+        }
+        return {
+            satisfaction: { red: redSat, blue: blueSat },
+            waitTime: { red: redWait, blue: blueWait },
+            fillRate: { red: redFill, blue: blueFill }
+        };
+    }
+
+    function rebuildStaff() {
+        var newStaff = [];
+        var existingRegular = [];
+        var existingEmergency = [];
+        for (var i = 0; i < staff.length; i++) {
+            if (staff[i].type === 'regular') existingRegular.push(staff[i]);
+            else existingEmergency.push(staff[i]);
+        }
+        for (var r = 0; r < state.regularStaffCount; r++) {
+            newStaff.push(r < existingRegular.length ? existingRegular[r] : createStaff('regular'));
+        }
+        for (var e = 0; e < state.emergencyStaffCount; e++) {
+            newStaff.push(e < existingEmergency.length ? existingEmergency[e] : createStaff('emergency'));
+        }
+        staff = newStaff;
+        calculateStaffCosts();
+    }
+
+    function checkInventoryLevels() {
+        el.redWarning.style.display = state.inventoryRed < 10 ? 'block' : 'none';
+        el.blueWarning.style.display = state.inventoryBlue < 10 ? 'block' : 'none';
+    }
+
+    function checkPendingOrders() {
+        if (state.pendingOrders.length === 0) return;
+        var arrived = [];
+        for (var i = 0; i < state.pendingOrders.length; i++) {
+            var order = state.pendingOrders[i];
+            if (state.simulatedTime >= order.arrivalTime) {
+                arrived.push(i);
+                if (order.type === 'red') state.inventoryRed += order.quantity;
+                else state.inventoryBlue += order.quantity;
+                showNotification(order.quantity + ' ' + order.type.charAt(0).toUpperCase() + order.type.slice(1) + ' hammers arrived!', false);
+            }
+        }
+        if (arrived.length > 0) {
+            var newPending = [];
+            for (var j = 0; j < state.pendingOrders.length; j++) {
+                if (arrived.indexOf(j) === -1) newPending.push(state.pendingOrders[j]);
+            }
+            state.pendingOrders = newPending;
+            calculateCurrentCosts();
+        }
+    }
+
+    function placeOrders() {
+        var redQty = parseInt(el.redOrderQty.value, 10) || 0;
+        var blueQty = parseInt(el.blueOrderQty.value, 10) || 0;
+        if (redQty === 0 && blueQty === 0) {
+            showNotification('Enter a quantity for at least one type', true); return;
+        }
+        if (redQty < 0 || blueQty < 0) {
+            showNotification('Quantities cannot be negative', true); return;
+        }
+        var pendRed = 0, pendBlue = 0;
+        for (var i = 0; i < state.pendingOrders.length; i++) {
+            if (state.pendingOrders[i].type === 'red') pendRed += state.pendingOrders[i].quantity;
+            else pendBlue += state.pendingOrders[i].quantity;
+        }
+        if (state.inventoryRed + pendRed + redQty > MAX_INVENTORY) {
+            showNotification('Red inventory (inc. pending) cannot exceed ' + MAX_INVENTORY, true); return;
+        }
+        if (state.inventoryBlue + pendBlue + blueQty > MAX_INVENTORY) {
+            showNotification('Blue inventory (inc. pending) cannot exceed ' + MAX_INVENTORY, true); return;
+        }
+        if (redQty > MAX_ORDER_SIZE || blueQty > MAX_ORDER_SIZE) {
+            showNotification('Max order size is ' + MAX_ORDER_SIZE + ' per type', true); return;
+        }
+        var orderCost = (redQty > 0 ? ORDERING_COSTS.red : 0) + (blueQty > 0 ? ORDERING_COSTS.blue : 0) +
+            (redQty * PURCHASE_COSTS.red) + (blueQty * PURCHASE_COSTS.blue);
+        if (orderCost > state.currentCash) {
+            showNotification('Not enough cash. Need $' + orderCost.toFixed(2) + ', have $' + state.currentCash.toFixed(2), true); return;
+        }
+        var newOrder = { time: state.simulatedTime, redQuantity: redQty, blueQuantity: blueQty, cost: orderCost };
+        state.orderHistory.push(newOrder);
+        state.totalOrderCost += orderCost;
+        state.curMinOrderCost += orderCost;
+        state.currentCash -= orderCost;
+        if (redQty > 0) state.pendingOrders.push({ type: 'red', quantity: redQty, arrivalTime: state.simulatedTime + LEAD_TIMES.red });
+        if (blueQty > 0) state.pendingOrders.push({ type: 'blue', quantity: blueQty, arrivalTime: state.simulatedTime + LEAD_TIMES.blue });
+        addOrderHistoryRow(newOrder);
+        updateDisplay();
+        checkInventoryLevels();
+        el.redOrderQty.value = '';
+        el.blueOrderQty.value = '';
+        var msg = 'Order placed: ';
+        if (redQty > 0) msg += redQty + ' Red';
+        if (redQty > 0 && blueQty > 0) msg += ' & ';
+        if (blueQty > 0) msg += blueQty + ' Blue';
+        msg += ' (arrives in 2 min)';
+        showNotification(msg, false);
+        saveState();
+    }
+
+    function checkFailureConditions() {
+        if (state.failureOccurred) return;
+        if (state.simulatedTime < 10) return;
+        if (state.currentCash < FAILURE_MIN_CASH) {
+            triggerFailure('bankruptcy', 'Business Bankrupt: Too much debt!');
+            return;
+        }
+        var avg = calculateMovingAverages();
+        if (avg.satisfaction.red < FAILURE_MIN_SAT) {
+            state.lowSatRed++;
+            if (state.lowSatRed >= FAILURE_CONSEC_LOW) {
+                triggerFailure('red-satisfaction', 'Failed: Red customer satisfaction too low for ' + FAILURE_CONSEC_LOW + ' consecutive minutes!');
+                return;
+            }
+        } else { state.lowSatRed = 0; }
+        if (avg.satisfaction.blue < FAILURE_MIN_SAT) {
+            state.lowSatBlue++;
+            if (state.lowSatBlue >= FAILURE_CONSEC_LOW) {
+                triggerFailure('blue-satisfaction', 'Failed: Blue customer satisfaction too low for ' + FAILURE_CONSEC_LOW + ' consecutive minutes!');
+                return;
+            }
+        } else { state.lowSatBlue = 0; }
+    }
+
+    function triggerFailure(reason, message) {
+        state.failureOccurred = true;
+        state.failureReason = reason;
+        state.failureMessage = message;
+        clearInterval(simInterval);
+        simInterval = null;
+        el.toggleBtn.textContent = 'Failed';
+        el.toggleBtn.disabled = true;
+        el.toggleBtn.style.background = '#ef4444';
+        el.toggleBtn.style.cursor = 'not-allowed';
+        el.failureMessage.textContent = message;
+        el.failureOverlay.style.display = 'block';
+        saveState();
+    }
+
+    // === SIMULATION TICK ===
+    function simulationTick() {
+        state.curMinRevenue = 0;
+        state.curMinOrderCost = 0;
+        calculateCurrentCosts();
+        applyMinuteCosts();
+        state.simulatedTime += 1;
+        generateNewCustomers();
+        checkServiceCompletions();
+        checkInventoryLevels();
+        checkPendingOrders();
+        var avg = calculateMovingAverages();
+        updateDisplay();
+        updateCharts(avg);
+        checkForNewQuestion();
+        checkFailureConditions();
+        saveState();
+        if (state.simulatedTime >= SIM_DURATION) {
+            clearInterval(simInterval);
+            simInterval = null;
+            state.isComplete = true;
+            el.toggleBtn.textContent = 'Complete';
+            el.toggleBtn.disabled = true;
+            el.toggleBtn.style.background = '#e0e0e0';
+            el.toggleBtn.style.cursor = 'not-allowed';
+            saveState();
+        }
+    }
+
+    function toggleSimulation() {
+        if (state.failureOccurred || state.isComplete) return;
+        if (simInterval) {
+            clearInterval(simInterval);
+            simInterval = null;
+            el.toggleBtn.textContent = 'Resume';
+        } else {
+            state.simulationSpeed = parseInt(el.speedSelect.value);
+            calculateCurrentCosts();
+            simInterval = setInterval(simulationTick, state.simulationSpeed);
+            el.toggleBtn.textContent = 'Pause';
+        }
+    }
+
+    // === PHASE MANAGEMENT ===
+    function setPhase(phase) {
+        state.currentPhase = phase;
+        var colors = { active: '#2563eb', completed: '#16a34a', upcoming: '#e5e7eb' };
+        var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
+        [1, 2, 3].forEach(function(p) {
+            var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
+            var lbl = document.getElementById('phaseLabel' + p);
+            lbl.style.background = colors[status];
+            lbl.style.color = textColors[status];
+        });
+        if (phase < 3) {
+            el.emergencyStaffSlider.disabled = true;
+            el.emergencyStaffSlider.style.cursor = 'not-allowed';
+            el.emergencyStaffSlider.style.opacity = '0.4';
+            el.emergencyLockLabel.style.display = 'inline';
+            el.emergencyStaffSlider.value = 0;
+            el.emergencyStaffValue.textContent = '0';
+            state.emergencyStaffCount = 0;
+            rebuildStaff();
+        } else {
+            el.emergencyStaffSlider.disabled = false;
+            el.emergencyStaffSlider.style.cursor = 'pointer';
+            el.emergencyStaffSlider.style.opacity = '1';
+            el.emergencyLockLabel.style.display = 'none';
+        }
+        el.metricCPC.style.display = phase >= 3 || state.insightsRevealed >= 6 ? 'block' : 'none';
+        if (state.insightsRevealed >= 9) el.cpcRevealedValue.style.display = 'block';
+        renderInstructions();
+        renderInsights();
+        saveState();
+    }
+
+    function advancePhase() {
+        if (state.currentPhase >= 3) return;
+        setPhase(state.currentPhase + 1);
+    }
+
+    function skipToPhase(targetPhase) {
+        if (targetPhase <= state.currentPhase || targetPhase > 3) return;
+        for (var p = state.currentPhase; p < targetPhase; p++) {
+            var pi = PHASE_INSIGHTS[p];
+            var maxIdx = pi[pi.length - 1];
+            if (state.questionsShown <= maxIdx) state.questionsShown = maxIdx + 1;
+            while (state.insightsRevealed <= maxIdx) {
+                var ins = insights[state.insightsRevealed];
+                state.insightsRevealed++;
+                if (typeof ins.action === 'function') ins.action();
+            }
+        }
+        setPhase(targetPhase);
+    }
+
+    // === INSTRUCTIONS ===
+    var instructionText = {
+        1: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #1e40af;">Phase 1: Service Capacity</div>' +
+                '<div style="margin-bottom: 8px;">You manage a hammer shop selling <strong>red hammers</strong> ($25 each) and <strong>blue hammers</strong> ($50 each). Customers arrive randomly each minute. Your main decision is <strong>how many regular staff to hire</strong>.</div>' +
+                '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
+                '<li>Red customers: <strong>1\u20134/min</strong>, buy 1\u20132 hammers, tolerate <strong>3 min</strong> wait</li>' +
+                '<li>Blue customers: <strong>1\u20132/min</strong>, buy 1\u20134 hammers, tolerate <strong>2 min</strong> wait</li>' +
+                '<li>Regular staff: <strong>1 customer/min</strong> at <strong>$5/min</strong></li>' +
+                '<li>Starting cash: <strong>$4,000</strong>. Failure at &lt; \u2013$1,000 or satisfaction &lt; 40% for 5 min</li>' +
+                '</ul>' +
+                '<div style="color: #1e40af; font-weight: 600;">Try different staffing levels. Watch how queue length, wait times, and satisfaction change.</div>',
+            short: '<span style="font-weight: 700; color: #1e40af;">Phase 1:</span> Adjust regular staff (emergency locked). Observe queue dynamics and customer satisfaction.'
+        },
+        2: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #7c3aed;">Phase 2: Inventory Strategy</div>' +
+                '<div style="margin-bottom: 8px;">Now focus on <strong>inventory management</strong>. When stock runs out, customers leave immediately with low satisfaction.</div>' +
+                '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
+                '<li>Red hammers: $15/unit + $20 order fee, <strong>$2/min holding cost</strong></li>' +
+                '<li>Blue hammers: $25/unit + $200 order fee, <strong>$4/min holding cost</strong></li>' +
+                '<li>All orders take <strong>2 minutes</strong> to arrive. Max inventory: 200 per type</li>' +
+                '</ul>' +
+                '<div style="color: #7c3aed; font-weight: 600;">Experiment with order timing and quantities. Can you keep stock without excessive holding costs?</div>',
+            short: '<span style="font-weight: 700; color: #7c3aed;">Phase 2:</span> Optimize inventory ordering. Balance holding costs vs stockout risk.'
+        },
+        3: {
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #059669;">Phase 3: Integrated Optimization</div>' +
+                '<div style="margin-bottom: 8px;"><strong>Emergency staff</strong> are now available: they serve <strong>2 customers/min</strong> but cost <strong>$25/min</strong> (5\u00d7 regular). All controls are active.</div>' +
+                '<div style="margin-bottom: 8px;">Your goal: maximize profit over 60 minutes by optimizing <strong>staffing levels</strong>, <strong>emergency staff usage</strong>, and <strong>inventory ordering</strong> together.</div>' +
+                '<div style="color: #059669; font-weight: 600;">Can you find the right balance between service quality, inventory costs, and wage costs?</div>',
+            short: '<span style="font-weight: 700; color: #059669;">Phase 3:</span> Emergency staff unlocked. Optimize staffing + inventory for maximum profit.'
+        }
+    };
+
+    function renderInstructions() {
+        var inst = instructionText[state.currentPhase];
+        el.instructionContent.innerHTML = state.instructionExpanded ? inst.full : inst.short;
+        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
+    }
+
+    // === INSIGHTS PANEL ===
+    function renderInsights() {
+        var total = insights.length;
+        el.insightsCounter.textContent = state.insightsRevealed + ' of ' + total;
+        var html = '';
+        for (var i = 0; i < total; i++) {
+            var ins = insights[i];
+            if (i < state.insightsRevealed) {
+                html += '<div style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0;">';
+                html += '<div style="display: flex; gap: 10px; align-items: start;">';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
+                html += '<div style="flex: 1;"><div style="font-size: 0.85em; color: #475569; font-style: italic; margin-bottom: 6px;">\u201c' + ins.question + '\u201d</div>';
+                html += '<div style="font-size: 0.9em; color: #1e293b; font-weight: 500; padding: 6px 10px; background: #f0fdf4; border-left: 3px solid #22c55e; border-radius: 0 4px 4px 0;">' + ins.answer + '</div>';
+                html += '</div></div></div>';
+            } else if (i < state.questionsShown) {
+                html += '<div data-reveal-index="' + i + '" style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fefce8; border: 1px solid #eab308; cursor: pointer;">';
+                html += '<div style="display: flex; gap: 10px; align-items: start;">';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #eab308; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
+                html += '<div style="flex: 1;"><div style="font-size: 0.85em; color: #1e293b; font-style: italic; margin-bottom: 6px;">\u201c' + ins.question + '\u201d</div>';
+                if (i === state.insightsRevealed) {
+                    html += '<div style="font-size: 0.8em; color: #92400e; font-weight: 600; padding: 4px 10px; background: #fef9c3; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
+                } else {
+                    html += '<div style="font-size: 0.8em; color: #94a3b8; font-style: italic;">(answer the previous question first)</div>';
+                }
+                html += '</div></div></div>';
+            } else {
+                html += '<div style="padding: 6px 12px; margin-bottom: 2px;">';
+                html += '<div style="display: flex; gap: 10px; align-items: center;">';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #e5e7eb; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
+                html += '<div style="font-size: 0.82em; color: #cbd5e1; font-style: italic;">(not yet revealed)</div>';
+                html += '</div></div>';
+            }
+        }
+        el.insightsList.innerHTML = html;
+        renderPhaseAdvance();
+        renderOverrides();
+    }
+
+    function renderPhaseAdvance() {
+        var phase = state.currentPhase;
+        var pi = PHASE_INSIGHTS[phase];
+        var maxIdx = pi[pi.length - 1];
+        if (state.insightsRevealed > maxIdx && phase < 3) {
+            el.phaseAdvanceArea.style.display = 'block';
+            var next = phase + 1;
+            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #1e40af; margin-bottom: 8px;">All Phase ' + phase + ' insights completed!</div>' +
+                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + next + ' &#9654;</button>';
+        } else {
+            el.phaseAdvanceArea.style.display = 'none';
+            el.phaseAdvanceArea.innerHTML = '';
+        }
+    }
+
+    function renderOverrides() {
+        var phase = state.currentPhase;
+        var ls = 'background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78em; padding: 2px 6px; text-decoration: underline;';
+        var html = '';
+        if (phase < 2) html += '<button id="overrideSkip2" onclick="void(0)" style="' + ls + '">Skip to Phase 2</button>';
+        if (phase < 3) html += '<button id="overrideSkip3" onclick="void(0)" style="' + ls + '">Skip to Phase 3</button>';
+        html += '<button id="overrideRevealQ" onclick="void(0)" style="' + ls + '">Reveal Next Question</button>';
+        html += '<button id="overrideReset" onclick="void(0)" style="' + ls + '">Full Reset</button>';
+        el.overrideControls.innerHTML = html;
+    }
+
+    function checkForNewQuestion() {
+        var changed = false;
+        for (var i = 0; i < CHECKPOINT_SCHEDULE.length; i++) {
+            var cp = CHECKPOINT_SCHEDULE[i];
+            if (cp.phase === state.currentPhase && state.simulatedTime >= cp.turn && cp.insightIndex >= state.questionsShown) {
+                state.questionsShown = cp.insightIndex + 1;
+                changed = true;
+            }
+        }
+        if (changed) renderInsights();
+    }
+
+    function revealInsightAnswer(index) {
+        if (index !== state.insightsRevealed) return;
+        if (index >= state.questionsShown) return;
+        var ins = insights[index];
+        state.insightsRevealed = index + 1;
+        if (typeof ins.action === 'function') ins.action();
+        renderInsights();
+        updateCpcDisplay();
+        saveState();
+    }
+
+    function revealNextQuestion() {
+        if (state.questionsShown >= insights.length) return;
+        state.questionsShown++;
+        renderInsights();
+        saveState();
+    }
+
+    // === DISPLAY UPDATES ===
+    function updateDisplay() {
+        el.timeDisplay.textContent = state.simulatedTime;
+        el.timeBar.style.width = (state.simulatedTime / SIM_DURATION * 100) + '%';
+        el.cashDisplay.textContent = '$' + state.currentCash.toFixed(2);
+        el.cashDisplay.style.color = state.currentCash >= 0 ? '#16a34a' : '#dc2626';
+        el.redInventoryDisplay.textContent = state.inventoryRed;
+        el.blueInventoryDisplay.textContent = state.inventoryBlue;
+        el.wageCostDisplay.textContent = state.curMinStaffCost.toFixed(0);
+        el.holdingCostDisplay.textContent = state.curMinHoldingCost.toFixed(0);
+        el.revenueDisplay.textContent = state.curMinRevenue.toFixed(0);
+        var curProfit = state.curMinRevenue - state.curMinStaffCost - state.curMinHoldingCost;
+        el.profitDisplay.innerHTML = '<span style="color:' + (curProfit >= 0 ? '#16a34a' : '#dc2626') + '">$' + curProfit.toFixed(0) + '</span>';
+        var avg = calculateMovingAverages();
+        el.redSatisfaction.textContent = Math.round(avg.satisfaction.red);
+        el.blueSatisfaction.textContent = Math.round(avg.satisfaction.blue);
+        el.redFillRate.textContent = Math.round(avg.fillRate.red);
+        el.blueFillRate.textContent = Math.round(avg.fillRate.blue);
+        el.redWaitTime.textContent = avg.waitTime.red.toFixed(1);
+        el.blueWaitTime.textContent = avg.waitTime.blue.toFixed(1);
+        var rq = 0, bq = 0;
+        for (var i = 0; i < queue.length; i++) {
+            if (queue[i].type === 'red') rq++; else bq++;
+        }
+        el.redQueueLength.textContent = rq;
+        el.blueQueueLength.textContent = bq;
+        updateStaffDisplay();
+        updatePendingOrdersDisplay();
+        updateCpcDisplay();
+    }
+
+    function updateCpcDisplay() {
+        if (state.insightsRevealed >= 9 && state.totalCustomersServed > 0) {
+            var totalCosts = state.totalStaffCost + state.totalHoldingCost + state.totalOrderCost;
+            var cpc = totalCosts / state.totalCustomersServed;
+            el.cpcValue.textContent = '$' + cpc.toFixed(2);
+        }
+    }
+
+    function updateStaffDisplay() {
+        el.regularStaffStatus.innerHTML = '';
+        el.emergencyStaffStatus.innerHTML = '';
+        for (var i = 0; i < staff.length; i++) {
+            var box = document.createElement('div');
+            box.style.cssText = 'width: 24px; height: 24px; background: ' + (staff[i].busy ? '#FF9966' : '#81c784') +
+                '; border: 1.5px solid #333; border-radius: 3px; transition: background 0.3s;';
+            if (staff[i].type === 'regular') el.regularStaffStatus.appendChild(box);
+            else el.emergencyStaffStatus.appendChild(box);
+        }
+    }
+
+    function updatePendingOrdersDisplay() {
+        if (state.pendingOrders.length === 0) {
+            el.noPendingMsg.style.display = 'block';
+            el.pendingRedDiv.style.display = 'none';
+            el.pendingBlueDiv.style.display = 'none';
+            return;
+        }
+        el.noPendingMsg.style.display = 'none';
+        var redTotal = 0, blueTotal = 0, redArr = Infinity, blueArr = Infinity;
+        for (var i = 0; i < state.pendingOrders.length; i++) {
+            var o = state.pendingOrders[i];
+            if (o.type === 'red') { redTotal += o.quantity; redArr = Math.min(redArr, o.arrivalTime); }
+            else { blueTotal += o.quantity; blueArr = Math.min(blueArr, o.arrivalTime); }
+        }
+        if (redTotal > 0) {
+            el.pendingRedQty.textContent = redTotal;
+            el.pendingRedTime.textContent = Math.max(0, redArr - state.simulatedTime);
+            el.pendingRedDiv.style.display = 'flex';
+        } else { el.pendingRedDiv.style.display = 'none'; }
+        if (blueTotal > 0) {
+            el.pendingBlueQty.textContent = blueTotal;
+            el.pendingBlueTime.textContent = Math.max(0, blueArr - state.simulatedTime);
+            el.pendingBlueDiv.style.display = 'flex';
+        } else { el.pendingBlueDiv.style.display = 'none'; }
+    }
+
+    function addOrderHistoryRow(order) {
+        var row = document.createElement('tr');
+        var cs = 'padding: 6px; text-align: center; border-bottom: 1px solid #f1f5f9;';
+        var cells = [order.time, order.redQuantity || 0, order.blueQuantity || 0, '$' + order.cost.toFixed(2)];
+        for (var i = 0; i < cells.length; i++) {
+            var td = document.createElement('td');
+            td.style.cssText = cs;
+            td.textContent = cells[i];
+            row.appendChild(td);
+        }
+        el.orderHistoryBody.insertBefore(row, el.orderHistoryBody.firstChild);
+    }
+
+    function showNotification(message, isError, duration) {
+        if (!duration) duration = 3000;
+        el.notificationArea.style.background = isError ? 'rgba(220,53,69,0.9)' : 'rgba(40,167,69,0.9)';
+        el.notificationArea.style.color = '#fff';
+        el.notificationArea.textContent = message;
+        el.notificationArea.style.display = 'block';
+        if (notifTimeout) clearTimeout(notifTimeout);
+        notifTimeout = setTimeout(function() { el.notificationArea.style.display = 'none'; }, duration);
+    }
+
+    // === CHARTS ===
+    var satChart = null, waitChart = null;
+
+    function initCharts() {
+        var commonOpts = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: true,
+            scales: {
+                x: { title: { display: true, text: 'Time (minutes)', font: { size: 13, weight: 'bold' } }, grid: { color: '#e5e5e5', lineWidth: 0.5 }, border: { width: 1.5, color: '#333' }, ticks: { font: { size: 12 } } },
+                y: { grid: { color: '#e5e5e5', lineWidth: 0.5 }, border: { width: 1.5, color: '#333' }, ticks: { font: { size: 12 } } }
+            },
+            plugins: { legend: { display: true, labels: { usePointStyle: true, pointStyle: 'circle' } } }
+        };
+        var satCtx = document.getElementById('satisfactionChart').getContext('2d');
+        satChart = new Chart(satCtx, {
+            type: 'line',
+            data: { labels: state.chartSatLabels.slice(), datasets: [
+                { label: 'Red Satisfaction', data: state.chartSatRed.slice(), borderColor: '#ff4444', borderWidth: 2, fill: false, pointRadius: 1 },
+                { label: 'Blue Satisfaction', data: state.chartSatBlue.slice(), borderColor: '#4682B4', borderWidth: 2, fill: false, pointRadius: 1 }
+            ] },
+            options: Object.assign({}, commonOpts, { scales: Object.assign({}, commonOpts.scales, {
+                y: Object.assign({}, commonOpts.scales.y, { beginAtZero: true, max: 100, title: { display: true, text: 'Satisfaction (%)', font: { size: 13, weight: 'bold' } } })
+            }) })
+        });
+        var waitCtx = document.getElementById('waitTimeChart').getContext('2d');
+        waitChart = new Chart(waitCtx, {
+            type: 'line',
+            data: { labels: state.chartWaitLabels.slice(), datasets: [
+                { label: 'Red Wait Time', data: state.chartWaitRed.slice(), borderColor: '#ff4444', borderWidth: 2, fill: false, pointRadius: 1 },
+                { label: 'Blue Wait Time', data: state.chartWaitBlue.slice(), borderColor: '#4682B4', borderWidth: 2, fill: false, pointRadius: 1 }
+            ] },
+            options: Object.assign({}, commonOpts, { scales: Object.assign({}, commonOpts.scales, {
+                y: Object.assign({}, commonOpts.scales.y, { beginAtZero: true, title: { display: true, text: 'Wait Time (minutes)', font: { size: 13, weight: 'bold' } } })
+            }) })
+        });
+    }
+
+    function updateCharts(avg) {
+        if (!satChart || !waitChart) return;
+        state.chartSatLabels.push(state.simulatedTime);
+        state.chartSatRed.push(avg.satisfaction.red);
+        state.chartSatBlue.push(avg.satisfaction.blue);
+        state.chartWaitLabels.push(state.simulatedTime);
+        state.chartWaitRed.push(avg.waitTime.red);
+        state.chartWaitBlue.push(avg.waitTime.blue);
+        if (state.chartSatLabels.length > 20) {
+            state.chartSatLabels.shift(); state.chartSatRed.shift(); state.chartSatBlue.shift();
+            state.chartWaitLabels.shift(); state.chartWaitRed.shift(); state.chartWaitBlue.shift();
+        }
+        satChart.data.labels = state.chartSatLabels.slice();
+        satChart.data.datasets[0].data = state.chartSatRed.slice();
+        satChart.data.datasets[1].data = state.chartSatBlue.slice();
+        satChart.update();
+        waitChart.data.labels = state.chartWaitLabels.slice();
+        waitChart.data.datasets[0].data = state.chartWaitRed.slice();
+        waitChart.data.datasets[1].data = state.chartWaitBlue.slice();
+        waitChart.update();
+    }
+
+    // === PERSISTENCE ===
+    function saveState() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function loadState() {
+        try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                var parsed = JSON.parse(saved);
+                if (parsed && typeof parsed.simulatedTime === 'number') {
+                    state = parsed;
+                    if (state.totalCustomersServed === undefined) state.totalCustomersServed = 0;
+                    if (state.historyVisible === undefined) state.historyVisible = true;
+                    if (state.chartSatLabels === undefined) { state.chartSatLabels = []; state.chartSatRed = []; state.chartSatBlue = []; }
+                    if (state.chartWaitLabels === undefined) { state.chartWaitLabels = []; state.chartWaitRed = []; state.chartWaitBlue = []; }
+                    return true;
+                }
+            }
+        } catch (e) { localStorage.removeItem(STORAGE_KEY); }
+        return false;
+    }
+
+    function restoreFromState() {
+        rebuildStaff();
+        setPhase(state.currentPhase);
+        el.regularStaffSlider.value = state.regularStaffCount;
+        el.regularStaffValue.textContent = state.regularStaffCount;
+        el.emergencyStaffSlider.value = state.emergencyStaffCount;
+        el.emergencyStaffValue.textContent = state.emergencyStaffCount;
+        el.speedSelect.value = state.simulationSpeed;
+        calculateCurrentCosts();
+        updateDisplay();
+        checkInventoryLevels();
+        for (var i = 0; i < state.orderHistory.length; i++) addOrderHistoryRow(state.orderHistory[i]);
+        el.historyWrap.style.display = state.historyVisible ? 'block' : 'none';
+        el.toggleHistory.textContent = state.historyVisible ? 'Hide' : 'Show';
+        if (state.failureOccurred) {
+            el.toggleBtn.textContent = 'Failed';
+            el.toggleBtn.disabled = true;
+            el.toggleBtn.style.background = '#ef4444';
+            el.toggleBtn.style.cursor = 'not-allowed';
+            el.failureMessage.textContent = state.failureMessage || 'Simulation failed';
+            el.failureOverlay.style.display = 'block';
+        } else if (state.isComplete) {
+            el.toggleBtn.textContent = 'Complete';
+            el.toggleBtn.disabled = true;
+            el.toggleBtn.style.background = '#e0e0e0';
+            el.toggleBtn.style.cursor = 'not-allowed';
+        } else {
+            el.toggleBtn.textContent = state.simulatedTime > 0 ? 'Resume' : 'Start';
+        }
+        renderInstructions();
+        renderInsights();
+    }
+
+    function resetSim(fullReset) {
+        clearInterval(simInterval);
+        simInterval = null;
+        queue = [];
+        inService = {};
+        custIdCounter = 0;
+        staffIdCounter = 0;
+        var savedPhase = state.currentPhase;
+        var savedQShown = state.questionsShown;
+        var savedRevealed = state.insightsRevealed;
+        var savedExpanded = state.instructionExpanded;
+        var savedHistVisible = state.historyVisible;
+        if (fullReset) {
+            localStorage.removeItem(STORAGE_KEY);
+            state = makeDefaultState();
+        } else {
+            state = makeDefaultState();
+            state.currentPhase = savedPhase;
+            state.questionsShown = savedQShown;
+            state.insightsRevealed = savedRevealed;
+            state.instructionExpanded = savedExpanded;
+            state.historyVisible = savedHistVisible;
+        }
+        el.regularStaffSlider.value = state.regularStaffCount;
+        el.regularStaffValue.textContent = state.regularStaffCount;
+        el.emergencyStaffSlider.value = state.emergencyStaffCount;
+        el.emergencyStaffValue.textContent = state.emergencyStaffCount;
+        el.orderHistoryBody.innerHTML = '';
+        el.failureOverlay.style.display = 'none';
+        el.toggleBtn.textContent = 'Start';
+        el.toggleBtn.disabled = false;
+        el.toggleBtn.style.background = '#2563eb';
+        el.toggleBtn.style.cursor = 'pointer';
+        rebuildStaff();
+        if (satChart) {
+            satChart.data.labels = []; satChart.data.datasets[0].data = []; satChart.data.datasets[1].data = []; satChart.update();
+        }
+        if (waitChart) {
+            waitChart.data.labels = []; waitChart.data.datasets[0].data = []; waitChart.data.datasets[1].data = []; waitChart.update();
+        }
+        setPhase(state.currentPhase);
+        calculateCurrentCosts();
+        updateDisplay();
+        checkInventoryLevels();
+        saveState();
+    }
+
+    // === EVENT BINDING ===
+    function bindEvents() {
+        el.toggleBtn.addEventListener('click', toggleSimulation);
+        el.resetBtn.addEventListener('click', function() { resetSim(false); });
+        el.placeOrderBtn.addEventListener('click', placeOrders);
+        el.speedSelect.addEventListener('change', function() {
+            state.simulationSpeed = parseInt(el.speedSelect.value);
+            if (simInterval) {
+                clearInterval(simInterval);
+                simInterval = setInterval(simulationTick, state.simulationSpeed);
+            }
+        });
+        el.regularStaffSlider.addEventListener('input', function() {
+            state.regularStaffCount = parseInt(el.regularStaffSlider.value);
+            el.regularStaffValue.textContent = state.regularStaffCount;
+            rebuildStaff();
+            calculateCurrentCosts();
+            updateDisplay();
+            saveState();
+        });
+        el.emergencyStaffSlider.addEventListener('input', function() {
+            state.emergencyStaffCount = parseInt(el.emergencyStaffSlider.value);
+            el.emergencyStaffValue.textContent = state.emergencyStaffCount;
+            rebuildStaff();
+            calculateCurrentCosts();
+            updateDisplay();
+            saveState();
+        });
+        el.toggleInstructions.addEventListener('click', function() {
+            state.instructionExpanded = !state.instructionExpanded;
+            renderInstructions();
+            saveState();
+        });
+        el.toggleHistory.addEventListener('click', function() {
+            state.historyVisible = !state.historyVisible;
+            el.historyWrap.style.display = state.historyVisible ? 'block' : 'none';
+            el.toggleHistory.textContent = state.historyVisible ? 'Hide' : 'Show';
+            saveState();
+        });
+        document.getElementById('insightsPanel').addEventListener('click', function(e) {
+            var revealEl = e.target.closest('[data-reveal-index]');
+            if (revealEl) { revealInsightAnswer(parseInt(revealEl.getAttribute('data-reveal-index'))); return; }
+            if (e.target.id === 'advancePhaseBtn') { advancePhase(); return; }
+            if (e.target.id === 'overrideSkip2') { skipToPhase(2); return; }
+            if (e.target.id === 'overrideSkip3') { skipToPhase(3); return; }
+            if (e.target.id === 'overrideRevealQ') { revealNextQuestion(); return; }
+            if (e.target.id === 'overrideReset') { resetSim(true); return; }
+        });
+    }
+
+    // === INIT ===
+    function init() {
+        cacheDom();
+        initCharts();
+        bindEvents();
+        var restored = loadState();
+        if (restored && state.simulatedTime > 0) {
+            restoreFromState();
+        } else {
+            rebuildStaff();
+            setPhase(1);
+            calculateCurrentCosts();
+            updateDisplay();
+            checkInventoryLevels();
+            renderInstructions();
+            renderInsights();
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
+</script>

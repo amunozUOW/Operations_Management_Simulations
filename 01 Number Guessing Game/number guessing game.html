@@ -1,0 +1,280 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div id="number-guess-sim-v1" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 720px; margin: 0 auto; color: #1a1a2e; line-height: 1.5;">
+
+    <!-- Scenario Brief -->
+    <div style="background: #f0f4ff; border-left: 4px solid #3a56d4; padding: 12px 16px; margin-bottom: 10px; border-radius: 0 6px 6px 0;">
+        <p style="margin: 0 0 6px 0; font-size: 15px; font-weight: 600; color: #3a56d4;">Your First Decision as Operations Manager</p>
+        <p style="margin: 0; font-size: 13.5px; color: #333; line-height: 1.45;">The company is launching a brand-new product today and you need to decide how many units to stock. The problem? You have <strong>zero demand data</strong> — all you know is that demand is somewhere between 1 and 200 units. No spreadsheets, no forecasts, just your judgement. Make a guess, read the feedback, and refine. The fewer guesses it takes you, the better.</p>
+    </div>
+
+    <!-- How to Play -->
+    <details style="margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+        <summary style="padding: 10px 14px; font-size: 14px; font-weight: 600; cursor: pointer; background: #fafafa; color: #444; list-style: none; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 12px; transition: transform 0.2s;">&#9654;</span> How to Play
+        </summary>
+        <div style="padding: 10px 14px; font-size: 13px; color: #555;">
+            <ol style="margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 4px;">Enter a number between 1 and 200 in the input box below.</li>
+                <li style="margin-bottom: 4px;">Click <strong>Submit Guess</strong> (or press Enter).</li>
+                <li style="margin-bottom: 4px;">Read the feedback — it tells you whether to go higher or lower, and by roughly how much.</li>
+                <li style="margin-bottom: 0;">Keep refining until you find the exact number.</li>
+            </ol>
+        </div>
+    </details>
+
+    <!-- Control Bar: input + buttons + stats in one row -->
+    <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; background: #f0f4ff; padding: 14px 18px; border-radius: 6px; border: 2px solid #c7d2f4;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <label for="ngs-guessInput" style="font-size: 15px; font-weight: 700; white-space: nowrap; color: #2c44b0;">Your guess:</label>
+            <input type="number" id="ngs-guessInput" min="1" max="200" placeholder="1–200"
+                style="width: 90px; padding: 9px 10px; font-size: 18px; font-weight: 600; border: 2px solid #b0bce0; border-radius: 6px; outline: none; text-align: center; transition: border-color 0.2s; background: #fff;"
+                onfocus="this.style.borderColor='#3a56d4';this.style.boxShadow='0 0 0 3px rgba(58,86,212,0.15)'" onblur="this.style.borderColor='#b0bce0';this.style.boxShadow='none'">
+            <button id="ngs-submitBtn" onclick="window._ngs.makeGuess()"
+                style="padding: 9px 20px; font-size: 15px; font-weight: 700; color: #fff; background: #3a56d4; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; white-space: nowrap;"
+                onmouseover="this.style.background='#2c44b0'" onmouseout="this.style.background='#3a56d4'">
+                Submit
+            </button>
+            <button id="ngs-resetBtn" onclick="window._ngs.resetGame()"
+                style="padding: 9px 16px; font-size: 14px; font-weight: 600; color: #3a56d4; background: #fff; border: 2px solid #3a56d4; border-radius: 6px; cursor: pointer; transition: background 0.2s; white-space: nowrap; display: none;"
+                onmouseover="this.style.background='#eef2ff'" onmouseout="this.style.background='#fff'">
+                Play Again
+            </button>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <span style="display: inline-block; width: 1px; height: 24px; background: #c7d2f4;"></span>
+            <span style="font-size: 14px; color: #555; white-space: nowrap;">Guesses: <strong id="ngs-guessCount" style="color: #1a1a2e; font-size: 16px;">0</strong></span>
+            <span id="ngs-rangeIndicator" style="font-size: 14px; background: #fff; padding: 4px 12px; border-radius: 12px; border: 1px solid #c7d2f4; white-space: nowrap;">Range: <strong>1 – 200</strong></span>
+        </div>
+    </div>
+
+    <!-- Activity Log (collapsible) -->
+    <details id="ngs-logDetails" style="margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+        <summary style="padding: 10px 14px; font-size: 14px; font-weight: 600; cursor: pointer; background: #fafafa; color: #444; list-style: none; display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 12px;">&#9654;</span> Activity Log
+        </summary>
+        <div id="ngs-logContainer" style="max-height: 200px; overflow-y: auto; padding: 8px 14px;">
+            <p id="ngs-logEmpty" style="margin: 0; font-size: 13px; color: #999; font-style: italic;">No guesses yet — make your first decision above.</p>
+            <div id="ngs-logEntries" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+    </details>
+
+    <!-- Chart -->
+    <div style="margin-bottom: 8px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 10px 6px 10px; background: #fcfcfd;">
+        <div style="position: relative; height: 36vh; max-height: 300px; min-height: 190px;">
+            <canvas id="ngs-chart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    var answer = Math.floor(Math.random() * 200) + 1;
+    var guesses = [];
+    var chart = null;
+    var gameOver = false;
+    var knownLow = 1;
+    var knownHigh = 200;
+
+    var guessInput = document.getElementById('ngs-guessInput');
+    var submitBtn = document.getElementById('ngs-submitBtn');
+    var resetBtn = document.getElementById('ngs-resetBtn');
+    var guessCountEl = document.getElementById('ngs-guessCount');
+    var rangeIndicator = document.getElementById('ngs-rangeIndicator');
+    var logDetails = document.getElementById('ngs-logDetails');
+    var logEntries = document.getElementById('ngs-logEntries');
+    var logEmpty = document.getElementById('ngs-logEmpty');
+
+    // Enter key submits
+    guessInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); makeGuess(); }
+    });
+
+    function addLogEntry(message, type) {
+        logEmpty.style.display = 'none';
+
+        var colors = {
+            info: { bg: '#eef2ff', border: '#3a56d4', text: '#2c44b0' },
+            success: { bg: '#ecfdf5', border: '#16a34a', text: '#15803d' },
+            warn: { bg: '#fff7ed', border: '#ea580c', text: '#c2410c' },
+            welcome: { bg: '#f0f9ff', border: '#0284c7', text: '#0369a1' }
+        };
+        var c = colors[type] || colors.info;
+
+        var entry = document.createElement('div');
+        entry.style.cssText = 'padding: 8px 12px; border-left: 3px solid ' + c.border + '; background: ' + c.bg + '; border-radius: 0 4px 4px 0; font-size: 13px; color: ' + c.text + '; line-height: 1.4;';
+        entry.innerHTML = '<span style="color: #999; font-size: 11px; margin-right: 6px;">#' + guesses.length + '</span> ' + message;
+
+        logEntries.insertBefore(entry, logEntries.firstChild);
+
+        // Auto-open and scroll
+        logDetails.open = true;
+        var container = document.getElementById('ngs-logContainer');
+        container.scrollTop = 0;
+    }
+
+    function getFeedback(guess) {
+        var diff = Math.abs(guess - answer);
+        if (guess === answer) return '';
+        var direction = guess > answer ? 'lower' : 'higher';
+
+        if (diff > 50) {
+            return 'Way too ' + (guess > answer ? 'high' : 'low') + '! Go <strong>much ' + direction + '</strong>.';
+        } else if (diff > 20) {
+            return 'Too ' + (guess > answer ? 'high' : 'low') + '. Go <strong>' + direction + '</strong>.';
+        } else if (diff > 5) {
+            return 'Getting warm! Go a little <strong>' + direction + '</strong>.';
+        } else {
+            return 'Very close! Just a touch <strong>' + direction + '</strong>.';
+        }
+    }
+
+    function updateRange(guess) {
+        if (guess < answer && guess >= knownLow) knownLow = guess + 1;
+        if (guess > answer && guess <= knownHigh) knownHigh = guess - 1;
+        if (guess === answer) { knownLow = answer; knownHigh = answer; }
+        rangeIndicator.innerHTML = 'Range: <strong>' + knownLow + ' – ' + knownHigh + '</strong>';
+    }
+
+    function makeGuess() {
+        if (gameOver) return;
+
+        var guess = parseInt(guessInput.value);
+        if (isNaN(guess) || guess < 1 || guess > 200) {
+            addLogEntry('Please enter a number between 1 and 200.', 'warn');
+            return;
+        }
+
+        guesses.push(guess);
+        guessCountEl.textContent = guesses.length;
+        updateRange(guess);
+        updateChart();
+
+        if (guesses.length === 1) {
+            var fb = getFeedback(guess);
+            if (guess === answer) {
+                addLogEntry('Unbelievable — you nailed it on your very first guess! The answer was <strong>' + answer + '</strong>.', 'success');
+                endGame();
+            } else {
+                addLogEntry('You guessed <strong>' + guess + '</strong>. ' + fb + ' Your first decision is in — now refine it.', 'welcome');
+            }
+        } else if (guess === answer) {
+            addLogEntry('You guessed <strong>' + guess + '</strong>. Correct! You found the number in <strong>' + guesses.length + ' guesses</strong>. Well done.', 'success');
+            endGame();
+        } else {
+            var fb = getFeedback(guess);
+            addLogEntry('You guessed <strong>' + guess + '</strong>. ' + fb, 'info');
+        }
+
+        guessInput.value = '';
+        if (!gameOver) guessInput.focus();
+    }
+
+    function endGame() {
+        gameOver = true;
+        guessInput.disabled = true;
+        guessInput.style.background = '#f5f5f5';
+        submitBtn.disabled = true;
+        submitBtn.style.background = '#aaa';
+        submitBtn.style.cursor = 'default';
+        resetBtn.style.display = 'inline-block';
+        updateChart(); // redraw with target line
+    }
+
+    function resetGame() {
+        answer = Math.floor(Math.random() * 200) + 1;
+        guesses = [];
+        gameOver = false;
+        knownLow = 1;
+        knownHigh = 200;
+
+        guessInput.disabled = false;
+        guessInput.style.background = '#fff';
+        guessInput.value = '';
+        submitBtn.disabled = false;
+        submitBtn.style.background = '#3a56d4';
+        submitBtn.style.cursor = 'pointer';
+        resetBtn.style.display = 'none';
+        guessCountEl.textContent = '0';
+        rangeIndicator.innerHTML = 'Range: <strong>1 – 200</strong>';
+
+        logEntries.innerHTML = '';
+        logEmpty.style.display = 'block';
+
+        if (chart) { chart.destroy(); chart = null; }
+        guessInput.focus();
+    }
+
+    function updateChart() {
+        var labels = guesses.map(function(_, i) { return 'Guess ' + (i + 1); });
+        var datasets = [{
+            label: 'Your Guesses',
+            data: guesses.slice(),
+            borderColor: '#3a56d4',
+            backgroundColor: 'rgba(58, 86, 212, 0.1)',
+            pointBackgroundColor: '#3a56d4',
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            borderWidth: 2,
+            fill: false,
+            tension: 0.1
+        }];
+
+        // Add target line if game is over
+        if (gameOver) {
+            datasets.push({
+                label: 'Actual Demand (' + answer + ')',
+                data: guesses.map(function() { return answer; }),
+                borderColor: '#16a34a',
+                borderDash: [6, 4],
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false
+            });
+        }
+
+        if (chart) chart.destroy();
+
+        var ctx = document.getElementById('ngs-chart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: labels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: gameOver,
+                        labels: { font: { size: 13 }, usePointStyle: true, padding: 16 }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1a1a2e',
+                        titleFont: { size: 13 },
+                        bodyFont: { size: 13 },
+                        padding: 10,
+                        cornerRadius: 6
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Guess Number', font: { size: 13, weight: 'bold' }, color: '#555' },
+                        ticks: { font: { size: 12 }, color: '#666' },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Units Guessed', font: { size: 13, weight: 'bold' }, color: '#555' },
+                        ticks: { font: { size: 12 }, color: '#666' },
+                        grid: { color: 'rgba(0,0,0,0.08)' },
+                        min: 0,
+                        max: 200
+                    }
+                }
+            }
+        });
+    }
+
+    // Expose to global for inline onclick handlers
+    window._ngs = { makeGuess: makeGuess, resetGame: resetGame };
+})();
+</script>

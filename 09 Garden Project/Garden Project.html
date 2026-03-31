@@ -1,0 +1,762 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div id="garden-project-sim-v1" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #1a1a1a;">
+
+<!-- Title + Phase -->
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+    <h2 style="margin: 0; font-size: 1.5em; color: #1e293b;">Garden Project Simulation</h2>
+    <div style="display: flex; gap: 4px; align-items: center;">
+        <span id="gpPhaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #2563eb; color: #fff;">Phase 1: Process</span>
+        <span style="color: #cbd5e1;">&#9654;</span>
+        <span id="gpPhaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Bottlenecks</span>
+        <span style="color: #cbd5e1;">&#9654;</span>
+        <span id="gpPhaseLabel3" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 3: Optimize</span>
+    </div>
+</div>
+
+<!-- Instruction Panel -->
+<div style="background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div id="gpInstructionContent"></div>
+        <button id="gpToggleInstr" onclick="void(0)" style="background: none; border: none; color: #2563eb; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+    </div>
+</div>
+
+<!-- Notification -->
+<div id="gpNotif" style="display: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9em; text-align: center;"></div>
+
+<!-- Controls Row -->
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
+    <span style="font-size: 0.9em; font-weight: 600; color: #334155;">Day: <span id="gpTime" style="color: #2563eb;">0</span> / 112</span>
+    <div style="width: 120px; height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+        <div id="gpTimeBar" style="height: 100%; width: 0%; background: #2563eb; transition: width 0.3s;"></div>
+    </div>
+    <button id="gpStartBtn" onclick="void(0)" style="padding: 6px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; cursor: pointer;">Start</button>
+    <select id="gpSpeed" style="padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em;">
+        <option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option>
+    </select>
+    <button id="gpResetBtn" onclick="void(0)" style="padding: 6px 12px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em; cursor: pointer;">Reset</button>
+    <span style="margin-left: auto; font-size: 0.85em;">Difficulty:</span>
+    <select id="gpDifficulty" style="padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em;" disabled>
+        <option value="beginner" selected>Beginner (15 plots)</option>
+        <option value="intermediate">Intermediate (25 plots)</option>
+        <option value="advanced">Advanced (40 plots)</option>
+    </select>
+    <button id="gpApplyDiff" onclick="void(0)" style="padding: 6px 10px; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em; cursor: not-allowed;" disabled>Apply</button>
+</div>
+
+<!-- Metrics Row -->
+<div style="display: flex; flex-wrap: wrap; gap: 8px;">
+    <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #E1F5FE;">
+        <div style="font-size: 0.72em; color: #0277BD; text-transform: uppercase; font-weight: 600;">Time Performance</div>
+        <div style="font-size: 0.82em; margin-top: 4px;">Avg Cycle Time: <strong id="gpAvgCycle">0.0</strong> days</div>
+        <div style="font-size: 0.82em;">On-Time: <strong id="gpOnTime">0.0</strong>%</div>
+        <div style="font-size: 0.82em;">Queue Length: <strong id="gpTotalQueue">0</strong></div>
+    </div>
+    <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #E8F5E9;">
+        <div style="font-size: 0.72em; color: #2E7D32; text-transform: uppercase; font-weight: 600;">Cost Performance</div>
+        <div style="font-size: 0.82em; margin-top: 4px;">Spending: $<strong id="gpTotalCost">0</strong></div>
+        <div style="font-size: 0.82em;">Budget Left: $<strong id="gpBudgetLeft">16000</strong></div>
+        <div id="gpCpcRow" style="font-size: 0.82em; display: none;">Cost/Plot: <strong id="gpCostPerPlot">0.00</strong></div>
+        <div id="gpCpcPrompt" style="font-size: 0.78em; color: #64748b; font-style: italic; display: none;">Calculate: Total Cost &divide; Plots Completed</div>
+    </div>
+    <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #FFF3E0;">
+        <div style="font-size: 0.72em; color: #E65100; text-transform: uppercase; font-weight: 600;">Resource Performance</div>
+        <div style="font-size: 0.82em; margin-top: 4px;">Utilization: <strong id="gpOverallUtil">0.0</strong>%</div>
+        <div style="font-size: 0.82em;">In Process: <strong id="gpInProcess">0</strong></div>
+        <div style="font-size: 0.82em;">Completed: <strong id="gpCompleted">0</strong> / <span id="gpTotalPlots">15</span></div>
+    </div>
+</div>
+
+<!-- Staff Pool -->
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
+    <div style="font-weight: 700; font-size: 0.9em; color: #334155; margin-bottom: 8px;">Available Gardeners (drag to assign)</div>
+    <div id="gpStaffPool" style="min-height: 50px; border: 2px dashed #cbd5e1; padding: 8px; border-radius: 6px; background: #fff; position: relative;">
+        <div id="gpPoolLabel" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-style: italic; color: #94a3b8; display: none;">All gardeners assigned</div>
+    </div>
+</div>
+
+<!-- Workflow Operations -->
+<div style="display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto;">
+    <div style="flex: 1; min-width: 100px;">
+        <div style="background: #e0e7ff; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #3730a3;">Planning<br><span style="font-weight: 400; font-size: 0.9em;" id="gpPlanQ">0</span></div>
+        <div id="gpPlanOp" data-operation="planning" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
+    </div>
+    <div style="flex: 1; min-width: 100px;">
+        <div style="background: #fce7f3; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #9d174d;">Soil Prep<br><span style="font-size: 0.75em; font-weight: 400;">(No Volunteers)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpSoilQ">0</span></div>
+        <div id="gpSoilOp" data-operation="soilprep" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
+    </div>
+    <div style="flex: 1; min-width: 100px;">
+        <div style="background: #d1fae5; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #065f46;">Planting<br><span style="font-weight: 400; font-size: 0.9em;" id="gpPlantQ">0</span></div>
+        <div id="gpPlantOp" data-operation="planting" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
+    </div>
+    <div style="flex: 1; min-width: 100px;">
+        <div style="background: #fef3c7; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #92400e;">Growing<br><span style="font-size: 0.75em; font-weight: 400;">(10 days, auto)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpGrowQ">0</span></div>
+        <div style="min-height: 80px; border: 2px dashed #e5e7eb; padding: 6px; background: #f9fafb; display: flex; align-items: center; justify-content: center; font-style: italic; color: #94a3b8; font-size: 0.82em;">No staff needed</div>
+    </div>
+    <div style="flex: 1; min-width: 100px;">
+        <div style="background: #fee2e2; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #991b1b;">Inspection<br><span style="font-size: 0.75em; font-weight: 400;">(Masters only)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpInspQ">0</span></div>
+        <div id="gpInspOp" data-operation="inspection" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
+    </div>
+    <div style="flex: 1; min-width: 100px;">
+        <div style="background: #ede9fe; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #5b21b6;">Harvesting<br><span style="font-weight: 400; font-size: 0.9em;" id="gpHarvQ">0</span></div>
+        <div id="gpHarvOp" data-operation="harvesting" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
+    </div>
+</div>
+
+<!-- Queue Chart -->
+<div style="position: relative; height: 35vh; max-height: 300px;"><canvas id="gpQueueChart"></canvas></div>
+
+<!-- Task History -->
+<div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <h3 style="margin: 0; font-size: 1em; color: #1e293b;">Completed Plots</h3>
+        <button id="gpToggleHist" onclick="void(0)" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.82em; text-decoration: underline;">Hide</button>
+    </div>
+    <div id="gpHistWrap" style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.82em;">
+            <thead><tr style="background: #f8fafc;">
+                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Day</th>
+                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Cycle</th>
+                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Cost</th>
+                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Vol hrs</th>
+                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Exp hrs</th>
+                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Mst hrs</th>
+            </tr></thead>
+            <tbody id="gpHistBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Insights Panel -->
+<div id="gpInsightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="font-weight: 700; font-size: 1.05em; color: #1e293b;">Discussion Insights</div>
+        <div id="gpInsCount" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 9</div>
+    </div>
+    <div id="gpInsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
+    <div id="gpPhaseAdv" style="display: none; margin-top: 12px; padding: 10px 12px; background: #eff6ff; border: 1px solid #2563eb; border-radius: 6px; text-align: center;"></div>
+    <div id="gpOverrides" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+</div>
+</div>
+
+<script>
+(function() {
+'use strict';
+var STORAGE_KEY = 'ops802_garden_project_v1';
+var MAX_TIME = 112;
+var BUDGETS = { beginner: 16000, intermediate: 24000, advanced: 32000 };
+var PLOT_COUNTS = { beginner: 15, intermediate: 25, advanced: 40 };
+var COSTS_PER_DAY = [0, 0, 40, 120]; // index by skillLevel
+var OPS = ['planning','soilprep','planting','growing','inspection','harvesting'];
+var DURATIONS = {
+    planning:   [0, 6, 4, 2],
+    soilprep:   [0, 0, 4, 3],
+    planting:   [0, 6, 4, 2],
+    growing:    [0,10,10,10],
+    inspection: [0, 0, 0, 2],
+    harvesting: [0, 6, 4, 2]
+};
+var CHECKPOINT_SCHEDULE = [
+    {phase:1,turn:5,idx:0},{phase:1,turn:15,idx:1},{phase:1,turn:30,idx:2},
+    {phase:2,turn:10,idx:3},{phase:2,turn:25,idx:4},{phase:2,turn:45,idx:5},
+    {phase:3,turn:10,idx:6},{phase:3,turn:30,idx:7},{phase:3,turn:60,idx:8}
+];
+var PHASE_INSIGHTS = {1:[0,1,2],2:[3,4,5],3:[6,7,8]};
+var insights = [
+    {q:"Each plot passes through 6 operations in sequence. Which operations can volunteers perform, and which require higher-skilled gardeners? Why do these constraints exist?",
+     a:"Volunteers can do Planning, Planting, and Harvesting (with supervision from Experienced/Master). Soil Prep requires at least Experienced skill. Inspection requires Masters only. These constraints reflect that some tasks need specialised knowledge.",action:null},
+    {q:"Look at the task durations. A Volunteer takes 6 days for Planning while a Master takes only 2 days. What is the trade-off between using Masters for simple tasks vs reserving them for tasks only they can do?",
+     a:"Masters are 3\u00d7 faster but cost $120/day vs $0 for Volunteers. Using Masters on simple tasks is fast but expensive and leaves Inspection (Masters only) understaffed. The trade-off is speed vs cost and availability.",action:null},
+    {q:"After watching the simulation run, which operation tends to build up the largest queue? What causes this bottleneck?",
+     a:"Often Inspection becomes the bottleneck because only Masters can perform it (2 days each). With only 2 Masters, inspection throughput is limited. Alternatively, the first operation (Planning) can bottleneck if too few staff are assigned.",action:null},
+    {q:"Watch the queue chart. When one operation has a growing queue while the next has an empty queue, what does this tell you about your resource allocation?",
+     a:"A growing queue means that operation\u2019s throughput is lower than its input rate \u2014 it\u2019s a bottleneck. An empty downstream queue means resources there are underutilised. You should move staff from the idle operation to the bottleneck.",action:null},
+    {q:"Pause the simulation and try redistributing staff. What happens to the bottleneck queue when you add more gardeners? Is there a point where adding more staff doesn\u2019t help?",
+     a:"Adding staff to the bottleneck reduces the queue and increases throughput. But once that bottleneck is resolved, a new one may appear elsewhere. Adding staff beyond what\u2019s needed creates idle time \u2014 diminishing returns.",action:null},
+    {q:"Can you estimate what each completed plot costs? What formula would you use?",
+     a:"Cost per Plot = Total Spending \u00f7 Completed Plots. This depends on which gardeners you use and how long they work. Using more Volunteers reduces cost but increases cycle time. The optimal allocation balances cost and speed.",
+     action:function(){showCpcMetric();}},
+    {q:"With more plots (Intermediate/Advanced), does your Phase 1 strategy still work? What needs to change when scaling up?",
+     a:"More plots means more total work flowing through the same bottlenecks. You may need to shift more staff to constrained operations (Inspection, Soil Prep) and accept longer cycle times elsewhere. The bottleneck shifts as volume increases.",action:null},
+    {q:"Compare the budget per plot across difficulty levels: Beginner $1,067/plot, Intermediate $960/plot, Advanced $800/plot. What does this imply about your strategy?",
+     a:"Higher difficulty gives less budget per plot, requiring more efficient use of cheap labour (Volunteers) and less reliance on expensive Masters. You need to optimise the balance between speed and cost more carefully.",action:null},
+    {q:"What is the relationship between overall staff utilization and cost efficiency? Is 100% utilization always the goal?",
+     a:"Higher utilization means less idle time and better cost efficiency. But 100% utilization can mean no flexibility to handle queue buildups. Some slack (80\u201390% utilization) allows staff to absorb variability without creating bottlenecks.",action:null}
+];
+function makeDefaultState() {
+    var q = {}, ip = {};
+    for (var i = 0; i < OPS.length; i++) { q[OPS[i]] = []; ip[OPS[i]] = {}; }
+    return {
+        currentPhase:1, questionsShown:0, insightsRevealed:0, instructionExpanded:true, historyVisible:true,
+        difficulty:'beginner', totalBudget:16000, plotCount:15,
+        simulationTime:0, isComplete:false, simulationSpeed:1,
+        staffData:[], queues:q, inProcess:ip, completedTasks:[], taskArrivals:[],
+        chartLabels:[], chartData:{planning:[],soilprep:[],planting:[],growing:[],inspection:[],harvesting:[]},
+        cpcVisible:false
+    };
+}
+var state = makeDefaultState();
+var staff = [], isRunning = false, simInterval = null, currentDraggedStaff = null, notifTimeout = null, queueChart = null;
+var el = {};
+function cacheDom() {
+    el.time = document.getElementById('gpTime');
+    el.timeBar = document.getElementById('gpTimeBar');
+    el.startBtn = document.getElementById('gpStartBtn');
+    el.resetBtn = document.getElementById('gpResetBtn');
+    el.speed = document.getElementById('gpSpeed');
+    el.difficulty = document.getElementById('gpDifficulty');
+    el.applyDiff = document.getElementById('gpApplyDiff');
+    el.staffPool = document.getElementById('gpStaffPool');
+    el.poolLabel = document.getElementById('gpPoolLabel');
+    el.avgCycle = document.getElementById('gpAvgCycle');
+    el.onTime = document.getElementById('gpOnTime');
+    el.totalQueue = document.getElementById('gpTotalQueue');
+    el.totalCost = document.getElementById('gpTotalCost');
+    el.budgetLeft = document.getElementById('gpBudgetLeft');
+    el.costPerPlot = document.getElementById('gpCostPerPlot');
+    el.cpcRow = document.getElementById('gpCpcRow');
+    el.cpcPrompt = document.getElementById('gpCpcPrompt');
+    el.overallUtil = document.getElementById('gpOverallUtil');
+    el.inProcess = document.getElementById('gpInProcess');
+    el.completed = document.getElementById('gpCompleted');
+    el.totalPlots = document.getElementById('gpTotalPlots');
+    el.histBody = document.getElementById('gpHistBody');
+    el.histWrap = document.getElementById('gpHistWrap');
+    el.toggleHist = document.getElementById('gpToggleHist');
+    el.instrContent = document.getElementById('gpInstructionContent');
+    el.toggleInstr = document.getElementById('gpToggleInstr');
+    el.notif = document.getElementById('gpNotif');
+    el.insCount = document.getElementById('gpInsCount');
+    el.insList = document.getElementById('gpInsList');
+    el.phaseAdv = document.getElementById('gpPhaseAdv');
+    el.overrides = document.getElementById('gpOverrides');
+    el.qCounts = {planning:document.getElementById('gpPlanQ'),soilprep:document.getElementById('gpSoilQ'),
+        planting:document.getElementById('gpPlantQ'),growing:document.getElementById('gpGrowQ'),
+        inspection:document.getElementById('gpInspQ'),harvesting:document.getElementById('gpHarvQ')};
+    el.opContainers = {planning:document.getElementById('gpPlanOp'),soilprep:document.getElementById('gpSoilOp'),
+        planting:document.getElementById('gpPlantOp'),inspection:document.getElementById('gpInspOp'),
+        harvesting:document.getElementById('gpHarvOp')};
+}
+// Factory functions
+var plotIdCounter = 0;
+function createPlot(arrivalTime) {
+    plotIdCounter++;
+    return {id:'P'+plotIdCounter, arrivalTime:arrivalTime, deadline:arrivalTime+112,
+        planningStartTime:null,planningEndTime:null,soilprepStartTime:null,soilprepEndTime:null,
+        plantingStartTime:null,plantingEndTime:null,growingStartTime:null,growingEndTime:null,
+        inspectionStartTime:null,inspectionEndTime:null,harvestingStartTime:null,completionTime:null,
+        currentOperation:'planning', priority:112,
+        volunteerHours:0, experiencedHours:0, masterHours:0, totalCost:0};
+}
+var staffIdCounter = 0;
+function createStaffMember(skillLevel) {
+    staffIdCounter++;
+    return {id:'G'+staffIdCounter, skillLevel:skillLevel, busy:false, currentTask:null,
+        currentOperation:null, totalBusyTime:0, busyStartTime:null,
+        costPerDay:COSTS_PER_DAY[skillLevel], totalCost:0};
+}
+function staffLabel(s) { return s.skillLevel===1?'Volunteer':s.skillLevel===2?'Experienced':'Master'; }
+function staffCanPerform(s,op) {
+    if (op==='soilprep' && s.skillLevel===1) return false;
+    if (op==='inspection' && s.skillLevel!==3) return false;
+    return true;
+}
+function staffDuration(s,op) { return DURATIONS[op][s.skillLevel]; }
+function staffStartTask(s,task,time) { s.busy=true; s.currentTask=task; s.busyStartTime=time; }
+function staffCompleteTask(s,time) {
+    if (!s.busy) return false;
+    var t=time-s.busyStartTime; s.totalBusyTime+=t; s.totalCost+=t*s.costPerDay;
+    s.busy=false; s.currentTask=null; s.busyStartTime=null; return true;
+}
+function staffUtil(s,totalTime) {
+    if (totalTime===0) return 0;
+    var bt=s.totalBusyTime; if (s.busy) bt+=(totalTime-s.busyStartTime);
+    return (bt/totalTime)*100;
+}
+// Drag and drop
+function createStaffElement(s) {
+    var e=document.createElement('div');
+    var uText=state.simulationTime>0?staffUtil(s,state.simulationTime).toFixed(1)+'%':'0%';
+    e.textContent=staffLabel(s)+'\nUtil: '+uText;
+    e.style.cssText='display:inline-block;padding:5px;margin:3px;border:1px solid #333;border-radius:4px;cursor:move;user-select:none;white-space:pre;text-align:center;min-width:60px;font-size:0.85em;position:relative;';
+    e.style.backgroundColor=s.skillLevel===1?'#ffecb3':s.skillLevel===2?'#c8e6c9':'#bbdefb';
+    e.draggable=!isRunning;
+    e.dataset.staffId=s.id;
+    if (s.busy) {
+        var dur=staffDuration(s,s.currentOperation)||1;
+        var elapsed=state.simulationTime-s.busyStartTime;
+        var pct=Math.min(100,Math.round((elapsed/dur)*100));
+        if (isRunning) { e.draggable=false; e.style.cursor='default'; e.style.border='1px solid #1a73e8'; }
+        else { e.style.border='2px dashed #e53935'; }
+        e.title='Progress: '+pct+'%';
+        var pc=document.createElement('div');
+        pc.style.cssText='width:100%;height:6px;background:#e0e0e0;position:absolute;bottom:0;left:0;border-radius:0 0 4px 4px;';
+        var pb=document.createElement('div');
+        pb.style.cssText='width:'+pct+'%;height:100%;background:#4caf50;border-radius:0 0 '+(pct<100?'0':'4px')+' 4px;';
+        pc.appendChild(pb); e.appendChild(pc);
+    }
+    e.addEventListener('dragstart',function(ev){
+        if(isRunning){ev.preventDefault();return;}
+        currentDraggedStaff=s; ev.dataTransfer.setData('text/plain',s.id);
+        setTimeout(function(){e.style.display='none';},0);
+    });
+    e.addEventListener('dragend',function(){e.style.display='inline-block';currentDraggedStaff=null;});
+    return e;
+}
+function setupDropZone(elem,operation) {
+    elem.addEventListener('dragover',function(ev){ev.preventDefault();elem.style.opacity='0.8';});
+    elem.addEventListener('dragleave',function(){elem.style.opacity='1';});
+    elem.addEventListener('drop',function(ev){
+        ev.preventDefault(); elem.style.opacity='1';
+        var s=currentDraggedStaff; if(!s)return;
+        if(operation && !staffCanPerform(s,operation)){showNotif(staffLabel(s)+' cannot perform '+operation,true);return;}
+        if(s.busy){
+            var oldOp=s.currentOperation;
+            if(s.currentTask && oldOp && state.inProcess[oldOp][s.currentTask.id]){
+                var task=s.currentTask;
+                delete state.inProcess[oldOp][task.id];
+                task.priority=task.deadline-state.simulationTime;
+                state.queues[oldOp].push(task);
+                state.queues[oldOp].sort(function(a,b){return a.priority-b.priority;});
+                staffCompleteTask(s,state.simulationTime);
+            }
+        }
+        s.currentOperation=operation;
+        currentDraggedStaff=null;
+        renderStaffPool();
+        saveState();
+    });
+}
+function renderStaffPool() {
+    var pool=el.staffPool, label=el.poolLabel;
+    var children=pool.childNodes; var toRemove=[];
+    for(var i=0;i<children.length;i++) if(children[i]!==label) toRemove.push(children[i]);
+    for(var j=0;j<toRemove.length;j++) pool.removeChild(toRemove[j]);
+    var unassigned=staff.filter(function(s){return !s.currentOperation;});
+    for(var k=0;k<unassigned.length;k++) pool.appendChild(createStaffElement(unassigned[k]));
+    label.style.display=unassigned.length===0?'block':'none';
+    updateOperationStaff();
+}
+function updateOperationStaff() {
+    var ops=['planning','soilprep','planting','inspection','harvesting'];
+    for(var i=0;i<ops.length;i++){
+        var c=el.opContainers[ops[i]]; if(!c)continue;
+        c.innerHTML='';
+        var assigned=staff.filter(function(s){return s.currentOperation===ops[i];});
+        if(assigned.length===0){var em=document.createElement('em');em.textContent='No gardeners';em.style.color='#94a3b8';em.style.fontSize='0.82em';c.appendChild(em);continue;}
+        for(var j=0;j<assigned.length;j++) c.appendChild(createStaffElement(assigned[j]));
+    }
+}
+// Core simulation
+function generateAllPlots() {
+    plotIdCounter=0;
+    for(var i=0;i<state.plotCount;i++){
+        var p=createPlot(0);
+        state.queues.planning.push(p);
+        state.taskArrivals.push(p);
+    }
+}
+function calcTotalCost() { var t=0; for(var i=0;i<staff.length;i++) t+=staff[i].totalCost; return t; }
+function checkBudget() {
+    if(calcTotalCost()>=state.totalBudget){
+        pauseSim();
+        showNotif('Budget depleted! Total: $'+calcTotalCost().toFixed(2),true);
+        el.startBtn.disabled=true;
+        return false;
+    }
+    return true;
+}
+function processOperation(op) {
+    var q=state.queues[op]; var completions=[];
+    if(!checkBudget()) return;
+    var ipKeys=Object.keys(state.inProcess[op]);
+    for(var k=0;k<ipKeys.length;k++){
+        var pi=state.inProcess[op][ipKeys[k]];
+        if(state.simulationTime>=pi.completionTime){
+            completions.push(ipKeys[k]);
+            var s=null; for(var si=0;si<staff.length;si++){if(staff[si].id===pi.staffId){s=staff[si];break;}}
+            var task=pi.task; task[op+'EndTime']=state.simulationTime;
+            if(s){
+                var spent=state.simulationTime-s.busyStartTime;
+                if(s.skillLevel===1) task.volunteerHours+=spent;
+                else if(s.skillLevel===2){task.experiencedHours+=spent;task.totalCost+=spent*40;}
+                else{task.masterHours+=spent;task.totalCost+=spent*120;}
+                staffCompleteTask(s,state.simulationTime);
+            }
+            var nextOps={planning:'soilprep',soilprep:'planting',planting:'growing',inspection:'harvesting'};
+            if(nextOps[op]){task.currentOperation=nextOps[op];state.queues[nextOps[op]].push(task);}
+            else if(op==='harvesting'){task.completionTime=state.simulationTime;state.completedTasks.push(task);addHistoryRow(task);}
+        }
+    }
+    for(var d=0;d<completions.length;d++) delete state.inProcess[op][completions[d]];
+    var avail=staff.filter(function(s){return s.currentOperation===op&&!s.busy&&staffCanPerform(s,op);});
+    if(q.length>0){for(var u=0;u<q.length;u++) q[u].priority=q[u].deadline-state.simulationTime; q.sort(function(a,b){return a.priority-b.priority;});}
+    while(q.length>0&&avail.length>0){
+        var st=avail.pop(),tk=q.shift();
+        var dur=staffDuration(st,op), ct=state.simulationTime+dur;
+        staffStartTask(st,tk,state.simulationTime);
+        tk[op+'StartTime']=state.simulationTime;
+        state.inProcess[op][tk.id]={task:tk,staffId:st.id,completionTime:ct};
+    }
+}
+function processGrowing() {
+    var q=state.queues.growing; var completions=[];
+    var ipKeys=Object.keys(state.inProcess.growing);
+    for(var k=0;k<ipKeys.length;k++){
+        var pi=state.inProcess.growing[ipKeys[k]];
+        if(state.simulationTime>=pi.completionTime){
+            completions.push(ipKeys[k]);
+            pi.task.growingEndTime=state.simulationTime;
+            pi.task.currentOperation='inspection';
+            state.queues.inspection.push(pi.task);
+        }
+    }
+    for(var d=0;d<completions.length;d++) delete state.inProcess.growing[completions[d]];
+    while(q.length>0){
+        var task=q.shift(); task.growingStartTime=state.simulationTime;
+        state.inProcess.growing[task.id]={task:task,completionTime:state.simulationTime+10};
+    }
+}
+function hasStaffAssigned(op) { return staff.some(function(s){return s.currentOperation===op&&staffCanPerform(s,op);}); }
+function hasNonVols(op) { return staff.some(function(s){return s.currentOperation===op&&s.skillLevel>1;}); }
+function hasWork(op) {
+    if(state.queues[op].length>0||Object.keys(state.inProcess[op]).length>0) return true;
+    var upstream={soilprep:'planning',planting:'soilprep',inspection:'growing',harvesting:'inspection'};
+    if(upstream[op]){var uKeys=Object.keys(state.inProcess[upstream[op]]);
+        for(var i=0;i<uKeys.length;i++){if(state.inProcess[upstream[op]][uKeys[i]].completionTime-state.simulationTime<=2)return true;}}
+    return false;
+}
+function checkConstraints() {
+    var checks=[{op:'planning',msg:'Assign gardeners to Planning!'},{op:'soilprep',msg:'Assign gardeners to Soil Prep!'},
+        {op:'planting',msg:'Assign gardeners to Planting!'},{op:'inspection',msg:'Assign a Master to Inspection!'},
+        {op:'harvesting',msg:'Assign gardeners to Harvesting!'}];
+    for(var i=0;i<checks.length;i++){
+        if(hasWork(checks[i].op)&&!hasStaffAssigned(checks[i].op)){showNotif(checks[i].msg,true);return false;}
+    }
+    var volChecks=['planning','planting','harvesting'];
+    for(var j=0;j<volChecks.length;j++){
+        if(staff.some(function(s){return s.currentOperation===volChecks[j];})&&!hasNonVols(volChecks[j])){
+            showNotif(volChecks[j].charAt(0).toUpperCase()+volChecks[j].slice(1)+' needs at least one Experienced/Master gardener!',true);return false;}
+    }
+    return true;
+}
+function startSim() {
+    if(isRunning||state.isComplete) return;
+    if(!checkConstraints()) return;
+    isRunning=true; el.startBtn.textContent='Pause';
+    simInterval=setInterval(simTick,2000/state.simulationSpeed);
+}
+function pauseSim() {
+    if(!isRunning) return;
+    isRunning=false; clearInterval(simInterval); simInterval=null;
+    el.startBtn.textContent='Resume';
+    renderStaffPool();
+}
+function simTick() {
+    state.simulationTime++;
+    if(state.simulationTime>=MAX_TIME){endSim();return;}
+    processOperation('planning'); processOperation('soilprep'); processOperation('planting');
+    processGrowing(); processOperation('inspection'); processOperation('harvesting');
+    updateChartData(); updateUI(); checkForNewQuestion(); saveState();
+}
+function endSim() {
+    isRunning=false; clearInterval(simInterval); simInterval=null; state.isComplete=true;
+    el.startBtn.textContent='Complete'; el.startBtn.disabled=true; el.startBtn.style.background='#e0e0e0'; el.startBtn.style.cursor='not-allowed';
+    updateUI(); saveState();
+    var pct=(state.completedTasks.length/state.taskArrivals.length*100).toFixed(1);
+    var tc=calcTotalCost(), bs=state.totalBudget-tc;
+    showNotif('Complete! '+state.completedTasks.length+'/'+state.taskArrivals.length+' plots ('+pct+'%). Budget '+(bs>=0?'under':'over')+' by $'+Math.abs(bs).toFixed(0),false,8000);
+}
+// UI Updates
+function updateUI() {
+    el.time.textContent=state.simulationTime;
+    el.timeBar.style.width=(state.simulationTime/MAX_TIME*100)+'%';
+    var tc=calcTotalCost();
+    el.totalCost.textContent=tc.toFixed(0);
+    el.budgetLeft.textContent=Math.max(0,state.totalBudget-tc).toFixed(0);
+    if(state.cpcVisible&&state.completedTasks.length>0) el.costPerPlot.textContent=(tc/state.completedTasks.length).toFixed(2);
+    el.completed.textContent=state.completedTasks.length;
+    el.totalPlots.textContent=state.taskArrivals.length;
+    // Avg cycle time
+    if(state.completedTasks.length>0){
+        var ctSum=0; for(var i=0;i<state.completedTasks.length;i++) ctSum+=(state.completedTasks[i].completionTime-state.completedTasks[i].arrivalTime);
+        el.avgCycle.textContent=(ctSum/state.completedTasks.length).toFixed(1);
+        var onTime=0; for(var j=0;j<state.completedTasks.length;j++) if(state.completedTasks[j].completionTime<=state.completedTasks[j].deadline) onTime++;
+        el.onTime.textContent=(onTime/state.completedTasks.length*100).toFixed(1);
+    }
+    // Queue lengths
+    var tq=0; for(var o=0;o<OPS.length;o++){
+        var ql=state.queues[OPS[o]].length, ipl=Object.keys(state.inProcess[OPS[o]]).length;
+        tq+=ql;
+        if(el.qCounts[OPS[o]]) el.qCounts[OPS[o]].textContent=ipl>0?(ql+'+'+ipl):ql;
+    }
+    el.totalQueue.textContent=tq;
+    // In process
+    var ip=0; for(var p=0;p<OPS.length;p++) ip+=Object.keys(state.inProcess[OPS[p]]).length;
+    el.inProcess.textContent=ip;
+    // Utilization
+    if(state.simulationTime>0){var uSum=0;for(var u=0;u<staff.length;u++) uSum+=staffUtil(staff[u],state.simulationTime);el.overallUtil.textContent=(uSum/staff.length).toFixed(1);}
+    updateOperationStaff();
+}
+function addHistoryRow(task) {
+    var row=document.createElement('tr');
+    var cs='padding:4px;text-align:center;border-bottom:1px solid #f1f5f9;font-size:0.85em;';
+    var ct=task.completionTime-task.arrivalTime;
+    var cells=[task.completionTime,ct,task.totalCost.toFixed(0),task.volunteerHours.toFixed(0),task.experiencedHours.toFixed(0),task.masterHours.toFixed(0)];
+    for(var i=0;i<cells.length;i++){var td=document.createElement('td');td.style.cssText=cs;td.textContent=cells[i];row.appendChild(td);}
+    el.histBody.insertBefore(row,el.histBody.firstChild);
+    if(el.histBody.children.length>20) el.histBody.removeChild(el.histBody.lastChild);
+}
+function showNotif(msg,isErr,dur) {
+    if(!dur) dur=3000;
+    el.notif.style.background=isErr?'rgba(220,53,69,0.9)':'rgba(40,167,69,0.9)';
+    el.notif.style.color='#fff'; el.notif.textContent=msg; el.notif.style.display='block';
+    if(notifTimeout) clearTimeout(notifTimeout);
+    notifTimeout=setTimeout(function(){el.notif.style.display='none';},dur);
+}
+function showCpcMetric() {
+    state.cpcVisible=true;
+    el.cpcRow.style.display='block'; el.cpcPrompt.style.display='none';
+}
+// Chart
+function initChart() {
+    var ctx=document.getElementById('gpQueueChart');
+    if(!ctx) return;
+    var colors=['rgb(54,162,235)','rgb(153,102,255)','rgb(255,159,64)','rgb(75,192,192)','rgb(255,99,132)','rgb(255,205,86)'];
+    var labels=['Planning','Soil Prep','Planting','Growing','Inspection','Harvesting'];
+    var datasets=[];
+    for(var i=0;i<6;i++) datasets.push({label:labels[i]+' Queue',data:state.chartData[OPS[i]],borderColor:colors[i],backgroundColor:colors[i].replace('rgb','rgba').replace(')',',0.15)'),tension:0.1,fill:true,borderWidth:1.5,pointRadius:0});
+    queueChart=new Chart(ctx.getContext('2d'),{type:'line',data:{labels:state.chartLabels,datasets:datasets},
+        options:{animation:false,responsive:true,maintainAspectRatio:false,
+            scales:{x:{title:{display:true,text:'Day'},grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:'Queue Length'}}},
+            plugins:{legend:{labels:{font:{size:11}}}}}});
+}
+function updateChartData() {
+    var ws=30, start=Math.max(0,state.simulationTime-ws+1);
+    state.chartLabels=[];
+    for(var i=0;i<Math.min(ws,state.simulationTime+1);i++) state.chartLabels.push(start+i);
+    for(var o=0;o<OPS.length;o++) state.chartData[OPS[o]].push(state.queues[OPS[o]].length);
+    for(var o2=0;o2<OPS.length;o2++) if(state.chartData[OPS[o2]].length>ws) state.chartData[OPS[o2]].shift();
+    if(queueChart){
+        queueChart.data.labels=state.chartLabels;
+        for(var d=0;d<6;d++) queueChart.data.datasets[d].data=state.chartData[OPS[d]];
+        queueChart.update();
+    }
+}
+// Phase management
+var instrText = {
+    1:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#1e40af;">Phase 1: Understanding the Process</div>'+
+        '<div style="margin-bottom:8px;">You manage a community garden with <strong>'+PLOT_COUNTS.beginner+' pumpkin plots</strong> for the Harvest Festival in <strong>16 weeks (112 days)</strong>. Each plot goes through 6 sequential operations.</div>'+
+        '<table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-bottom:8px;"><tr style="background:#f1f5f9;"><th style="padding:4px;border:1px solid #e2e8f0;">Operation</th><th style="padding:4px;border:1px solid #e2e8f0;">Volunteer</th><th style="padding:4px;border:1px solid #e2e8f0;">Experienced ($40/d)</th><th style="padding:4px;border:1px solid #e2e8f0;">Master ($120/d)</th></tr>'+
+        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Planning</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">6d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr>'+
+        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Soil Prep</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;color:#94a3b8;">N/A</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">3d</td></tr>'+
+        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Planting</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">6d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr>'+
+        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Growing</td><td colspan="3" style="padding:4px;border:1px solid #e2e8f0;text-align:center;">10 days (automatic)</td></tr>'+
+        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Inspection</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;color:#94a3b8;">N/A</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;color:#94a3b8;">N/A</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr>'+
+        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Harvesting</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">6d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr></table>'+
+        '<div style="margin-bottom:6px;"><strong>Team:</strong> 4 Volunteers (free), 3 Experienced ($40/day), 2 Masters ($120/day). Budget: $16,000.</div>'+
+        '<div style="margin-bottom:6px;"><strong>Rules:</strong> Volunteers need Experienced/Master supervision. Pause to reassign staff (even busy ones).</div>'+
+        '<div style="color:#1e40af;font-weight:600;">Drag gardeners to operations and press Start. Watch how work flows through the system.</div>',
+      short:'<span style="font-weight:700;color:#1e40af;">Phase 1:</span> Assign gardeners to operations. Learn the workflow, constraints, and processing times.'},
+    2:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#7c3aed;">Phase 2: Bottleneck Analysis</div>'+
+        '<div style="margin-bottom:8px;">Focus on <strong>identifying bottlenecks</strong>. Watch the queue chart to see where work accumulates. A bottleneck is any operation where input rate exceeds throughput.</div>'+
+        '<div style="margin-bottom:6px;">Key questions: Which queue grows fastest? Where are gardeners idle? Can you balance the flow by reallocating staff?</div>'+
+        '<div style="color:#7c3aed;font-weight:600;">Pause the simulation, redistribute staff to address bottlenecks, then resume. Repeat until flow is balanced.</div>',
+      short:'<span style="font-weight:700;color:#7c3aed;">Phase 2:</span> Watch the queue chart. Identify and resolve bottlenecks by reallocating staff.'},
+    3:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#059669;">Phase 3: Cost-Time Optimization</div>'+
+        '<div style="margin-bottom:8px;">All difficulty levels are now available. Higher levels have more plots but proportionally less budget per plot.</div>'+
+        '<ul style="margin:0 0 8px 0;padding-left:20px;line-height:1.6;">'+
+        '<li>Beginner: 15 plots, $16,000 ($1,067/plot)</li>'+
+        '<li>Intermediate: 25 plots, $24,000 ($960/plot)</li>'+
+        '<li>Advanced: 40 plots, $32,000 ($800/plot)</li></ul>'+
+        '<div style="color:#059669;font-weight:600;">Can you complete all plots on time and under budget? Select a difficulty and press Apply to try.</div>',
+      short:'<span style="font-weight:700;color:#059669;">Phase 3:</span> Difficulty unlocked. Optimize for cost, time, and completion rate.'}
+};
+function renderInstructions() {
+    var inst=instrText[state.currentPhase];
+    document.getElementById('gpInstructionContent').innerHTML=state.instructionExpanded?inst.full:inst.short;
+    el.toggleInstr.textContent=state.instructionExpanded?'Show Less':'Show More';
+}
+function setPhase(phase) {
+    state.currentPhase=phase;
+    var colors={active:'#2563eb',completed:'#16a34a',upcoming:'#e5e7eb'};
+    var tc={active:'#fff',completed:'#fff',upcoming:'#94a3b8'};
+    [1,2,3].forEach(function(p){
+        var st=p===phase?'active':p<phase?'completed':'upcoming';
+        var lb=document.getElementById('gpPhaseLabel'+p);
+        lb.style.background=colors[st]; lb.style.color=tc[st];
+    });
+    if(phase<3){el.difficulty.disabled=true;el.applyDiff.disabled=true;el.applyDiff.style.cursor='not-allowed';el.applyDiff.style.color='#94a3b8';}
+    else{el.difficulty.disabled=false;el.applyDiff.disabled=false;el.applyDiff.style.cursor='pointer';el.applyDiff.style.color='#475569';}
+    if(state.cpcVisible){el.cpcRow.style.display='block';el.cpcPrompt.style.display='none';}
+    else if(phase>=2){el.cpcPrompt.style.display='block';}
+    if(state.insightsRevealed>=9){el.cpcRow.style.display='block';el.cpcPrompt.style.display='none';}
+    renderInstructions(); renderInsights(); saveState();
+}
+function advancePhase(){if(state.currentPhase>=3)return;setPhase(state.currentPhase+1);}
+function skipToPhase(target){
+    if(target<=state.currentPhase||target>3)return;
+    for(var p=state.currentPhase;p<target;p++){
+        var pi=PHASE_INSIGHTS[p],mx=pi[pi.length-1];
+        if(state.questionsShown<=mx)state.questionsShown=mx+1;
+        while(state.insightsRevealed<=mx){var ins=insights[state.insightsRevealed];state.insightsRevealed++;if(typeof ins.action==='function')ins.action();}
+    }
+    setPhase(target);
+}
+// Insights
+function renderInsights() {
+    var total=insights.length;
+    el.insCount.textContent=state.insightsRevealed+' of '+total;
+    var html='';
+    for(var i=0;i<total;i++){
+        var ins=insights[i];
+        if(i<state.insightsRevealed){
+            html+='<div style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#fff;border:1px solid #e2e8f0;"><div style="display:flex;gap:10px;align-items:start;"><div style="min-width:28px;height:28px;border-radius:50%;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#475569;font-style:italic;margin-bottom:6px;">\u201c'+ins.q+'\u201d</div><div style="font-size:0.9em;color:#1e293b;font-weight:500;padding:6px 10px;background:#f0fdf4;border-left:3px solid #22c55e;border-radius:0 4px 4px 0;">'+ins.a+'</div></div></div></div>';
+        } else if(i<state.questionsShown){
+            html+='<div data-reveal-index="'+i+'" style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#fefce8;border:1px solid #eab308;cursor:pointer;"><div style="display:flex;gap:10px;align-items:start;"><div style="min-width:28px;height:28px;border-radius:50%;background:#eab308;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#1e293b;font-style:italic;margin-bottom:6px;">\u201c'+ins.q+'\u201d</div>';
+            if(i===state.insightsRevealed) html+='<div style="font-size:0.8em;color:#92400e;font-weight:600;padding:4px 10px;background:#fef9c3;border-radius:4px;display:inline-block;">Click to reveal answer</div>';
+            else html+='<div style="font-size:0.8em;color:#94a3b8;font-style:italic;">(answer previous first)</div>';
+            html+='</div></div></div>';
+        } else {
+            html+='<div style="padding:6px 12px;margin-bottom:2px;"><div style="display:flex;gap:10px;align-items:center;"><div style="min-width:28px;height:28px;border-radius:50%;background:#e5e7eb;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="font-size:0.82em;color:#cbd5e1;font-style:italic;">(not yet revealed)</div></div></div>';
+        }
+    }
+    el.insList.innerHTML=html;
+    var phase=state.currentPhase,pi=PHASE_INSIGHTS[phase],mx=pi[pi.length-1];
+    if(state.insightsRevealed>mx&&phase<3){
+        el.phaseAdv.style.display='block';
+        el.phaseAdv.innerHTML='<div style="font-size:0.9em;color:#1e40af;margin-bottom:8px;">All Phase '+phase+' insights completed!</div><button id="gpAdvBtn" onclick="void(0)" style="padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;">Continue to Phase '+(phase+1)+' &#9654;</button>';
+    } else { el.phaseAdv.style.display='none'; el.phaseAdv.innerHTML=''; }
+    var ls='background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.78em;padding:2px 6px;text-decoration:underline;';
+    var oh='';
+    if(state.currentPhase<2)oh+='<button id="gpSkip2" onclick="void(0)" style="'+ls+'">Skip to Phase 2</button>';
+    if(state.currentPhase<3)oh+='<button id="gpSkip3" onclick="void(0)" style="'+ls+'">Skip to Phase 3</button>';
+    oh+='<button id="gpRevealQ" onclick="void(0)" style="'+ls+'">Reveal Next Question</button>';
+    oh+='<button id="gpFullReset" onclick="void(0)" style="'+ls+'">Full Reset</button>';
+    el.overrides.innerHTML=oh;
+}
+function checkForNewQuestion(){
+    var changed=false;
+    for(var i=0;i<CHECKPOINT_SCHEDULE.length;i++){
+        var cp=CHECKPOINT_SCHEDULE[i];
+        if(cp.phase===state.currentPhase&&state.simulationTime>=cp.turn&&cp.idx>=state.questionsShown){state.questionsShown=cp.idx+1;changed=true;}
+    }
+    if(changed) renderInsights();
+}
+function revealInsight(idx){
+    if(idx!==state.insightsRevealed||idx>=state.questionsShown)return;
+    state.insightsRevealed=idx+1;
+    if(typeof insights[idx].action==='function') insights[idx].action();
+    renderInsights(); saveState();
+}
+// Persistence
+function saveState() {
+    state.staffData=[];
+    for(var i=0;i<staff.length;i++){
+        var s=staff[i];
+        state.staffData.push({id:s.id,skillLevel:s.skillLevel,busy:s.busy,currentOperation:s.currentOperation,
+            totalBusyTime:s.totalBusyTime,busyStartTime:s.busyStartTime,costPerDay:s.costPerDay,totalCost:s.totalCost,
+            currentTaskId:s.currentTask?s.currentTask.id:null});
+    }
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
+}
+function loadState() {
+    try{
+        var saved=localStorage.getItem(STORAGE_KEY);
+        if(saved){var p=JSON.parse(saved);if(p&&typeof p.simulationTime==='number'){state=p;return true;}}
+    }catch(e){localStorage.removeItem(STORAGE_KEY);}
+    return false;
+}
+function restoreFromState() {
+    // Rebuild staff from saved data
+    staff=[]; staffIdCounter=0;
+    for(var i=0;i<state.staffData.length;i++){
+        var sd=state.staffData[i];
+        var s={id:sd.id,skillLevel:sd.skillLevel,busy:false,currentTask:null,
+            currentOperation:sd.currentOperation,totalBusyTime:sd.totalBusyTime,
+            busyStartTime:sd.busyStartTime,costPerDay:sd.costPerDay,totalCost:sd.totalCost};
+        // Reconnect busy staff to their tasks
+        if(sd.busy&&sd.currentTaskId&&sd.currentOperation){
+            var ip=state.inProcess[sd.currentOperation];
+            if(ip&&ip[sd.currentTaskId]){s.busy=true;s.currentTask=ip[sd.currentTaskId].task;}
+        }
+        staff.push(s);
+        var num=parseInt(sd.id.replace('G',''));
+        if(num>staffIdCounter) staffIdCounter=num;
+    }
+    var maxPlotId=0;
+    for(var j=0;j<state.taskArrivals.length;j++){var n=parseInt(state.taskArrivals[j].id.replace('P',''));if(n>maxPlotId)maxPlotId=n;}
+    plotIdCounter=maxPlotId;
+    el.speed.value=state.simulationSpeed;
+    el.difficulty.value=state.difficulty;
+    el.histWrap.style.display=state.historyVisible?'block':'none';
+    el.toggleHist.textContent=state.historyVisible?'Hide':'Show';
+    if(state.isComplete){el.startBtn.textContent='Complete';el.startBtn.disabled=true;el.startBtn.style.background='#e0e0e0';el.startBtn.style.cursor='not-allowed';}
+    else{el.startBtn.textContent=state.simulationTime>0?'Resume':'Start';}
+    for(var k=0;k<state.completedTasks.length;k++) addHistoryRow(state.completedTasks[k]);
+    setPhase(state.currentPhase);
+    renderStaffPool(); updateUI();
+}
+function resetSim(full) {
+    clearInterval(simInterval); simInterval=null; isRunning=false;
+    currentDraggedStaff=null; staff=[]; staffIdCounter=0; plotIdCounter=0;
+    var savedPhase=state.currentPhase,savedQ=state.questionsShown,savedR=state.insightsRevealed,savedExp=state.instructionExpanded,savedHist=state.historyVisible,savedCpc=state.cpcVisible;
+    if(full){localStorage.removeItem(STORAGE_KEY);state=makeDefaultState();}
+    else{var diff=state.difficulty;state=makeDefaultState();state.difficulty=diff;state.totalBudget=BUDGETS[diff];state.plotCount=PLOT_COUNTS[diff];
+        state.currentPhase=savedPhase;state.questionsShown=savedQ;state.insightsRevealed=savedR;state.instructionExpanded=savedExp;state.historyVisible=savedHist;state.cpcVisible=savedCpc;}
+    generateAllPlots(); initStaff();
+    el.histBody.innerHTML='';
+    el.startBtn.textContent='Start';el.startBtn.disabled=false;el.startBtn.style.background='#2563eb';el.startBtn.style.cursor='pointer';
+    if(queueChart){queueChart.data.labels=[];for(var d=0;d<6;d++)queueChart.data.datasets[d].data=[];queueChart.update();}
+    setPhase(state.currentPhase); updateUI(); saveState();
+}
+function initStaff() {
+    staff=[]; var dist=[1,1,1,1,2,2,2,3,3];
+    for(var i=0;i<9;i++) staff.push(createStaffMember(dist[i]));
+    renderStaffPool();
+}
+// Events
+function bindEvents() {
+    el.startBtn.addEventListener('click',function(){if(isRunning)pauseSim();else startSim();});
+    el.resetBtn.addEventListener('click',function(){resetSim(false);});
+    el.speed.addEventListener('change',function(){
+        state.simulationSpeed=parseFloat(el.speed.value);
+        if(simInterval){clearInterval(simInterval);simInterval=setInterval(simTick,2000/state.simulationSpeed);}
+    });
+    el.applyDiff.addEventListener('click',function(){
+        if(state.currentPhase<3)return;
+        var diff=el.difficulty.value;
+        state.difficulty=diff; state.totalBudget=BUDGETS[diff]; state.plotCount=PLOT_COUNTS[diff];
+        resetSim(false);
+    });
+    el.toggleInstr.addEventListener('click',function(){state.instructionExpanded=!state.instructionExpanded;renderInstructions();saveState();});
+    el.toggleHist.addEventListener('click',function(){state.historyVisible=!state.historyVisible;el.histWrap.style.display=state.historyVisible?'block':'none';el.toggleHist.textContent=state.historyVisible?'Hide':'Show';saveState();});
+    // Drop zones
+    setupDropZone(el.staffPool,null);
+    var opKeys=Object.keys(el.opContainers);
+    for(var i=0;i<opKeys.length;i++) setupDropZone(el.opContainers[opKeys[i]],opKeys[i]);
+    // Insights panel
+    document.getElementById('gpInsightsPanel').addEventListener('click',function(ev){
+        var rev=ev.target.closest('[data-reveal-index]');
+        if(rev){revealInsight(parseInt(rev.getAttribute('data-reveal-index')));return;}
+        if(ev.target.id==='gpAdvBtn'){advancePhase();return;}
+        if(ev.target.id==='gpSkip2'){skipToPhase(2);return;}
+        if(ev.target.id==='gpSkip3'){skipToPhase(3);return;}
+        if(ev.target.id==='gpRevealQ'){if(state.questionsShown<insights.length){state.questionsShown++;renderInsights();saveState();}return;}
+        if(ev.target.id==='gpFullReset'){resetSim(true);return;}
+    });
+}
+function init() {
+    cacheDom();
+    var restored=loadState();
+    if(restored&&state.simulationTime>0){
+        initChart(); bindEvents(); restoreFromState();
+    } else {
+        generateAllPlots(); initStaff(); initChart(); bindEvents();
+        setPhase(1); updateUI(); renderInstructions(); renderInsights();
+    }
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+else init();
+})();
+</script>

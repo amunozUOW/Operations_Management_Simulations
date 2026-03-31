@@ -1,0 +1,1115 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div id="mango-inventory-sim-v1" style="display:flex !important; flex-direction:column !important; gap:14px !important; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important; max-width:1200px !important; margin:0 auto !important; padding:16px !important; color:#1a1a1a !important; line-height:1.4 !important;">
+
+    <!-- Title + Phase Indicator -->
+    <div style="display:flex !important; flex-wrap:wrap !important; align-items:center !important; justify-content:space-between !important; gap:10px !important;">
+        <h2 style="margin:0 !important; font-size:1.5em !important; color:#1e293b !important;">Mango Inventory Management</h2>
+        <div style="display:flex !important; gap:4px !important; align-items:center !important;">
+            <span id="phaseLabel1" style="padding:6px 14px !important; border-radius:6px !important; font-size:0.85em !important; font-weight:600 !important; background:#2563eb !important; color:#fff !important;">Phase 1: Supplier A</span>
+            <span style="color:#cbd5e1 !important;">&#9654;</span>
+            <span id="phaseLabel2" style="padding:6px 14px !important; border-radius:6px !important; font-size:0.85em !important; font-weight:600 !important; background:#e5e7eb !important; color:#94a3b8 !important;">Phase 2: Supplier B</span>
+        </div>
+    </div>
+
+    <!-- Instruction Panel -->
+    <div id="instructionPanel" style="background:#eff6ff !important; border-left:4px solid #2563eb !important; border-radius:0 8px 8px 0 !important; padding:14px 18px !important; line-height:1.6 !important;">
+        <div style="display:flex !important; justify-content:space-between !important; align-items:start !important;">
+            <div id="instructionContent" style="flex:1 !important;"></div>
+            <button id="toggleInstructions" onclick="void(0)" style="background:none !important; border:none !important; color:#2563eb !important; cursor:pointer !important; font-size:0.85em !important; white-space:nowrap !important; padding:0 0 0 12px !important;">Show Less</button>
+        </div>
+    </div>
+
+    <!-- Controls + Metrics Row -->
+    <div style="display:flex !important; flex-wrap:wrap !important; gap:14px !important;">
+
+        <!-- Controls Panel -->
+        <div style="flex:1 !important; min-width:300px !important; background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px !important;">
+            <div style="font-weight:700 !important; font-size:0.95em !important; margin-bottom:12px !important; color:#334155 !important;">Your Decision</div>
+
+            <!-- Parameters Display -->
+            <div id="paramDisplay" style="margin-bottom:14px !important; padding:10px !important; background:#fff !important; border:1px solid #e2e8f0 !important; border-radius:6px !important; font-size:0.85em !important; line-height:1.7 !important;"></div>
+
+            <!-- Order Input -->
+            <div style="margin-bottom:14px !important;">
+                <label style="display:block !important; font-size:0.9em !important; font-weight:600 !important; margin-bottom:4px !important; color:#475569 !important;">Order Quantity (mangoes):</label>
+                <input type="number" id="orderInput" min="0" value="" placeholder="Enter order quantity" style="width:100% !important; padding:8px 12px !important; border:1px solid #e2e8f0 !important; border-radius:6px !important; font-size:1em !important; box-sizing:border-box !important;">
+            </div>
+
+            <!-- Status Message -->
+            <div id="statusMessage" style="display:none !important; margin-bottom:10px !important; padding:8px 12px !important; border-radius:6px !important; font-size:0.85em !important;"></div>
+
+            <!-- Buttons -->
+            <div style="display:flex !important; gap:10px !important; margin-top:8px !important;">
+                <button id="submitBtn" onclick="void(0)" style="flex:1 !important; padding:10px 16px !important; background:#2563eb !important; color:#fff !important; border:none !important; border-radius:6px !important; font-size:0.95em !important; font-weight:600 !important; cursor:pointer !important;">Submit Order</button>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard -->
+        <div style="flex:1.2 !important; min-width:300px !important; display:flex !important; flex-wrap:wrap !important; gap:10px !important; align-content:start !important;">
+            <div style="width:100% !important; font-weight:700 !important; font-size:0.95em !important; color:#334155 !important;">Turn <span id="turnCounter">0</span> of 10</div>
+
+            <!-- Cash on Hand -->
+            <div style="width:100% !important; padding:10px !important; border:2px solid #2563eb !important; border-radius:8px !important; text-align:center !important; background:#eff6ff !important;">
+                <div style="font-size:0.75em !important; color:#1e40af !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Cash on Hand</div>
+                <div id="metricCash" style="font-size:1.8em !important; font-weight:700 !important; color:#1e40af !important;">$1,500.00</div>
+            </div>
+
+            <!-- Current Inventory -->
+            <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
+                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Current Inventory</div>
+                <div id="metricInventory" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">0</div>
+            </div>
+
+            <!-- Last Demand -->
+            <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
+                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Last Demand</div>
+                <div id="metricDemand" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+            </div>
+
+            <!-- Revenue -->
+            <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
+                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Revenue</div>
+                <div id="metricRevenue" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+            </div>
+
+            <!-- Total Cost -->
+            <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
+                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Total Cost</div>
+                <div id="metricTotalCost" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+            </div>
+
+            <!-- Turn Profit -->
+            <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
+                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Turn Profit</div>
+                <div id="metricProfit" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+            </div>
+
+            <!-- EOQ (Protected Metric) -->
+            <div id="metricEOQCard" style="width:100% !important; padding:10px !important; border:2px dashed #93c5fd !important; border-radius:8px !important; text-align:center !important; background:#f0f7ff !important;">
+                <div style="font-size:0.75em !important; color:#1e40af !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Economic Order Quantity</div>
+                <div id="eoqPrompt" style="font-size:0.85em !important; color:#64748b !important; margin-top:4px !important;">Calculate: &radic;(2DS / H)</div>
+                <div id="eoqRevealed" style="display:none !important;">
+                    <div id="eoqValue" style="font-size:1.6em !important; font-weight:700 !important; color:#1e40af !important;">&mdash;</div>
+                    <div style="font-size:0.7em !important; color:#3b82f6 !important;">mangoes (based on your avg. demand)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div style="display:flex !important; flex-wrap:wrap !important; gap:14px !important;">
+        <div style="flex:1 !important; min-width:340px !important;">
+            <div style="position:relative !important; height:40vh !important; max-height:350px !important;">
+                <canvas id="inventoryChart"></canvas>
+            </div>
+        </div>
+        <div id="costChartContainer" style="flex:1 !important; min-width:340px !important; display:none !important;">
+            <div style="position:relative !important; height:40vh !important; max-height:350px !important;">
+                <canvas id="costChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div>
+        <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:8px !important;">
+            <h3 style="margin:0 !important; font-size:1.1em !important; color:#1e293b !important;">Operations History</h3>
+            <button id="toggleHistory" onclick="void(0)" style="background:none !important; border:none !important; color:#2563eb !important; cursor:pointer !important; font-size:0.85em !important;">Hide Table</button>
+        </div>
+        <div id="historyContainer" style="overflow-x:auto !important;">
+            <table id="historyTable" style="width:100% !important; border-collapse:collapse !important; font-size:0.85em !important;">
+                <thead>
+                    <tr style="background:#f8fafc !important;">
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Turn</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Order Qty</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Demand</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Inv. Before</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Inv. After</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Remaining</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Revenue</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Order Cost</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Holding Cost</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Total Cost</th>
+                        <th style="padding:8px 10px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important;">Cash</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Discussion Insights Panel -->
+    <div id="insightsPanel" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px 18px !important;">
+        <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:12px !important;">
+            <div style="font-weight:700 !important; font-size:1.05em !important; color:#1e293b !important;">Discussion Insights</div>
+            <div id="insightsCounter" style="font-size:0.85em !important; color:#64748b !important; font-weight:600 !important;">0 of 6</div>
+        </div>
+        <div id="insightsList" style="display:flex !important; flex-direction:column !important; gap:0px !important;"></div>
+        <div id="phaseAdvanceArea" style="display:none !important; margin-top:12px !important; padding:10px 12px !important; background:#eff6ff !important; border:1px solid #2563eb !important; border-radius:6px !important; text-align:center !important;"></div>
+        <div id="overrideControls" style="margin-top:12px !important; padding-top:10px !important; border-top:1px dashed #e2e8f0 !important; display:flex !important; flex-wrap:wrap !important; gap:8px !important; justify-content:center !important;"></div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    /* ======================================================================
+       CONSTANTS
+       ====================================================================== */
+    var STORAGE_KEY = 'ops802_mangoes_v1';
+    var INITIAL_CASH = 1500;
+    var MAX_TURNS = 10;
+    var MANGO_PRICE = 5;
+    var SUPPLIER_PRICE = 0.2;
+    var DEMAND_MIN = 200;
+    var DEMAND_MAX = 1500;
+    var TOTAL_INSIGHTS = 6;
+
+    var PHASE_CONFIG = {
+        1: { holdingCost: 0.1, orderingCost: 1000, label: 'Supplier A' },
+        2: { holdingCost: 0.7, orderingCost: 150, label: 'Supplier B' }
+    };
+
+    var PHASE_INSIGHTS = { 1: [0, 1, 2], 2: [3, 4, 5] };
+
+    var CHECKPOINT_SCHEDULE = [
+        { phase: 1, turn: 3, insightIndex: 0 },
+        { phase: 1, turn: 5, insightIndex: 1 },
+        { phase: 1, turn: 8, insightIndex: 2 },
+        { phase: 2, turn: 3, insightIndex: 3 },
+        { phase: 2, turn: 5, insightIndex: 4 },
+        { phase: 2, turn: 8, insightIndex: 5 }
+    ];
+
+    var INSIGHTS = [
+        {
+            phase: 1,
+            question: 'Look at your ordering costs vs. holding costs in the history table. Which cost dominates your total expenses? Why?',
+            answer: 'The $1,000 fixed ordering cost per order dominates. It costs the same whether you order 100 or 5,000 mangoes. With holding costs at only $0.10 per mango, it is far cheaper to hold inventory than to place additional orders. This suggests ordering less frequently in larger batches.',
+            action: null
+        },
+        {
+            phase: 1,
+            question: 'What is the trade-off between ordering frequently in small batches vs. infrequently in large batches? Can you identify a strategy that balances these costs?',
+            answer: 'Ordering frequently incurs the $1,000 fee each time, but ordering large batches increases holding costs. The optimal strategy balances these two forces \u2014 large enough orders to amortise the fixed ordering cost, but small enough to limit the inventory you carry.',
+            action: 'revealCostChart'
+        },
+        {
+            phase: 1,
+            question: 'The optimal order quantity that minimises total cost is called the Economic Order Quantity (EOQ). Can you derive or guess the formula? Hint: it involves average demand (D), ordering cost (S), and holding cost per unit (H).',
+            answer: 'EOQ = \u221A(2DS / H). With high S ($1,000) and low H ($0.10), the EOQ is large \u2014 confirming that bigger, less frequent orders are optimal with this supplier. Note that budget constraints may prevent you from ordering the full EOQ amount.',
+            action: 'revealEOQ'
+        },
+        {
+            phase: 2,
+            question: 'A new supplier offers a $150 ordering fee but holding costs have risen to $0.70 per mango. How should your ordering strategy differ from Phase 1?',
+            answer: 'With ordering now cheap ($150) and holding expensive ($0.70 per mango per turn), you should reverse your Phase 1 strategy. Order smaller quantities more frequently to minimise the inventory you carry between turns.',
+            action: null
+        },
+        {
+            phase: 2,
+            question: 'Using the EOQ formula from Phase 1, calculate the new optimal order quantity. How does it compare to your Phase 1 EOQ?',
+            answer: 'With S = $150 and H = $0.70 (vs. S = $1,000 and H = $0.10 in Phase 1), the EOQ decreases dramatically. The same formula produces a much smaller optimal order, confirming that cost structure drives strategy.',
+            action: 'updateEOQ'
+        },
+        {
+            phase: 2,
+            question: 'Across both phases, what general principle about inventory management have you discovered? Is there a single "best" ordering strategy?',
+            answer: 'There is no universal best order size. The optimal strategy depends entirely on the cost structure \u2014 the relative balance between ordering costs and holding costs. The EOQ formula \u221A(2DS/H) captures this relationship systematically. When the cost structure changes, the optimal strategy must change too.',
+            action: null
+        }
+    ];
+
+    /* ======================================================================
+       INSTRUCTIONS TEXT
+       ====================================================================== */
+    var INSTRUCTIONS = {
+        1: {
+            full: '<strong>Phase 1: Supplier A \u2014 High Ordering Cost</strong><br><br>' +
+                'You manage a fruit stall selling mangoes at <strong>$5 each</strong>. ' +
+                'Your supplier charges <strong>$0.20 per mango</strong> plus a <strong>$1,000 fixed ordering fee</strong> per delivery. ' +
+                'Unsold inventory costs <strong>$0.10 per mango per turn</strong> to store.<br><br>' +
+                '<em>Key information:</em><br>' +
+                '\u2022 Starting cash: $1,500<br>' +
+                '\u2022 Demand per turn: Random (200\u20131,500 mangoes, skewed lower)<br>' +
+                '\u2022 Selling price: $5.00 per mango &bull; Supplier price: $0.20 per mango<br>' +
+                '\u2022 Orders arrive immediately &bull; Game ends if cash drops below zero<br><br>' +
+                '<strong>Your task:</strong> Over 10 turns, decide how many mangoes to order. Pay attention to which costs eat into your profits the most.',
+            short: 'Phase 1: Order mangoes with a <strong>$1,000</strong> fixed ordering fee and <strong>$0.10</strong>/mango holding cost. Balance ordering frequency against inventory levels.'
+        },
+        2: {
+            full: '<strong>Phase 2: Supplier B \u2014 High Holding Cost</strong><br><br>' +
+                'Your stall has switched suppliers. The new terms: only <strong>$150 per order</strong>, ' +
+                'but storage costs have increased to <strong>$0.70 per mango per turn</strong>. ' +
+                'Your cash resets to <strong>$1,500</strong>.<br><br>' +
+                'All other parameters remain the same: mango price $5, supplier price $0.20/mango, demand range 200\u20131,500.<br><br>' +
+                '<strong>Your task:</strong> Adapt your ordering strategy. Does the approach that worked in Phase 1 still make sense?',
+            short: 'Phase 2: New supplier \u2014 <strong>$150</strong> ordering fee but <strong>$0.70</strong>/mango holding cost. Rethink your Phase 1 strategy.'
+        }
+    };
+
+    /* ======================================================================
+       STATE
+       ====================================================================== */
+    function defaultState() {
+        return {
+            currentPhase: 1,
+            turn: 1,
+            phaseTurns: 0,
+            cashOnHand: INITIAL_CASH,
+            questionsShown: 0,
+            insightsRevealed: 0,
+            history: [],
+            orderQuantities: [],
+            actualDemands: [],
+            inventoryBeforeOrder: [],
+            inventoryAfterOrder: [],
+            inventoryAfterOrderAfterDemand: [],
+            revenues: [],
+            orderCosts: [],
+            holdingCosts: [],
+            totalCosts: [],
+            cashHistory: [],
+            instructionExpanded: true,
+            historyVisible: true,
+            gameOver: false,
+            costChartVisible: false,
+            eoqRevealed: false
+        };
+    }
+    var state = defaultState();
+
+    /* ======================================================================
+       DOM CACHE
+       ====================================================================== */
+    var el = {};
+    function cacheDom() {
+        var root = document.getElementById('mango-inventory-sim-v1');
+        if (!root) return;
+        el.phaseLabel1 = root.querySelector('#phaseLabel1');
+        el.phaseLabel2 = root.querySelector('#phaseLabel2');
+        el.instructionContent = root.querySelector('#instructionContent');
+        el.toggleInstructions = root.querySelector('#toggleInstructions');
+        el.paramDisplay = root.querySelector('#paramDisplay');
+        el.orderInput = root.querySelector('#orderInput');
+        el.statusMessage = root.querySelector('#statusMessage');
+        el.submitBtn = root.querySelector('#submitBtn');
+        el.turnCounter = root.querySelector('#turnCounter');
+        el.metricCash = root.querySelector('#metricCash');
+        el.metricInventory = root.querySelector('#metricInventory');
+        el.metricDemand = root.querySelector('#metricDemand');
+        el.metricRevenue = root.querySelector('#metricRevenue');
+        el.metricTotalCost = root.querySelector('#metricTotalCost');
+        el.metricProfit = root.querySelector('#metricProfit');
+        el.metricEOQCard = root.querySelector('#metricEOQCard');
+        el.eoqPrompt = root.querySelector('#eoqPrompt');
+        el.eoqRevealed = root.querySelector('#eoqRevealed');
+        el.eoqValue = root.querySelector('#eoqValue');
+        el.inventoryChart = root.querySelector('#inventoryChart');
+        el.costChartContainer = root.querySelector('#costChartContainer');
+        el.costChart = root.querySelector('#costChart');
+        el.toggleHistory = root.querySelector('#toggleHistory');
+        el.historyContainer = root.querySelector('#historyContainer');
+        el.historyBody = root.querySelector('#historyBody');
+        el.insightsCounter = root.querySelector('#insightsCounter');
+        el.insightsList = root.querySelector('#insightsList');
+        el.phaseAdvanceArea = root.querySelector('#phaseAdvanceArea');
+        el.overrideControls = root.querySelector('#overrideControls');
+    }
+
+    /* ======================================================================
+       CHARTS
+       ====================================================================== */
+    var inventoryChartObj = null;
+    var costChartObj = null;
+
+    function initInventoryChart() {
+        if (inventoryChartObj) { inventoryChartObj.destroy(); }
+        var ctx = el.inventoryChart.getContext('2d');
+        inventoryChartObj = new Chart(ctx, {
+            type: 'line',
+            data: { datasets: [{ label: 'Inventory Level', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#2563eb', fill: true, tension: 0 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                animation: { duration: 400 },
+                scales: {
+                    x: { type: 'linear', title: { display: true, text: 'Turn', font: { weight: 'bold' } }, ticks: { callback: function(v) { return Number.isInteger(v) ? v : null; }, stepSize: 1 }, min: 1 },
+                    y: { beginAtZero: true, title: { display: true, text: 'Inventory (mangoes)', font: { weight: 'bold' } } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    function updateInventoryChart() {
+        var data = [];
+        for (var i = 0; i < state.phaseTurns; i++) {
+            if (i === 0) { data.push({ x: 1, y: state.inventoryBeforeOrder[0] }); }
+            data.push({ x: i + 1, y: state.inventoryAfterOrder[i] });
+            data.push({ x: i + 2, y: state.inventoryAfterOrderAfterDemand[i] });
+        }
+        inventoryChartObj.data.datasets[0].data = data;
+        inventoryChartObj.options.scales.x.max = Math.max(state.phaseTurns + 1, 5);
+        inventoryChartObj.update();
+    }
+
+    function initCostChart() {
+        if (costChartObj) { costChartObj.destroy(); }
+        var ctx = el.costChart.getContext('2d');
+        costChartObj = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Ordering Cost', data: [], backgroundColor: 'rgba(37,99,235,0.7)', borderColor: '#2563eb', borderWidth: 1 },
+                    { label: 'Holding Cost', data: [], backgroundColor: 'rgba(251,146,60,0.7)', borderColor: '#f97316', borderWidth: 1 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                animation: { duration: 400 },
+                scales: {
+                    x: { stacked: true, title: { display: true, text: 'Turn', font: { weight: 'bold' } } },
+                    y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Cost ($)', font: { weight: 'bold' } } }
+                },
+                plugins: { legend: { display: true, position: 'top' } }
+            }
+        });
+    }
+
+    function updateCostChart() {
+        if (!costChartObj) return;
+        var labels = [];
+        var orderData = [];
+        var holdData = [];
+        for (var i = 0; i < state.phaseTurns; i++) {
+            labels.push(i + 1);
+            orderData.push(parseFloat(state.orderCosts[i].toFixed(2)));
+            holdData.push(parseFloat(state.holdingCosts[i].toFixed(2)));
+        }
+        costChartObj.data.labels = labels;
+        costChartObj.data.datasets[0].data = orderData;
+        costChartObj.data.datasets[1].data = holdData;
+        costChartObj.update();
+    }
+
+    /* ======================================================================
+       CORE CALCULATIONS (PRESERVED FROM ORIGINAL)
+       ====================================================================== */
+    function calculateDemand() {
+        var range = DEMAND_MAX - DEMAND_MIN;
+        var random1 = Math.random();
+        var random2 = Math.random();
+        return Math.round(DEMAND_MIN + range * Math.min(random1, random2));
+    }
+
+    function getPhaseParams() {
+        return PHASE_CONFIG[state.currentPhase];
+    }
+
+    function canAffordOrder(orderQuantity) {
+        var config = getPhaseParams();
+        var holdingCost = config.holdingCost;
+        var orderingCost = config.orderingCost;
+
+        var orderCost = (orderQuantity > 0) ? (orderQuantity * SUPPLIER_PRICE) + orderingCost : 0;
+        var inventoryBeforeOrderValue = (state.turn === 1) ? 0 : state.inventoryAfterOrderAfterDemand[state.phaseTurns - 1];
+        var inventoryAfterOrderValue = inventoryBeforeOrderValue + orderQuantity;
+        var worstCaseRemaining = Math.max(inventoryAfterOrderValue - DEMAND_MIN, 0);
+
+        var expectedHoldingCost;
+        if (state.turn === 1) {
+            expectedHoldingCost = holdingCost * ((orderQuantity + worstCaseRemaining) / 2);
+        } else {
+            expectedHoldingCost = holdingCost * ((inventoryBeforeOrderValue + orderQuantity + worstCaseRemaining) / 2);
+        }
+
+        var totalExpectedCost = orderCost + expectedHoldingCost;
+
+        if (totalExpectedCost > state.cashOnHand) {
+            if (orderQuantity === 0 || checkUnavoidableBankruptcy()) {
+                showStatus('Game Over! Unavoidable bankruptcy situation.', true);
+                state.gameOver = true;
+                el.submitBtn.disabled = true;
+                el.submitBtn.style.opacity = '0.5';
+                el.submitBtn.style.cursor = 'not-allowed';
+                return false;
+            }
+            var maxQty = calculateMaxOrderQuantity();
+            showStatus('Order exceeds budget. Maximum affordable order: ' + maxQty + ' mangoes.', true);
+            return false;
+        }
+        return true;
+    }
+
+    function checkUnavoidableBankruptcy() {
+        var config = getPhaseParams();
+        var holdingCost = config.holdingCost;
+        var orderingCost = config.orderingCost;
+
+        // Check if even ordering 0 leads to holding costs exceeding cash
+        var inventoryBeforeOrderValue = (state.turn === 1) ? 0 : state.inventoryAfterOrderAfterDemand[state.phaseTurns - 1];
+        if (inventoryBeforeOrderValue === 0) return false;
+
+        var worstCaseRemaining = Math.max(inventoryBeforeOrderValue - DEMAND_MIN, 0);
+        var holdingCostForZeroOrder = holdingCost * ((inventoryBeforeOrderValue + worstCaseRemaining) / 2);
+
+        return holdingCostForZeroOrder > state.cashOnHand;
+    }
+
+    function calculateMaxOrderQuantity() {
+        var config = getPhaseParams();
+        var holdingCost = config.holdingCost;
+        var orderingCost = config.orderingCost;
+
+        var low = 0;
+        var high = Math.floor(state.cashOnHand / SUPPLIER_PRICE);
+        var maxAffordable = 0;
+
+        while (low <= high) {
+            var mid = Math.floor((low + high) / 2);
+            var orderCost = (mid * SUPPLIER_PRICE) + orderingCost;
+            var inventoryBeforeOrderValue = (state.turn === 1) ? 0 : state.inventoryAfterOrderAfterDemand[state.phaseTurns - 1];
+            var inventoryAfterOrderValue = inventoryBeforeOrderValue + mid;
+            var worstCaseRemaining = Math.max(inventoryAfterOrderValue - DEMAND_MIN, 0);
+
+            var expectedHoldingCost;
+            if (state.turn === 1) {
+                expectedHoldingCost = holdingCost * ((mid + worstCaseRemaining) / 2);
+            } else {
+                expectedHoldingCost = holdingCost * ((inventoryBeforeOrderValue + mid + worstCaseRemaining) / 2);
+            }
+
+            var totalExpectedCost = orderCost + expectedHoldingCost;
+
+            if (totalExpectedCost <= state.cashOnHand) {
+                maxAffordable = mid;
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return maxAffordable;
+    }
+
+    function processOrder(orderQuantity) {
+        var config = getPhaseParams();
+        var holdingCost = config.holdingCost;
+        var orderingCost = config.orderingCost;
+
+        var demand = calculateDemand();
+        var orderCost = (orderQuantity === 0) ? 0 : (orderQuantity * SUPPLIER_PRICE) + orderingCost;
+
+        var inventoryBeforeOrderValue = (state.turn === 1) ? 0 : state.inventoryAfterOrderAfterDemand[state.phaseTurns - 1];
+        var inventoryAfterOrderValue;
+        if (state.turn === 1) {
+            inventoryAfterOrderValue = orderQuantity;
+        } else {
+            inventoryAfterOrderValue = inventoryBeforeOrderValue + orderQuantity;
+        }
+
+        var inventoryAfterDemandValue = Math.max(inventoryAfterOrderValue - demand, 0);
+
+        var holdingCostVal;
+        if (state.turn === 1) {
+            holdingCostVal = holdingCost * ((orderQuantity + inventoryAfterDemandValue) / 2);
+        } else {
+            holdingCostVal = holdingCost * ((inventoryBeforeOrderValue + orderQuantity + inventoryAfterDemandValue) / 2);
+        }
+
+        var totalCost = orderCost + holdingCostVal;
+        var revenue = Math.min(demand, inventoryAfterOrderValue) * MANGO_PRICE;
+
+        state.cashOnHand += revenue - totalCost;
+
+        // Store in arrays
+        state.orderQuantities.push(orderQuantity);
+        state.actualDemands.push(demand);
+        state.inventoryBeforeOrder.push(inventoryBeforeOrderValue);
+        state.inventoryAfterOrder.push(inventoryAfterOrderValue);
+        state.inventoryAfterOrderAfterDemand.push(inventoryAfterDemandValue);
+        state.revenues.push(revenue);
+        state.orderCosts.push(orderCost);
+        state.holdingCosts.push(holdingCostVal);
+        state.totalCosts.push(totalCost);
+        state.cashHistory.push(state.cashOnHand);
+
+        // Store history row
+        state.history.push({
+            turn: state.turn,
+            orderQty: orderQuantity,
+            demand: demand,
+            invBefore: inventoryBeforeOrderValue,
+            invAfter: inventoryAfterOrderValue,
+            remaining: inventoryAfterDemandValue,
+            revenue: revenue,
+            orderCost: orderCost,
+            holdingCost: holdingCostVal,
+            totalCost: totalCost,
+            cash: state.cashOnHand
+        });
+
+        state.phaseTurns++;
+
+        // Check for bankruptcy
+        if (state.cashOnHand < 0) {
+            showStatus('Game Over! You are out of money!', true);
+            state.gameOver = true;
+            el.submitBtn.disabled = true;
+            el.submitBtn.style.opacity = '0.5';
+            el.submitBtn.style.cursor = 'not-allowed';
+        }
+
+        return {
+            demand: demand,
+            orderCost: orderCost,
+            holdingCost: holdingCostVal,
+            totalCost: totalCost,
+            revenue: revenue,
+            profit: revenue - totalCost,
+            inventoryBefore: inventoryBeforeOrderValue,
+            inventoryAfter: inventoryAfterOrderValue,
+            remaining: inventoryAfterDemandValue
+        };
+    }
+
+    /* ======================================================================
+       DISPLAY FUNCTIONS
+       ====================================================================== */
+    function fmt(n) { return '$' + n.toFixed(2); }
+    function fmtInt(n) { return n.toLocaleString(); }
+
+    function updateMetrics(m) {
+        el.turnCounter.textContent = state.phaseTurns;
+        el.metricCash.textContent = fmt(state.cashOnHand);
+        el.metricCash.style.color = state.cashOnHand < 300 ? '#dc2626' : '#1e40af';
+        el.metricInventory.textContent = fmtInt(m.remaining);
+        el.metricDemand.textContent = fmtInt(m.demand);
+        el.metricRevenue.textContent = fmt(m.revenue);
+        el.metricTotalCost.textContent = fmt(m.totalCost);
+        el.metricProfit.textContent = fmt(m.profit);
+        el.metricProfit.style.color = m.profit >= 0 ? '#16a34a' : '#dc2626';
+    }
+
+    function addHistoryRow(h) {
+        var row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #f1f5f9';
+        var cells = [h.turn, fmtInt(h.orderQty), fmtInt(h.demand), fmtInt(h.invBefore), fmtInt(h.invAfter), fmtInt(h.remaining), fmt(h.revenue), fmt(h.orderCost), fmt(h.holdingCost), fmt(h.totalCost), fmt(h.cash)];
+        for (var i = 0; i < cells.length; i++) {
+            var td = document.createElement('td');
+            td.style.padding = '6px 10px';
+            td.style.textAlign = 'center';
+            td.textContent = cells[i];
+            if (i === 10) { td.style.fontWeight = '600'; td.style.color = h.cash < 0 ? '#dc2626' : '#1e293b'; }
+            row.appendChild(td);
+        }
+        el.historyBody.insertBefore(row, el.historyBody.firstChild);
+    }
+
+    function rerenderHistory() {
+        el.historyBody.innerHTML = '';
+        for (var i = state.history.length - 1; i >= 0; i--) {
+            addHistoryRow(state.history[i]);
+        }
+    }
+
+    function updateParamDisplay() {
+        var config = getPhaseParams();
+        el.paramDisplay.innerHTML =
+            '<strong>Current Parameters:</strong><br>' +
+            '\u2022 Fixed ordering fee: <strong>' + fmt(config.orderingCost) + '</strong> per order<br>' +
+            '\u2022 Supplier price: <strong>$0.20</strong> per mango<br>' +
+            '\u2022 Holding cost: <strong>' + fmt(config.holdingCost) + '</strong> per mango per turn<br>' +
+            '\u2022 Selling price: <strong>$5.00</strong> per mango';
+    }
+
+    function showStatus(msg, isError) {
+        el.statusMessage.style.display = 'block';
+        el.statusMessage.textContent = msg;
+        if (isError) {
+            el.statusMessage.style.background = '#fef2f2';
+            el.statusMessage.style.color = '#dc2626';
+            el.statusMessage.style.border = '1px solid #fecaca';
+        } else {
+            el.statusMessage.style.background = '#f0fdf4';
+            el.statusMessage.style.color = '#16a34a';
+            el.statusMessage.style.border = '1px solid #bbf7d0';
+        }
+    }
+
+    function clearStatus() {
+        el.statusMessage.style.display = 'none';
+    }
+
+    function updateEOQDisplay() {
+        if (!state.eoqRevealed) return;
+        var config = getPhaseParams();
+        var avgDemand = 0;
+        if (state.actualDemands.length > 0) {
+            for (var i = 0; i < state.actualDemands.length; i++) avgDemand += state.actualDemands[i];
+            avgDemand /= state.actualDemands.length;
+        } else {
+            avgDemand = 633; // theoretical average
+        }
+        var eoq = Math.round(Math.sqrt(2 * avgDemand * config.orderingCost / config.holdingCost));
+        el.eoqValue.textContent = fmtInt(eoq);
+        el.eoqPrompt.style.display = 'none';
+        el.eoqRevealed.style.display = 'block';
+        el.metricEOQCard.style.borderStyle = 'solid';
+        el.metricEOQCard.style.borderColor = '#2563eb';
+    }
+
+    /* ======================================================================
+       INSTRUCTIONS
+       ====================================================================== */
+    function renderInstructions() {
+        var p = state.currentPhase;
+        if (state.instructionExpanded) {
+            el.instructionContent.innerHTML = INSTRUCTIONS[p].full;
+            el.toggleInstructions.textContent = 'Show Less';
+        } else {
+            el.instructionContent.innerHTML = INSTRUCTIONS[p].short;
+            el.toggleInstructions.textContent = 'Show More';
+        }
+    }
+
+    /* ======================================================================
+       PHASE MANAGEMENT
+       ====================================================================== */
+    function setPhase(phase) {
+        state.currentPhase = phase;
+        // Update phase indicator labels
+        if (phase === 1) {
+            el.phaseLabel1.style.background = '#2563eb';
+            el.phaseLabel1.style.color = '#fff';
+            el.phaseLabel2.style.background = '#e5e7eb';
+            el.phaseLabel2.style.color = '#94a3b8';
+        } else {
+            el.phaseLabel1.style.background = '#16a34a';
+            el.phaseLabel1.style.color = '#fff';
+            el.phaseLabel2.style.background = '#2563eb';
+            el.phaseLabel2.style.color = '#fff';
+        }
+        resetPhaseData();
+        updateParamDisplay();
+        renderInstructions();
+        renderInsights();
+        renderOverrides();
+        if (state.costChartVisible) {
+            el.costChartContainer.style.display = 'block';
+            initCostChart();
+        }
+        updateEOQDisplay();
+        saveState();
+    }
+
+    function resetPhaseData() {
+        state.turn = 1;
+        state.phaseTurns = 0;
+        state.cashOnHand = INITIAL_CASH;
+        state.gameOver = false;
+        state.history = [];
+        state.orderQuantities = [];
+        state.actualDemands = [];
+        state.inventoryBeforeOrder = [];
+        state.inventoryAfterOrder = [];
+        state.inventoryAfterOrderAfterDemand = [];
+        state.revenues = [];
+        state.orderCosts = [];
+        state.holdingCosts = [];
+        state.totalCosts = [];
+        state.cashHistory = [];
+
+        // Reset UI
+        el.submitBtn.disabled = false;
+        el.submitBtn.style.opacity = '1';
+        el.submitBtn.style.cursor = 'pointer';
+        el.turnCounter.textContent = '0';
+        el.metricCash.textContent = fmt(INITIAL_CASH);
+        el.metricCash.style.color = '#1e40af';
+        el.metricInventory.textContent = '0';
+        el.metricDemand.textContent = '\u2014';
+        el.metricRevenue.textContent = '\u2014';
+        el.metricTotalCost.textContent = '\u2014';
+        el.metricProfit.textContent = '\u2014';
+        el.historyBody.innerHTML = '';
+        clearStatus();
+        el.orderInput.value = '';
+
+        initInventoryChart();
+        if (state.costChartVisible) { initCostChart(); }
+    }
+
+    function advancePhase() {
+        if (state.currentPhase >= 2) return;
+        setPhase(state.currentPhase + 1);
+    }
+
+    function skipToPhase(target) {
+        if (target === state.currentPhase) return;
+        // Reveal all insights for skipped phases
+        var maxInsight = 0;
+        for (var i = 0; i < TOTAL_INSIGHTS; i++) {
+            if (INSIGHTS[i].phase < target) maxInsight = i + 1;
+        }
+        state.questionsShown = Math.max(state.questionsShown, maxInsight);
+        state.insightsRevealed = Math.max(state.insightsRevealed, maxInsight);
+        // Apply side-effects for skipped insights
+        for (var j = 0; j < maxInsight; j++) {
+            applyInsightAction(j);
+        }
+        setPhase(target);
+    }
+
+    /* ======================================================================
+       INSIGHT MANAGEMENT
+       ====================================================================== */
+    function checkForNewQuestion() {
+        for (var i = 0; i < CHECKPOINT_SCHEDULE.length; i++) {
+            var cp = CHECKPOINT_SCHEDULE[i];
+            if (cp.phase === state.currentPhase && state.phaseTurns >= cp.turn && state.questionsShown <= cp.insightIndex) {
+                state.questionsShown = cp.insightIndex + 1;
+            }
+        }
+        renderInsights();
+        saveState();
+    }
+
+    function applyInsightAction(index) {
+        var action = INSIGHTS[index].action;
+        if (!action) return;
+        if (action === 'revealCostChart') {
+            state.costChartVisible = true;
+            el.costChartContainer.style.display = 'block';
+            if (!costChartObj) initCostChart();
+            updateCostChart();
+        } else if (action === 'revealEOQ' || action === 'updateEOQ') {
+            state.eoqRevealed = true;
+            updateEOQDisplay();
+        }
+    }
+
+    function revealInsightAnswer(index) {
+        if (index !== state.insightsRevealed) return; // sequential
+        state.insightsRevealed = index + 1;
+        applyInsightAction(index);
+        renderInsights();
+        renderPhaseAdvance();
+        saveState();
+    }
+
+    function renderInsights() {
+        el.insightsCounter.textContent = state.insightsRevealed + ' of ' + TOTAL_INSIGHTS;
+        el.insightsList.innerHTML = '';
+
+        for (var i = 0; i < state.questionsShown; i++) {
+            var ins = INSIGHTS[i];
+            var div = document.createElement('div');
+            div.style.cssText = 'padding:10px 12px !important; border-left:3px solid ' + (i < state.insightsRevealed ? '#16a34a' : '#f59e0b') + ' !important; margin-bottom:8px !important; background:' + (i < state.insightsRevealed ? '#f0fdf4' : '#fffbeb') + ' !important; border-radius:0 6px 6px 0 !important;';
+
+            var label = document.createElement('div');
+            label.style.cssText = 'font-size:0.75em !important; font-weight:600 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; color:' + (i < state.insightsRevealed ? '#16a34a' : '#d97706') + ' !important; margin-bottom:4px !important;';
+            label.textContent = (i < state.insightsRevealed ? '\u2713 ' : '') + 'Insight ' + (i + 1) + ' (Phase ' + ins.phase + ')';
+            div.appendChild(label);
+
+            var q = document.createElement('div');
+            q.style.cssText = 'font-weight:600 !important; color:#1e293b !important; margin-bottom:6px !important;';
+            q.textContent = ins.question;
+            div.appendChild(q);
+
+            if (i < state.insightsRevealed) {
+                var a = document.createElement('div');
+                a.style.cssText = 'color:#475569 !important; font-size:0.92em !important; padding:8px 10px !important; background:#fff !important; border-radius:4px !important; border:1px solid #e2e8f0 !important;';
+                a.textContent = ins.answer;
+                div.appendChild(a);
+            } else if (i === state.insightsRevealed) {
+                var btn = document.createElement('button');
+                btn.style.cssText = 'padding:6px 14px !important; background:#f59e0b !important; color:#fff !important; border:none !important; border-radius:4px !important; font-size:0.85em !important; font-weight:600 !important; cursor:pointer !important;';
+                btn.textContent = 'Reveal Answer';
+                btn.setAttribute('data-insight', i);
+                btn.onclick = (function(idx) { return function() { revealInsightAnswer(idx); }; })(i);
+                div.appendChild(btn);
+            }
+
+            el.insightsList.appendChild(div);
+        }
+
+        renderPhaseAdvance();
+    }
+
+    function renderPhaseAdvance() {
+        var phaseInsights = PHASE_INSIGHTS[state.currentPhase];
+        var allRevealed = true;
+        for (var i = 0; i < phaseInsights.length; i++) {
+            if (phaseInsights[i] >= state.insightsRevealed) { allRevealed = false; break; }
+        }
+
+        if (allRevealed && state.currentPhase < 2) {
+            el.phaseAdvanceArea.style.display = 'block';
+            el.phaseAdvanceArea.innerHTML = '<strong>All Phase ' + state.currentPhase + ' insights revealed!</strong><br>' +
+                '<button onclick="void(0)" id="advancePhaseBtn" style="margin-top:8px !important; padding:8px 20px !important; background:#2563eb !important; color:#fff !important; border:none !important; border-radius:6px !important; font-weight:600 !important; cursor:pointer !important;">Advance to Phase ' + (state.currentPhase + 1) + '</button>';
+            document.getElementById('advancePhaseBtn').addEventListener('click', function() { advancePhase(); });
+        } else if (allRevealed && state.currentPhase === 2) {
+            el.phaseAdvanceArea.style.display = 'block';
+            el.phaseAdvanceArea.innerHTML = '<strong style="color:#16a34a !important;">All insights revealed! Simulation complete.</strong>';
+        } else {
+            el.phaseAdvanceArea.style.display = 'none';
+        }
+    }
+
+    function renderOverrides() {
+        el.overrideControls.innerHTML = '';
+        var style = 'font-size:0.78em !important; color:#94a3b8 !important; cursor:pointer !important; text-decoration:underline !important; background:none !important; border:none !important; padding:2px 4px !important;';
+
+        if (state.currentPhase < 2) {
+            var skipBtn = document.createElement('button');
+            skipBtn.style.cssText = style;
+            skipBtn.textContent = 'Skip to Phase 2';
+            skipBtn.onclick = function() { skipToPhase(2); };
+            el.overrideControls.appendChild(skipBtn);
+        }
+
+        if (state.questionsShown > state.insightsRevealed) {
+            var revBtn = document.createElement('button');
+            revBtn.style.cssText = style;
+            revBtn.textContent = 'Reveal Next Insight';
+            revBtn.onclick = function() { revealInsightAnswer(state.insightsRevealed); };
+            el.overrideControls.appendChild(revBtn);
+        }
+
+        var resetBtn = document.createElement('button');
+        resetBtn.style.cssText = style;
+        resetBtn.textContent = 'Full Reset';
+        resetBtn.onclick = function() { resetSim(); };
+        el.overrideControls.appendChild(resetBtn);
+    }
+
+    /* ======================================================================
+       MAIN ACTION
+       ====================================================================== */
+    function submitOrder() {
+        if (state.gameOver) return;
+        if (state.phaseTurns >= MAX_TURNS) return;
+
+        clearStatus();
+
+        var rawValue = el.orderInput.value;
+        var orderQuantity = parseInt(rawValue, 10);
+        if (isNaN(orderQuantity) || orderQuantity < 0) orderQuantity = 0;
+
+        // Validate budget
+        if (!canAffordOrder(orderQuantity)) {
+            saveState();
+            return;
+        }
+
+        // Process the order
+        var result = processOrder(orderQuantity);
+        state.turn++;
+
+        // Update display
+        updateMetrics(result);
+        addHistoryRow(state.history[state.history.length - 1]);
+        updateInventoryChart();
+        if (state.costChartVisible) updateCostChart();
+        if (state.eoqRevealed) updateEOQDisplay();
+
+        // Clear input
+        el.orderInput.value = '';
+
+        // Check for turn limit
+        if (state.phaseTurns >= MAX_TURNS && !state.gameOver) {
+            showStatus('Phase ' + state.currentPhase + ' complete! All 10 turns finished.', false);
+            el.submitBtn.disabled = true;
+            el.submitBtn.style.opacity = '0.5';
+            el.submitBtn.style.cursor = 'not-allowed';
+        }
+
+        // Check for new insight questions
+        checkForNewQuestion();
+        renderOverrides();
+        saveState();
+    }
+
+    /* ======================================================================
+       RESET
+       ====================================================================== */
+    function resetSim() {
+        localStorage.removeItem(STORAGE_KEY);
+        state = defaultState();
+        setPhase(1);
+        el.turnCounter.textContent = '0';
+        el.metricCash.textContent = fmt(INITIAL_CASH);
+        el.metricInventory.textContent = '0';
+        el.metricDemand.textContent = '\u2014';
+        el.metricRevenue.textContent = '\u2014';
+        el.metricTotalCost.textContent = '\u2014';
+        el.metricProfit.textContent = '\u2014';
+        el.metricProfit.style.color = '#1e293b';
+        el.eoqPrompt.style.display = 'block';
+        el.eoqRevealed.style.display = 'none';
+        el.metricEOQCard.style.borderStyle = 'dashed';
+        el.metricEOQCard.style.borderColor = '#93c5fd';
+        el.costChartContainer.style.display = 'none';
+        el.historyContainer.style.display = 'block';
+        el.toggleHistory.textContent = 'Hide Table';
+        state.historyVisible = true;
+        state.instructionExpanded = true;
+        clearStatus();
+    }
+
+    /* ======================================================================
+       PERSISTENCE
+       ====================================================================== */
+    function saveState() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) { /* quota exceeded or private browsing */ }
+    }
+
+    function loadState() {
+        try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                var parsed = JSON.parse(saved);
+                // Merge with defaults to handle any missing keys from updates
+                var def = defaultState();
+                for (var key in def) {
+                    if (parsed.hasOwnProperty(key)) {
+                        state[key] = parsed[key];
+                    }
+                }
+                return true;
+            }
+        } catch (e) { /* corrupted data */ }
+        return false;
+    }
+
+    function restoreFromState() {
+        // Restore phase indicator
+        if (state.currentPhase === 1) {
+            el.phaseLabel1.style.background = '#2563eb';
+            el.phaseLabel1.style.color = '#fff';
+            el.phaseLabel2.style.background = '#e5e7eb';
+            el.phaseLabel2.style.color = '#94a3b8';
+        } else {
+            el.phaseLabel1.style.background = '#16a34a';
+            el.phaseLabel1.style.color = '#fff';
+            el.phaseLabel2.style.background = '#2563eb';
+            el.phaseLabel2.style.color = '#fff';
+        }
+
+        updateParamDisplay();
+        renderInstructions();
+
+        // Restore instruction expand/collapse
+        if (!state.instructionExpanded) {
+            el.toggleInstructions.textContent = 'Show More';
+        }
+
+        // Restore history visibility
+        if (!state.historyVisible) {
+            el.historyContainer.style.display = 'none';
+            el.toggleHistory.textContent = 'Show Table';
+        }
+
+        // Restore metrics
+        el.turnCounter.textContent = state.phaseTurns;
+        el.metricCash.textContent = fmt(state.cashOnHand);
+        el.metricCash.style.color = state.cashOnHand < 300 ? '#dc2626' : '#1e40af';
+
+        if (state.phaseTurns > 0) {
+            var last = state.history[state.history.length - 1];
+            el.metricInventory.textContent = fmtInt(last.remaining);
+            el.metricDemand.textContent = fmtInt(last.demand);
+            el.metricRevenue.textContent = fmt(last.revenue);
+            el.metricTotalCost.textContent = fmt(last.totalCost);
+            var profit = last.revenue - last.totalCost;
+            el.metricProfit.textContent = fmt(profit);
+            el.metricProfit.style.color = profit >= 0 ? '#16a34a' : '#dc2626';
+        }
+
+        // Restore game over state
+        if (state.gameOver || state.phaseTurns >= MAX_TURNS) {
+            el.submitBtn.disabled = true;
+            el.submitBtn.style.opacity = '0.5';
+            el.submitBtn.style.cursor = 'not-allowed';
+        }
+
+        // Restore charts
+        initInventoryChart();
+        updateInventoryChart();
+
+        if (state.costChartVisible) {
+            el.costChartContainer.style.display = 'block';
+            initCostChart();
+            updateCostChart();
+        }
+
+        if (state.eoqRevealed) {
+            updateEOQDisplay();
+        }
+
+        // Restore history table
+        rerenderHistory();
+
+        // Restore insights
+        renderInsights();
+        renderOverrides();
+    }
+
+    /* ======================================================================
+       EVENT BINDING
+       ====================================================================== */
+    function bindEvents() {
+        el.submitBtn.addEventListener('click', submitOrder);
+
+        el.orderInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') submitOrder();
+        });
+
+        el.toggleInstructions.addEventListener('click', function() {
+            state.instructionExpanded = !state.instructionExpanded;
+            renderInstructions();
+            saveState();
+        });
+
+        el.toggleHistory.addEventListener('click', function() {
+            state.historyVisible = !state.historyVisible;
+            el.historyContainer.style.display = state.historyVisible ? 'block' : 'none';
+            el.toggleHistory.textContent = state.historyVisible ? 'Hide Table' : 'Show Table';
+            saveState();
+        });
+    }
+
+    /* ======================================================================
+       INIT
+       ====================================================================== */
+    function init() {
+        cacheDom();
+        if (!el.submitBtn) return; // DOM not ready
+
+        var hasState = loadState();
+        if (hasState) {
+            restoreFromState();
+        } else {
+            updateParamDisplay();
+            renderInstructions();
+            initInventoryChart();
+            renderInsights();
+            renderOverrides();
+        }
+
+        bindEvents();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
+</script>
