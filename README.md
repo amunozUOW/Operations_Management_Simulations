@@ -1,5 +1,7 @@
 # Operations Management Simulations
 
+[![Test](https://github.com/amunozUOW/Operations_Management_Simulations/actions/workflows/test.yml/badge.svg)](https://github.com/amunozUOW/Operations_Management_Simulations/actions/workflows/test.yml)
+
 A portfolio of interactive HTML/JavaScript simulations designed for operations management education. These simulations were developed using a GenAI-enabled vibe coding workflow as part of a postgraduate operations management course redesign at the University of Wollongong.
 
 This repository contains supplementary materials accompanying the paper:
@@ -47,6 +49,25 @@ Each folder contains:
 2. **LMS Integration**: Upload the `.html` files to your LMS (e.g., Moodle, Canvas, Blackboard) and embed them in course activities.
 
 No server, installation, or programming knowledge is required.
+
+## Testing
+
+A Playwright test suite verifies each simulation's math and the pedagogical claims made in its insight panels and lesson plans. To run locally:
+
+```bash
+npm ci
+npx playwright install chromium
+npm test
+```
+
+Tests run automatically on every push via GitHub Actions. Design and implementation notes are in `docs/plans/`.
+
+Test coverage per simulation:
+
+- **Smoke**: end-to-end runs across reasonable slider/input ranges, asserting no `NaN` / `undefined` in the DOM.
+- **Invariants**: properties that must always hold (e.g. `SFP ≤ 12`, `totalCost = orderCost + holdingCost`, inventory ≥ 0).
+- **Numerical oracle**: formulas re-derived in the test and compared to the sim's output.
+- **Claims**: specific numerical statements from insight panels and `.docx` lesson plans asserted to hold. Lesson plan text is hashed — if a plan is edited, CI flags the matching claims JSON for review.
 
 ## License
 
