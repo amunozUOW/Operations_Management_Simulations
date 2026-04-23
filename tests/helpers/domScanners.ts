@@ -13,7 +13,20 @@ export interface DomIssue {
 export async function scanForInvalidValues(page: Page): Promise<DomIssue[]> {
   return page.evaluate(() => {
     const issues: { selector: string; value: string }[] = [];
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE']);
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(n: Node): number {
+        // Skip text inside script/style/etc. (not user-visible and often contains keywords).
+        let p: Node | null = n.parentNode;
+        while (p) {
+          if (p.nodeType === 1 && SKIP_TAGS.has((p as Element).tagName)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          p = p.parentNode;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
     let node: Node | null;
     // Match NaN/undefined/null as a whole token (not inside another word).
     const badPattern = /(?:^|[^A-Za-z0-9_])(NaN|undefined|null)(?:$|[^A-Za-z0-9_])/;

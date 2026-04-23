@@ -37,3 +37,9 @@ test('ignores words like "undefined" in prose attributes', async ({ page }) => {
   const issues = await scanForInvalidValues(page);
   expect(issues).toEqual([]);
 });
+
+test('skips text inside <script> and <style>', async ({ page }) => {
+  await page.setContent('<script>var x = null; var y = undefined;</script><style>.a{color:red}</style><div>42</div>');
+  const issues = await scanForInvalidValues(page);
+  expect(issues).toEqual([]);
+});
