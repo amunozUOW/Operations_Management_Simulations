@@ -37,8 +37,8 @@
       "type": "formula",
       "formula": "customers * serviceTime / 60",
       "inputs": { "customers": 70, "serviceTime": 7 },
-      "expected": 57.17,
-      "tolerance": 0.01
+      "expected": 8.1667,
+      "tolerance": 0.001
     },
     {
       "id": "sm-phase1-mean-demand-5-staff",
