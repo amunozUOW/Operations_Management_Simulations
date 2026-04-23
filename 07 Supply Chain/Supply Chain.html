@@ -770,7 +770,7 @@
         if (!el.nextTurnBtn) return;
         var hasState = loadState();
         if (hasState) { restoreFromState(); }
-        else { renderInstructions(); renderHistoryHeader(); initCharts(); renderInsights(); renderOverrides(); }
+        else { setPhase(1); }
         bindEvents();
     }
 
