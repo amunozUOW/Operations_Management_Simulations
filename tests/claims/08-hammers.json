@@ -1,0 +1,113 @@
+{
+  "simulation": "Red and Blue Hammers",
+  "claims": [
+    {
+      "id": "rbh-sim-duration",
+      "source": "docx",
+      "statement": "Simulation runs for 60 minutes",
+      "type": "literal",
+      "expected": 60
+    },
+    {
+      "id": "rbh-initial-cash",
+      "source": "docx",
+      "statement": "Initial cash = $4,000",
+      "type": "literal",
+      "expected": 4000
+    },
+    {
+      "id": "rbh-failure-cash",
+      "source": "insight",
+      "statement": "Bankruptcy failure threshold at cash < -$1,000",
+      "type": "literal",
+      "expected": -1000
+    },
+    {
+      "id": "rbh-regular-staff-wage",
+      "source": "docx",
+      "statement": "Regular staff wage = $5/min",
+      "type": "literal",
+      "expected": 5
+    },
+    {
+      "id": "rbh-emergency-staff-wage",
+      "phase": 3,
+      "source": "docx",
+      "statement": "Emergency staff wage = $25/min (5× regular)",
+      "type": "literal",
+      "expected": 25
+    },
+    {
+      "id": "rbh-max-regular-staff",
+      "source": "docx",
+      "statement": "Up to 10 regular staff",
+      "type": "literal",
+      "expected": 10
+    },
+    {
+      "id": "rbh-max-emergency-staff",
+      "phase": 3,
+      "source": "docx",
+      "statement": "Up to 5 emergency staff",
+      "type": "literal",
+      "expected": 5
+    },
+    {
+      "id": "rbh-max-inventory",
+      "source": "docx",
+      "statement": "Max inventory 200 per hammer type",
+      "type": "literal",
+      "expected": 200
+    },
+    {
+      "id": "rbh-red-price",
+      "source": "insight",
+      "statement": "Red hammers sell for $25",
+      "type": "literal",
+      "expected": 25
+    },
+    {
+      "id": "rbh-blue-price",
+      "source": "insight",
+      "statement": "Blue hammers sell for $50",
+      "type": "literal",
+      "expected": 50
+    },
+    {
+      "id": "rbh-lead-time",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Orders arrive 2 minutes after being issued",
+      "type": "literal",
+      "expected": 2
+    },
+    {
+      "id": "rbh-red-wait-tolerance",
+      "source": "docx",
+      "statement": "Red customers tolerate 3 min wait then lose 10% satisfaction per minute",
+      "type": "literal",
+      "expected": 3
+    },
+    {
+      "id": "rbh-blue-wait-tolerance",
+      "source": "docx",
+      "statement": "Blue customers tolerate 2 min wait then lose 25% satisfaction per minute",
+      "type": "literal",
+      "expected": 2
+    },
+    {
+      "id": "rbh-satisfaction-bounds",
+      "source": "insight",
+      "statement": "Satisfaction is a percentage between 0 and 100",
+      "type": "invariant",
+      "assertion": "0 <= satisfaction <= 100"
+    },
+    {
+      "id": "rbh-inventory-nonneg",
+      "source": "insight",
+      "statement": "Inventory never negative",
+      "type": "invariant",
+      "assertion": "inventoryRed >= 0 && inventoryBlue >= 0"
+    }
+  ]
+}

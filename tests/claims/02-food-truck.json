@@ -1,0 +1,70 @@
+{
+  "simulation": "The (Un)Productive Food Truck",
+  "claims": [
+    {
+      "id": "ft-sfp-cap",
+      "phase": 1,
+      "source": "insight",
+      "statement": "SFP never exceeds 12 (the max customers one staff member can serve per hour)",
+      "type": "invariant",
+      "assertion": "sfp <= 12 for all (staff, price) combinations"
+    },
+    {
+      "id": "ft-capacity-formula",
+      "source": "insight",
+      "statement": "Service capacity = staff × 12 customers/hr × 8 hrs",
+      "type": "formula",
+      "formula": "staff * 12 * 8",
+      "inputs": { "staff": 3 },
+      "expected": 288,
+      "tolerance": 0
+    },
+    {
+      "id": "ft-capacity-min-staff",
+      "source": "insight",
+      "statement": "1 staff capacity is 96 customers/day",
+      "type": "formula",
+      "formula": "staff * 12 * 8",
+      "inputs": { "staff": 1 },
+      "expected": 96,
+      "tolerance": 0
+    },
+    {
+      "id": "ft-optimal-price",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Demand peaks at around $12 with ~300 customers",
+      "type": "formula",
+      "formula": "300 * exp(-0.1 * abs(price - 12))",
+      "inputs": { "price": 12 },
+      "expected": 300,
+      "tolerance": 0.01
+    },
+    {
+      "id": "ft-demand-below-optimal",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Demand at $10 is below the peak",
+      "type": "formula",
+      "formula": "300 * exp(-0.1 * abs(price - 12))",
+      "inputs": { "price": 10 },
+      "expected": 245.6,
+      "tolerance": 1
+    },
+    {
+      "id": "ft-mfp-threshold",
+      "phase": 3,
+      "source": "insight",
+      "statement": "MFP > 1 indicates profitability; MFP < 1 indicates losing money",
+      "type": "invariant",
+      "assertion": "(mfp > 1) === (profit > 0)"
+    },
+    {
+      "id": "ft-profit-identity",
+      "source": "docx",
+      "statement": "Profit = revenue − total costs (wages + fixed overhead $2000)",
+      "type": "invariant",
+      "assertion": "profit === revenue - (staff*8*15 + 2000) when actualCustomers = min(demand, capacity)"
+    }
+  ]
+}

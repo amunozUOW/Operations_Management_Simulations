@@ -1,0 +1,82 @@
+{
+  "simulation": "Supply Chain",
+  "claims": [
+    {
+      "id": "sc-max-turns",
+      "source": "insight",
+      "statement": "30 turns per phase",
+      "type": "literal",
+      "expected": 30
+    },
+    {
+      "id": "sc-sale-price",
+      "source": "insight",
+      "statement": "Sale price = $5.00/unit",
+      "type": "literal",
+      "expected": 5
+    },
+    {
+      "id": "sc-holding-cost",
+      "source": "insight",
+      "statement": "Holding cost = $0.50/unit/turn",
+      "type": "literal",
+      "expected": 0.5
+    },
+    {
+      "id": "sc-backlog-cost",
+      "source": "insight",
+      "statement": "Backlog cost = $1.00/unit/turn",
+      "type": "literal",
+      "expected": 1
+    },
+    {
+      "id": "sc-backlog-double-holding",
+      "phase": 1,
+      "source": "insight",
+      "statement": "Backlog cost ($1) is double holding cost ($0.50)",
+      "type": "formula",
+      "formula": "B / H",
+      "inputs": { "B": 1, "H": 0.5 },
+      "expected": 2,
+      "tolerance": 0
+    },
+    {
+      "id": "sc-conservation",
+      "source": "insight",
+      "statement": "For each echelon at each turn: eI + eB >= 0 (either inventory or backlog, not both positive)",
+      "type": "invariant",
+      "assertion": "(eI >= 0 && eB === 0) || (eI < 0 && eB === -eI)"
+    },
+    {
+      "id": "sc-bullwhip-phase2",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Order variability amplifies upstream: Var(Orders) >= Var(Demand)",
+      "type": "invariant",
+      "assertion": "variance(factoryQ) >= variance(demand) * 0.9 (with 10% tolerance)"
+    },
+    {
+      "id": "sc-sales-capped-by-demand",
+      "source": "insight",
+      "statement": "Retailer sales at each turn cannot exceed customer demand",
+      "type": "invariant",
+      "assertion": "retailerSales[t] <= demand[t]"
+    },
+    {
+      "id": "sc-phase1-demand-range",
+      "phase": 1,
+      "source": "insight",
+      "statement": "Phase 1 demand: 4-5 units/turn (steady)",
+      "type": "invariant",
+      "assertion": "4 <= demand <= 5"
+    },
+    {
+      "id": "sc-phase3-demand-range",
+      "phase": 3,
+      "source": "insight",
+      "statement": "Phase 3 demand: 0-26 units/turn (high variability)",
+      "type": "invariant",
+      "assertion": "0 <= demand <= 26"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "simulation": "Number Guessing Game",
+  "claims": [
+    {
+      "id": "ngg-range-bounds",
+      "source": "insight",
+      "statement": "Answer is always in range [1, 200]",
+      "type": "invariant",
+      "assertion": "1 <= answer <= 200 at all times"
+    },
+    {
+      "id": "ngg-range-brackets-answer",
+      "source": "insight",
+      "statement": "After any guess, [knownLow, knownHigh] still contains the answer",
+      "type": "invariant",
+      "assertion": "knownLow <= answer <= knownHigh after every guess"
+    },
+    {
+      "id": "ngg-invalid-input-rejected",
+      "source": "insight",
+      "statement": "Inputs outside [1, 200] or non-numeric are rejected",
+      "type": "invariant",
+      "assertion": "isNaN(guess) || guess<1 || guess>200 → no guess recorded"
+    }
+  ]
+}

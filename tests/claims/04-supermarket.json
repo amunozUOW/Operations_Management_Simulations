@@ -1,0 +1,73 @@
+{
+  "simulation": "Supermarket Checkout",
+  "claims": [
+    {
+      "id": "sm-utilisation-capped",
+      "source": "insight",
+      "statement": "Utilisation is capped at 100%",
+      "type": "invariant",
+      "assertion": "0 <= utilisation <= 100"
+    },
+    {
+      "id": "sm-capacity-formula",
+      "source": "insight",
+      "statement": "Capacity = (60 / serviceTime) × counters",
+      "type": "formula",
+      "formula": "(60 / serviceTime) * counters",
+      "inputs": { "serviceTime": 5, "counters": 3 },
+      "expected": 36,
+      "tolerance": 0
+    },
+    {
+      "id": "sm-phase1-min-demand-3-staff",
+      "phase": 1,
+      "source": "docx",
+      "statement": "At min demand (50 customers × 3 min = 150 min), round up to 3 staff for 60-min service",
+      "type": "formula",
+      "formula": "customers * serviceTime / 60",
+      "inputs": { "customers": 50, "serviceTime": 3 },
+      "expected": 2.5,
+      "tolerance": 0
+    },
+    {
+      "id": "sm-phase1-max-demand-9-staff",
+      "phase": 1,
+      "source": "docx",
+      "statement": "At max demand (70 customers × 7 min = 490 min), need 8.2 → round to 8 or 9 staff",
+      "type": "formula",
+      "formula": "customers * serviceTime / 60",
+      "inputs": { "customers": 70, "serviceTime": 7 },
+      "expected": 57.17,
+      "tolerance": 0.01
+    },
+    {
+      "id": "sm-phase1-mean-demand-5-staff",
+      "phase": 1,
+      "source": "docx",
+      "statement": "At mean (60 customers × 5 min = 300 min), 5 staff",
+      "type": "formula",
+      "formula": "customers * serviceTime / 60",
+      "inputs": { "customers": 60, "serviceTime": 5 },
+      "expected": 5,
+      "tolerance": 0
+    },
+    {
+      "id": "sm-phase2-first-turn-lowdemand",
+      "phase": 2,
+      "source": "docx",
+      "statement": "First turn demand 20 at 3 min/customer = 60 min = 1 staff",
+      "type": "formula",
+      "formula": "customers * serviceTime / 60",
+      "inputs": { "customers": 20, "serviceTime": 3 },
+      "expected": 1,
+      "tolerance": 0
+    },
+    {
+      "id": "sm-penalty-only-when-overflow",
+      "source": "insight",
+      "statement": "Penalty applied only when throughputTime > 60 min",
+      "type": "invariant",
+      "assertion": "penaltyCosts === (throughputTime > 60 ? (demand - capacity) * 100 : 0)"
+    }
+  ]
+}

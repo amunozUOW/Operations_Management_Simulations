@@ -1,0 +1,78 @@
+{
+  "simulation": "Garden Project",
+  "claims": [
+    {
+      "id": "gp-staff-total",
+      "source": "insight",
+      "statement": "Default staff pool = 9 gardeners",
+      "type": "literal",
+      "expected": 9
+    },
+    {
+      "id": "gp-volunteer-cost",
+      "source": "insight",
+      "statement": "Volunteers cost $0/day",
+      "type": "literal",
+      "expected": 0
+    },
+    {
+      "id": "gp-experienced-cost",
+      "source": "insight",
+      "statement": "Experienced gardeners cost $40/day",
+      "type": "literal",
+      "expected": 40
+    },
+    {
+      "id": "gp-master-cost",
+      "source": "insight",
+      "statement": "Master gardeners cost $120/day (3× experienced)",
+      "type": "literal",
+      "expected": 120
+    },
+    {
+      "id": "gp-budget-beginner",
+      "source": "insight",
+      "statement": "Beginner difficulty budget = $16,000 for 15 plots (~$1,067/plot)",
+      "type": "formula",
+      "formula": "budget / plots",
+      "inputs": { "budget": 16000, "plots": 15 },
+      "expected": 1066.67,
+      "tolerance": 1
+    },
+    {
+      "id": "gp-volunteer-cannot-soilprep",
+      "source": "insight",
+      "statement": "Volunteers cannot perform Soil Prep",
+      "type": "invariant",
+      "assertion": "volunteer.cannotPerform('soilprep')"
+    },
+    {
+      "id": "gp-only-master-inspection",
+      "source": "insight",
+      "statement": "Only Masters can perform Inspection",
+      "type": "invariant",
+      "assertion": "onlyMasters.canPerform('inspection')"
+    },
+    {
+      "id": "gp-total-cost-identity",
+      "source": "insight",
+      "statement": "Total cost = sum of staff totalCost",
+      "type": "invariant",
+      "assertion": "totalCost === sum(staff[i].totalCost)"
+    },
+    {
+      "id": "gp-utilisation-bounds",
+      "source": "insight",
+      "statement": "Staff utilisation ∈ [0, 100]",
+      "type": "invariant",
+      "assertion": "0 <= staffUtil <= 100"
+    },
+    {
+      "id": "gp-completed-le-total",
+      "source": "insight",
+      "statement": "Completed tasks never exceed total plots",
+      "type": "invariant",
+      "assertion": "completedTasks.length <= taskArrivals.length"
+    }
+  ]
+}

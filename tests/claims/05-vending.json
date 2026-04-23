@@ -1,0 +1,67 @@
+{
+  "simulation": "Vending Machine",
+  "claims": [
+    {
+      "id": "vm-rop-phase1",
+      "phase": 1,
+      "source": "insight",
+      "statement": "Reorder at 30 units (10 units/day × 3 days lead time)",
+      "type": "formula",
+      "formula": "demandPerDay * leadTime",
+      "inputs": { "demandPerDay": 10, "leadTime": 3 },
+      "expected": 30,
+      "tolerance": 0
+    },
+    {
+      "id": "vm-eoq-phase1",
+      "phase": 1,
+      "source": "insight",
+      "statement": "EOQ = sqrt(2 × 10 × 130 / 1) = sqrt(2600) ≈ 51 units",
+      "type": "formula",
+      "formula": "sqrt(2 * D * S / H)",
+      "inputs": { "D": 10, "S": 130, "H": 1 },
+      "expected": 51,
+      "tolerance": 1
+    },
+    {
+      "id": "vm-safety-stock-phase2",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Safety stock = 15 units (worst-case 15/day × 3 days − baseline 30 ROP)",
+      "type": "formula",
+      "formula": "maxDemand * leadTime - avgDemand * leadTime",
+      "inputs": { "maxDemand": 15, "leadTime": 3, "avgDemand": 10 },
+      "expected": 15,
+      "tolerance": 0
+    },
+    {
+      "id": "vm-total-cost-identity",
+      "source": "insight",
+      "statement": "Total cost = order cost + holding cost + stockout cost",
+      "type": "invariant",
+      "assertion": "totalCosts === orderCosts + holdingCosts + stockoutCosts"
+    },
+    {
+      "id": "vm-profit-identity",
+      "source": "insight",
+      "statement": "Profit = total revenue − total cost",
+      "type": "invariant",
+      "assertion": "profit === totalRevenue - totalCosts"
+    },
+    {
+      "id": "vm-inventory-nonneg",
+      "source": "insight",
+      "statement": "Inventory never goes below zero (floored at 0 after demand)",
+      "type": "invariant",
+      "assertion": "inventory >= 0"
+    },
+    {
+      "id": "vm-phase2-variance-range",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Phase 2 demand varies ±50% around 10/day (range 5-15)",
+      "type": "invariant",
+      "assertion": "5 <= dailyDemand <= 15 within tolerance"
+    }
+  ]
+}

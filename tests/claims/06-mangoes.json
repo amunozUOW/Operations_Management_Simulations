@@ -1,0 +1,91 @@
+{
+  "simulation": "Mangoes Inventory Management",
+  "claims": [
+    {
+      "id": "mangoes-eoq-formula",
+      "source": "insight",
+      "statement": "EOQ = sqrt(2DS/H)",
+      "type": "formula",
+      "formula": "sqrt(2 * D * S / H)",
+      "inputs": { "D": 633, "S": 1000, "H": 0.1 },
+      "expected": 3558.09,
+      "tolerance": 1
+    },
+    {
+      "id": "mangoes-phase1-eoq-large",
+      "phase": 1,
+      "source": "docx",
+      "statement": "In Phase 1 (Co=1000, Ch=0.1), EOQ is around 4000 (per lesson plan)",
+      "type": "formula",
+      "formula": "sqrt(2 * D * S / H)",
+      "inputs": { "D": 800, "S": 1000, "H": 0.1 },
+      "expected": 4000,
+      "tolerance": 100
+    },
+    {
+      "id": "mangoes-phase2-eoq-small",
+      "phase": 2,
+      "source": "docx",
+      "statement": "In Phase 2 (Co=150, Ch=0.7), EOQ is around 600 (per lesson plan)",
+      "type": "formula",
+      "formula": "sqrt(2 * D * S / H)",
+      "inputs": { "D": 840, "S": 150, "H": 0.7 },
+      "expected": 600,
+      "tolerance": 30
+    },
+    {
+      "id": "mangoes-phase2-dramatically-smaller",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Phase 2 EOQ is dramatically smaller than Phase 1 EOQ",
+      "type": "invariant",
+      "assertion": "eoq(D,150,0.7) / eoq(D,1000,0.1) < 0.2"
+    },
+    {
+      "id": "mangoes-ordering-fee-phase1",
+      "phase": 1,
+      "source": "insight",
+      "statement": "Fixed ordering fee per order is $1,000 in Phase 1",
+      "type": "literal",
+      "expected": 1000
+    },
+    {
+      "id": "mangoes-ordering-fee-phase2",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Fixed ordering fee per order is $150 in Phase 2",
+      "type": "literal",
+      "expected": 150
+    },
+    {
+      "id": "mangoes-holding-cost-phase1",
+      "phase": 1,
+      "source": "insight",
+      "statement": "Holding cost is $0.10 per mango per turn in Phase 1",
+      "type": "literal",
+      "expected": 0.1
+    },
+    {
+      "id": "mangoes-holding-cost-phase2",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Holding cost is $0.70 per mango per turn in Phase 2",
+      "type": "literal",
+      "expected": 0.7
+    },
+    {
+      "id": "mangoes-total-cost-identity",
+      "source": "insight",
+      "statement": "Total cost = ordering cost + holding cost",
+      "type": "invariant",
+      "assertion": "totalCost === orderCost + holdingCost"
+    },
+    {
+      "id": "mangoes-inventory-nonneg",
+      "source": "insight",
+      "statement": "Inventory after demand is floored at 0",
+      "type": "invariant",
+      "assertion": "inventoryAfterDemand >= 0"
+    }
+  ]
+}

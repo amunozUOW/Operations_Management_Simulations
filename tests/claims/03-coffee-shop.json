@@ -1,0 +1,67 @@
+{
+  "simulation": "Little's Coffee Shop",
+  "claims": [
+    {
+      "id": "cs-utilisation-bounds",
+      "source": "insight",
+      "statement": "Utilisation is always between 0 and 100 percent",
+      "type": "invariant",
+      "assertion": "0 <= utilisation <= 100"
+    },
+    {
+      "id": "cs-phase1-one-staff-throughput",
+      "phase": 1,
+      "source": "docx",
+      "statement": "With 1 staff at 2 min/customer for 55 customers, throughput time is 110 min (> 60 min duration → queue)",
+      "type": "formula",
+      "formula": "customers * serviceTime / staff",
+      "inputs": { "customers": 55, "serviceTime": 2, "staff": 1 },
+      "expected": 110,
+      "tolerance": 0
+    },
+    {
+      "id": "cs-phase1-two-staff-ideal",
+      "phase": 1,
+      "source": "docx",
+      "statement": "2 staff is the ideal steady-state at 2 min/customer for 55 customers in 60 min (55 min total)",
+      "type": "formula",
+      "formula": "customers * serviceTime / staff",
+      "inputs": { "customers": 55, "serviceTime": 2, "staff": 2 },
+      "expected": 55,
+      "tolerance": 0
+    },
+    {
+      "id": "cs-phase2-low-demand-one-staff",
+      "phase": 2,
+      "source": "docx",
+      "statement": "With 30 customers at 2 min/staff, 1 staff yields 60 min throughput (just fits)",
+      "type": "formula",
+      "formula": "customers * serviceTime / staff",
+      "inputs": { "customers": 30, "serviceTime": 2, "staff": 1 },
+      "expected": 60,
+      "tolerance": 0
+    },
+    {
+      "id": "cs-phase2-high-demand-three-staff",
+      "phase": 2,
+      "source": "docx",
+      "statement": "85 customers at 2 min/staff needs 3 staff (56.7 min throughput)",
+      "type": "formula",
+      "formula": "customers * serviceTime / staff",
+      "inputs": { "customers": 85, "serviceTime": 2, "staff": 3 },
+      "expected": 56.67,
+      "tolerance": 0.01
+    },
+    {
+      "id": "cs-phase3-sum-stages",
+      "phase": 3,
+      "source": "docx",
+      "statement": "Sequential 3-stage service adds to 6 min per customer (order 2 + prep 3 + serve 1)",
+      "type": "formula",
+      "formula": "orderT + prepT + serveT",
+      "inputs": { "orderT": 2, "prepT": 3, "serveT": 1 },
+      "expected": 6,
+      "tolerance": 0
+    }
+  ]
+}
