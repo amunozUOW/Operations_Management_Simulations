@@ -49,10 +49,10 @@ async function getGuessCount(page: Page): Promise<number> {
 }
 
 async function getRange(page: Page): Promise<{ low: number; high: number }> {
-  const txt = (await page.locator('#ngs-rangeIndicator').textContent())!;
-  // "Range: 1 – 200" (en-dash)
+  const txt = (await page.locator('#ngs-guessInput').getAttribute('placeholder'))!;
+  // After Task 6 of the cleanup: placeholder is "lo–hi" (en-dash).
   const m = txt.match(/(\d+)\s*[–-]\s*(\d+)/);
-  if (!m) throw new Error(`Could not parse range: "${txt}"`);
+  if (!m) throw new Error(`Could not parse range from placeholder: "${txt}"`);
   return { low: parseInt(m[1], 10), high: parseInt(m[2], 10) };
 }
 
