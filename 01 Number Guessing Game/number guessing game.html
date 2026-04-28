@@ -25,6 +25,16 @@
 }
 </style>
 
+<style>
+#number-guess-sim-v1 .ngs-disclosure {
+  display: inline-block;
+  transition: transform 0.18s ease;
+}
+#number-guess-sim-v1 details[open] > summary > .ngs-disclosure {
+  transform: rotate(90deg);
+}
+</style>
+
 <div id="number-guess-sim-v1" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 720px; margin: 0 auto; color: #001641; line-height: 1.5;">
 
     <!-- Scenario Brief -->
@@ -36,7 +46,7 @@
     <!-- How to Play -->
     <details style="margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
         <summary style="padding: 10px 14px; font-size: 14px; font-weight: 600; cursor: pointer; background: #fafafa; color: #444; list-style: none; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 12px; transition: transform 0.2s;">&#9654;</span> How to Play
+            <span class="ngs-disclosure" style="font-size: 12px;">&#9654;</span> How to Play
         </summary>
         <div style="padding: 10px 14px; font-size: 13px; color: #555;">
             <ol style="margin: 0; padding-left: 20px;">
