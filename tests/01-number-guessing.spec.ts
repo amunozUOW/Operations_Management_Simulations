@@ -49,11 +49,13 @@ async function getGuessCount(page: Page): Promise<number> {
 }
 
 async function getRange(page: Page): Promise<{ low: number; high: number }> {
-  const txt = (await page.locator('#ngs-guessInput').getAttribute('placeholder'))!;
-  // After Task 6 of the cleanup: placeholder is "lo–hi" (en-dash).
-  const m = txt.match(/(\d+)\s*[–-]\s*(\d+)/);
-  if (!m) throw new Error(`Could not parse range from placeholder: "${txt}"`);
-  return { low: parseInt(m[1], 10), high: parseInt(m[2], 10) };
+  // updateRange() / resetGame() mirror knownLow/knownHigh into data-* attrs
+  // on the input so the test contract is stable even if the placeholder copy
+  // or typography changes later.
+  const input = page.locator('#ngs-guessInput');
+  const lo = (await input.getAttribute('data-range-low'))!;
+  const hi = (await input.getAttribute('data-range-high'))!;
+  return { low: parseInt(lo, 10), high: parseInt(hi, 10) };
 }
 
 test.describe('Number Guessing — smoke', () => {
