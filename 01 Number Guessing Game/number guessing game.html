@@ -66,11 +66,6 @@
                 Play Again
             </button>
         </div>
-        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <span style="display: inline-block; width: 1px; height: 24px; background: #CDD6F8;"></span>
-            <span style="font-size: 14px; color: #555; white-space: nowrap;">Guesses: <strong id="ngs-guessCount" style="color: #001641; font-size: 16px;">0</strong></span>
-            <span id="ngs-rangeIndicator" style="font-size: 14px; background: #fff; padding: 4px 12px; border-radius: 12px; border: 1px solid #CDD6F8; white-space: nowrap;">Range: <strong>1 – 200</strong></span>
-        </div>
     </div>
 
     <!-- Activity Log (collapsible) -->
@@ -106,7 +101,6 @@
     var submitBtn = document.getElementById('ngs-submitBtn');
     var resetBtn = document.getElementById('ngs-resetBtn');
     var guessCountEl = document.getElementById('ngs-guessCount');
-    var rangeIndicator = document.getElementById('ngs-rangeIndicator');
     var logDetails = document.getElementById('ngs-logDetails');
     var logEntries = document.getElementById('ngs-logEntries');
     var logEmpty = document.getElementById('ngs-logEmpty');
@@ -159,7 +153,6 @@
         if (guess < answer && guess >= knownLow) knownLow = guess + 1;
         if (guess > answer && guess <= knownHigh) knownHigh = guess - 1;
         if (guess === answer) { knownLow = answer; knownHigh = answer; }
-        rangeIndicator.innerHTML = 'Range: <strong>' + knownLow + ' – ' + knownHigh + '</strong>';
     }
 
     function makeGuess() {
@@ -222,7 +215,6 @@
         submitBtn.style.cursor = 'pointer';
         resetBtn.style.display = 'none';
         guessCountEl.textContent = '0';
-        rangeIndicator.innerHTML = 'Range: <strong>1 – 200</strong>';
 
         logEntries.innerHTML = '';
         logEmpty.style.display = 'block';
