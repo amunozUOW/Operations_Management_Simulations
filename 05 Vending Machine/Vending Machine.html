@@ -1,12 +1,37 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div id="vending-machine-sim-v1" style="display:flex;flex-direction:column;gap:14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:1200px;margin:0 auto;padding:16px;color:#1a1a1a;">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+<style data-uow-tokens>
+:root {
+  --uow-white:        #FFFFFF;
+  --uow-blue-dark:    #001641;
+  --uow-blue-bright:  #0033FF;
+  --uow-red:          #ED0A00;
+  --uow-grey-light:   #F2F2F2;
+  --uow-copper:       #A15A35;
+  --uow-copper-light: #C4744F;
+  --uow-cream:        #F0E5D0;
+  --uow-lavender:     #CDD6F8;
+  --uow-ice-blue:     #E3F1F9;
+  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --chart-1: #001641;
+  --chart-2: #ED0A00;
+  --chart-3: #0033FF;
+  --chart-4: #A15A35;
+  --chart-5: #6B7280;
+}
+[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
+  font-family: var(--uow-font) !important;
+}
+</style>
+
+<div id="vending-machine-sim-v1" style="display:flex;flex-direction:column;gap:14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:1200px;margin:0 auto;padding:16px;color:#001641;">
 
 <!-- Title + Phase -->
 <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;">
-    <h2 style="margin:0;font-size:1.5em;color:#1e293b;">Vending Machine Simulation</h2>
+    <h2 style="margin:0;font-size:1.5em;color:#001641;">Vending Machine Simulation</h2>
     <div style="display:flex;gap:4px;align-items:center;">
-        <span id="vmPhaseLabel1" style="padding:6px 14px;border-radius:6px;font-size:0.85em;font-weight:600;background:#2563eb;color:#fff;">Phase 1: Constant</span>
+        <span id="vmPhaseLabel1" style="padding:6px 14px;border-radius:6px;font-size:0.85em;font-weight:600;background:#0033FF;color:#fff;">Phase 1: Constant</span>
         <span style="color:#cbd5e1;">&#9654;</span>
         <span id="vmPhaseLabel2" style="padding:6px 14px;border-radius:6px;font-size:0.85em;font-weight:600;background:#e5e7eb;color:#94a3b8;">Phase 2: Variable</span>
         <span style="color:#cbd5e1;">&#9654;</span>
@@ -15,10 +40,10 @@
 </div>
 
 <!-- Instruction Panel -->
-<div id="vmInstructionPanel" style="background:#eff6ff;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:14px 18px;line-height:1.5;">
+<div id="vmInstructionPanel" style="background:#E3F1F9;border-left:4px solid #0033FF;border-radius:0 8px 8px 0;padding:14px 18px;line-height:1.5;">
     <div style="display:flex;justify-content:space-between;align-items:start;">
         <div id="vmInstructionContent"></div>
-        <button id="vmToggleInstr" onclick="void(0)" style="background:none;border:none;color:#2563eb;cursor:pointer;font-size:0.85em;white-space:nowrap;padding:0 0 0 12px;">Show Less</button>
+        <button id="vmToggleInstr" onclick="void(0)" style="background:none;border:none;color:#0033FF;cursor:pointer;font-size:0.85em;white-space:nowrap;padding:0 0 0 12px;">Show Less</button>
     </div>
 </div>
 
@@ -29,14 +54,14 @@
         <div style="font-weight:700;font-size:0.95em;margin-bottom:12px;color:#334155;">Your Decisions</div>
         <div style="margin-bottom:14px;">
             <label style="display:block;font-size:0.9em;font-weight:600;margin-bottom:4px;color:#475569;">
-                Order Quantity: <span id="vmOrderQuantityValue" style="color:#2563eb;font-size:1.1em;">50</span>
+                Order Quantity: <span id="vmOrderQuantityValue" style="color:#0033FF;font-size:1.1em;">50</span>
             </label>
             <input type="range" id="vmOrderQuantity" min="0" max="100" value="50" style="width:100%;cursor:pointer;">
             <div style="display:flex;justify-content:space-between;font-size:0.75em;color:#94a3b8;"><span>0</span><span>50</span><span>100</span></div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button id="vmIssueOrder" onclick="void(0)" style="flex:1;padding:10px 14px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:0.9em;font-weight:600;cursor:pointer;">Issue Order</button>
-            <button id="vmToggleSim" onclick="void(0)" style="flex:1;padding:10px 14px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:0.9em;font-weight:600;cursor:pointer;">Start</button>
+            <button id="vmIssueOrder" onclick="void(0)" style="flex:1;padding:10px 14px;background:#A15A35;color:#fff;border:none;border-radius:6px;font-size:0.9em;font-weight:600;cursor:pointer;">Issue Order</button>
+            <button id="vmToggleSim" onclick="void(0)" style="flex:1;padding:10px 14px;background:#0033FF;color:#fff;border:none;border-radius:6px;font-size:0.9em;font-weight:600;cursor:pointer;">Start</button>
             <button id="vmResetSim" onclick="void(0)" style="padding:10px 14px;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:6px;font-size:0.9em;cursor:pointer;">Reset</button>
         </div>
     </div>
@@ -45,45 +70,45 @@
         <div style="width:100%;font-weight:700;font-size:0.95em;color:#334155;">Day <span id="vmCurrentDay">0</span> &mdash; Performance</div>
         <div style="flex:1;min-width:120px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;background:#fff;">
             <div style="font-size:0.72em;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Inventory</div>
-            <div style="font-size:1.4em;font-weight:700;color:#1e293b;"><span id="vmCurrentInventory">50</span></div>
+            <div style="font-size:1.4em;font-weight:700;color:#001641;"><span id="vmCurrentInventory">50</span></div>
             <div style="font-size:0.7em;color:#94a3b8;">units</div>
         </div>
         <div style="flex:1;min-width:120px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;background:#fff;">
             <div style="font-size:0.72em;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Avg Inventory</div>
-            <div style="font-size:1.4em;font-weight:700;color:#1e293b;"><span id="vmAvgInventory">50</span></div>
+            <div style="font-size:1.4em;font-weight:700;color:#001641;"><span id="vmAvgInventory">50</span></div>
             <div style="font-size:0.7em;color:#94a3b8;">units</div>
         </div>
         <div style="flex:1;min-width:120px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;background:#fff;">
             <div style="font-size:0.72em;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Cash on Hand</div>
-            <div style="font-size:1.4em;font-weight:700;color:#1e293b;">$<span id="vmCashOnHand">1000</span></div>
+            <div style="font-size:1.4em;font-weight:700;color:#001641;">$<span id="vmCashOnHand">1000</span></div>
         </div>
         <div style="flex:1;min-width:120px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;background:#fff;">
             <div style="font-size:0.72em;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Revenue</div>
-            <div style="font-size:1.4em;font-weight:700;color:#059669;">$<span id="vmTotalRevenue">0</span></div>
+            <div style="font-size:1.4em;font-weight:700;color:#1F8A2F;">$<span id="vmTotalRevenue">0</span></div>
         </div>
         <div style="flex:1;min-width:120px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;background:#fff;">
             <div style="font-size:0.72em;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Holding Cost</div>
-            <div style="font-size:1.3em;font-weight:700;color:#dc2626;">$<span id="vmHoldingCosts">0</span></div>
+            <div style="font-size:1.3em;font-weight:700;color:#ED0A00;">$<span id="vmHoldingCosts">0</span></div>
         </div>
         <div style="flex:1;min-width:120px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;background:#fff;">
             <div style="font-size:0.72em;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Order Cost</div>
-            <div style="font-size:1.3em;font-weight:700;color:#dc2626;">$<span id="vmOrderCosts">0</span></div>
+            <div style="font-size:1.3em;font-weight:700;color:#ED0A00;">$<span id="vmOrderCosts">0</span></div>
         </div>
         <div style="flex:1;min-width:120px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;background:#fff;">
             <div style="font-size:0.72em;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Total Costs</div>
-            <div style="font-size:1.3em;font-weight:700;color:#dc2626;">$<span id="vmTotalCosts">0</span></div>
+            <div style="font-size:1.3em;font-weight:700;color:#ED0A00;">$<span id="vmTotalCosts">0</span></div>
         </div>
         <div style="flex:1;min-width:130px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;text-align:center;background:#fff;">
             <div style="font-size:0.72em;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Profit</div>
-            <div id="vmProfitCard" style="font-size:1.4em;font-weight:700;color:#1e293b;">$<span id="vmProfit">0</span></div>
+            <div id="vmProfitCard" style="font-size:1.4em;font-weight:700;color:#001641;">$<span id="vmProfit">0</span></div>
         </div>
         <!-- Protected metric: Cost per Unit Sold -->
-        <div id="vmCpuRow" style="display:none;flex-basis:100%;padding:10px;border:2px solid #7c3aed;border-radius:8px;text-align:center;background:#f5f3ff;">
-            <div style="font-size:0.75em;color:#5b21b6;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Cost per Unit Sold</div>
+        <div id="vmCpuRow" style="display:none;flex-basis:100%;padding:10px;border:2px solid #A15A35;border-radius:8px;text-align:center;background:#F0E5D0;">
+            <div style="font-size:0.75em;color:#A15A35;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Cost per Unit Sold</div>
             <div id="vmCpuPrompt" style="font-size:0.8em;color:#64748b;margin:6px 0 2px 0;">Calculate: Total Costs &divide; Units Sold</div>
-            <div id="vmCpuValue" style="display:none;font-size:1.4em;font-weight:700;color:#5b21b6;"></div>
+            <div id="vmCpuValue" style="display:none;font-size:1.4em;font-weight:700;color:#A15A35;"></div>
         </div>
-        <div id="vmLowWarning" style="display:none;flex-basis:100%;padding:8px 12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;color:#dc2626;font-weight:600;font-size:0.9em;text-align:center;">Warning: Low Inventory!</div>
+        <div id="vmLowWarning" style="display:none;flex-basis:100%;padding:8px 12px;background:#FBEDED;border:1px solid #ED0A00;border-radius:6px;color:#ED0A00;font-weight:600;font-size:0.9em;text-align:center;">Warning: Low Inventory!</div>
     </div>
 </div>
 
@@ -119,10 +144,10 @@
 <!-- Insights Panel -->
 <div id="vmInsightsPanel" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 18px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div style="font-weight:700;font-size:1.05em;color:#1e293b;">Discussion Insights</div>
+        <div style="font-weight:700;font-size:1.05em;color:#001641;">Discussion Insights</div>
     </div>
     <div id="vmInsightsList"></div>
-    <div id="vmPhaseAdv" style="display:none;margin-top:12px;padding:10px 12px;background:#eff6ff;border:1px solid #2563eb;border-radius:6px;text-align:center;"></div>
+    <div id="vmPhaseAdv" style="display:none;margin-top:12px;padding:10px 12px;background:#E3F1F9;border:1px solid #0033FF;border-radius:6px;text-align:center;"></div>
     <div id="vmOverrides"></div>
 </div>
 
@@ -185,21 +210,21 @@ var insights = [
 ];
 
 var instrText = {
-    1:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#1e40af;">Phase 1: Constant Demand</div>'+
+    1:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#001641;">Phase 1: Constant Demand</div>'+
         '<div style="font-size:0.9em;color:#334155;">You manage a campus vending machine stocked with snacks and energy drinks. '+
         'Demand is constant at <b>exactly 10 items per day</b>. The machine holds up to 150 items and orders take 3 days to arrive. '+
         'You start with 50 items and $1,000 cash. Running out of stock ends the simulation. '+
         'Click <b>Start</b> to begin (one simulated day every ~3 seconds), <b>Pause</b> to stop, and <b>Issue Order</b> to place replenishment orders.</div>',
-       short:'<span style="font-weight:700;color:#1e40af;">Phase 1:</span> Constant demand (10/day). Learn ordering mechanics, lead time, and the EOQ trade-off.'},
-    2:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#7c3aed;">Phase 2: Demand Variability</div>'+
+       short:'<span style="font-weight:700;color:#001641;">Phase 1:</span> Constant demand (10/day). Learn ordering mechanics, lead time, and the EOQ trade-off.'},
+    2:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#A15A35;">Phase 2: Demand Variability</div>'+
         '<div style="font-size:0.9em;color:#334155;">Demand now averages 10 items/day but <b>varies randomly by up to \u00b150%</b> (5\u201315 units/day). '+
         'Your Phase 1 strategy may not be sufficient. Consider how uncertainty affects your reorder point and whether you need safety stock. '+
         'The simulation resets for a fresh 30-day run with variable demand.</div>',
-       short:'<span style="font-weight:700;color:#7c3aed;">Phase 2:</span> Variable demand (\u00b150%). Manage uncertainty with safety stock.'},
-    3:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#059669;">Phase 3: Seasonal Patterns</div>'+
+       short:'<span style="font-weight:700;color:#A15A35;">Phase 2:</span> Variable demand (\u00b150%). Manage uncertainty with safety stock.'},
+    3:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#1F8A2F;">Phase 3: Seasonal Patterns</div>'+
         '<div style="font-size:0.9em;color:#334155;">Demand now follows a <b>seasonal pattern</b> \u2014 high at the start (~15/day), dropping to ~5/day mid-period, '+
         'then rising again. Watch the demand chart to identify the pattern and plan your orders 3 days ahead.</div>',
-       short:'<span style="font-weight:700;color:#059669;">Phase 3:</span> Seasonal demand. Forecast changes and order proactively.'}
+       short:'<span style="font-weight:700;color:#1F8A2F;">Phase 3:</span> Seasonal demand. Forecast changes and order proactively.'}
 };
 
 /* ── Demand models (preserved exactly from Stage 1/2/3) ── */
@@ -326,8 +351,8 @@ function initCharts() {
     inventoryChart = new Chart(el.invCanvas.getContext('2d'), {
         type:'line',
         data:{datasets:[{label:'Inventory',data:[{x:0,y:INITIAL_INVENTORY}],
-            borderColor:'rgb(54,162,235)',backgroundColor:'rgba(54,162,235,0.1)',borderWidth:2,pointRadius:3,
-            pointBackgroundColor:'rgb(54,162,235)',tension:0,fill:false,parsing:false,normalized:true}]},
+            borderColor:'rgb(0,22,65)',backgroundColor:'rgba(0,22,65,0.12)',borderWidth:2,pointRadius:3,
+            pointBackgroundColor:'rgb(0,22,65)',tension:0,fill:false,parsing:false,normalized:true}]},
         options:{responsive:true,maintainAspectRatio:false,
             scales:{x:{type:'linear',title:{display:true,text:'Day'},min:0,ticks:{stepSize:1,callback:function(v){return Math.round(v);}}},
                     y:{beginAtZero:true,title:{display:true,text:'Units'}}},
@@ -336,8 +361,8 @@ function initCharts() {
     demandChart = new Chart(el.demCanvas.getContext('2d'), {
         type:'line',
         data:{labels:[0],datasets:[{label:'Demand',data:[],
-            borderColor:'rgb(255,159,64)',backgroundColor:'rgba(255,159,64,0.1)',borderWidth:2,pointRadius:3,
-            pointBackgroundColor:'rgb(255,159,64)',tension:0.1,fill:false}]},
+            borderColor:'rgb(161,90,53)',backgroundColor:'rgba(161,90,53,0.12)',borderWidth:2,pointRadius:3,
+            pointBackgroundColor:'rgb(161,90,53)',tension:0.1,fill:false}]},
         options:{responsive:true,maintainAspectRatio:false,
             scales:{x:{title:{display:true,text:'Day'}},y:{beginAtZero:true,title:{display:true,text:'Units'}}},
             plugins:{legend:{display:false}}}
@@ -369,7 +394,7 @@ function updateDisplay() {
     el.orderCosts.textContent = state.orderCosts.toFixed(2);
     el.totalCosts.textContent = state.totalCosts.toFixed(2);
     el.profit.textContent = state.profit.toFixed(2);
-    el.profitCard.style.color = state.profit >= 0 ? '#059669' : '#dc2626';
+    el.profitCard.style.color = state.profit >= 0 ? '#1F8A2F' : '#ED0A00';
     if (state.currentPhase >= 2) {
         el.cpuRow.style.display = 'block';
         if (state.insightsRevealed >= 6) {
@@ -402,8 +427,8 @@ function setPhase(phase) {
     el.instrContent.innerHTML = state.instructionExpanded ? instrText[phase].full : instrText[phase].short;
     for (var p = 1; p <= 3; p++) {
         var lb = document.getElementById('vmPhaseLabel' + p);
-        if (p === phase) { lb.style.background = p===1?'#2563eb':p===2?'#7c3aed':'#059669'; lb.style.color = '#fff'; }
-        else if (p < phase) { lb.style.background = '#d1fae5'; lb.style.color = '#065f46'; }
+        if (p === phase) { lb.style.background = p===1?'#0033FF':p===2?'#A15A35':'#1F8A2F'; lb.style.color = '#fff'; }
+        else if (p < phase) { lb.style.background = '#F0FDF4'; lb.style.color = '#1F8A2F'; }
         else { lb.style.background = '#e5e7eb'; lb.style.color = '#94a3b8'; }
     }
 }
@@ -449,12 +474,12 @@ function renderInsights() {
     for (i = 0; i < state.questionsShown; i++) {
         var ins = insights[i], answered = i < state.insightsRevealed;
         var phase = i < 3 ? 1 : i < 6 ? 2 : 3;
-        var color = phase===1?'#2563eb':phase===2?'#7c3aed':'#059669';
-        var bg = answered ? '#f0fdf4' : '#fffbeb', border = answered ? '#86efac' : '#fcd34d';
+        var color = phase===1?'#0033FF':phase===2?'#A15A35':'#1F8A2F';
+        var bg = answered ? '#f0fdf4' : '#F0E5D0', border = answered ? '#BBF7D0' : '#C4744F';
         html += '<div style="background:'+bg+';border:1px solid '+border+';border-radius:6px;padding:10px 12px;margin-bottom:8px;">';
         html += '<div style="font-size:0.8em;font-weight:600;color:'+color+';margin-bottom:4px;">Insight '+(i+1)+' (Phase '+phase+')</div>';
         html += '<div style="font-size:0.88em;color:#334155;margin-bottom:6px;">'+ins.q+'</div>';
-        if (answered) html += '<div style="font-size:0.85em;color:#166534;background:#dcfce7;padding:8px;border-radius:4px;">'+ins.a+'</div>';
+        if (answered) html += '<div style="font-size:0.85em;color:#1F8A2F;background:#F0FDF4;padding:8px;border-radius:4px;">'+ins.a+'</div>';
         else if (i === state.insightsRevealed) html += '<button onclick="void(0)" data-reveal="'+i+'" style="padding:5px 12px;background:'+color+';color:#fff;border:none;border-radius:4px;font-size:0.82em;cursor:pointer;">Reveal Answer</button>';
         html += '</div>';
     }
@@ -467,8 +492,8 @@ function renderInsights() {
     var phaseEnd = state.currentPhase * 3;
     if (state.insightsRevealed >= phaseEnd && state.currentPhase < 3) {
         el.phaseAdv.style.display = 'block';
-        el.phaseAdv.innerHTML = '<div style="font-size:0.9em;font-weight:600;color:#1e40af;">All Phase '+state.currentPhase+' insights answered!</div>'+
-            '<button onclick="void(0)" id="vmAdvBtn" style="margin-top:6px;padding:6px 16px;background:#2563eb;color:#fff;border:none;border-radius:4px;font-size:0.85em;cursor:pointer;">Advance to Phase '+(state.currentPhase+1)+'</button>';
+        el.phaseAdv.innerHTML = '<div style="font-size:0.9em;font-weight:600;color:#001641;">All Phase '+state.currentPhase+' insights answered!</div>'+
+            '<button onclick="void(0)" id="vmAdvBtn" style="margin-top:6px;padding:6px 16px;background:#0033FF;color:#fff;border:none;border-radius:4px;font-size:0.85em;cursor:pointer;">Advance to Phase '+(state.currentPhase+1)+'</button>';
         document.getElementById('vmAdvBtn').addEventListener('click', advancePhase);
     } else { el.phaseAdv.style.display = 'none'; }
     renderOverrides();

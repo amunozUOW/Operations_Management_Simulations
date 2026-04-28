@@ -42,10 +42,10 @@ async function nextTurn(page: Page): Promise<void> {
 async function skipToPhase(page: Page, phase: 2 | 3): Promise<void> {
   const btnId = phase === 2 ? '#overrideSkip2' : '#overrideSkip3';
   await page.locator(btnId).click();
-  // setPhase() re-colors phaseLabelN active → rgb(37, 99, 235).
+  // setPhase() re-colors phaseLabelN active → UOW Bright Blue rgb(0, 51, 255).
   await expect(page.locator(`#phaseLabel${phase}`)).toHaveCSS(
     'background-color',
-    'rgb(37, 99, 235)',
+    'rgb(0, 51, 255)',
   );
 }
 

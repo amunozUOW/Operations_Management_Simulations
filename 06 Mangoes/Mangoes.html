@@ -1,22 +1,47 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div id="mango-inventory-sim-v1" style="display:flex !important; flex-direction:column !important; gap:14px !important; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important; max-width:1200px !important; margin:0 auto !important; padding:16px !important; color:#1a1a1a !important; line-height:1.4 !important;">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+<style data-uow-tokens>
+:root {
+  --uow-white:        #FFFFFF;
+  --uow-blue-dark:    #001641;
+  --uow-blue-bright:  #0033FF;
+  --uow-red:          #ED0A00;
+  --uow-grey-light:   #F2F2F2;
+  --uow-copper:       #A15A35;
+  --uow-copper-light: #C4744F;
+  --uow-cream:        #F0E5D0;
+  --uow-lavender:     #CDD6F8;
+  --uow-ice-blue:     #E3F1F9;
+  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --chart-1: #001641;
+  --chart-2: #ED0A00;
+  --chart-3: #0033FF;
+  --chart-4: #A15A35;
+  --chart-5: #6B7280;
+}
+[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
+  font-family: var(--uow-font) !important;
+}
+</style>
+
+<div id="mango-inventory-sim-v1" style="display:flex !important; flex-direction:column !important; gap:14px !important; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important; max-width:1200px !important; margin:0 auto !important; padding:16px !important; color:#001641 !important; line-height:1.4 !important;">
 
     <!-- Title + Phase Indicator -->
     <div style="display:flex !important; flex-wrap:wrap !important; align-items:center !important; justify-content:space-between !important; gap:10px !important;">
-        <h2 style="margin:0 !important; font-size:1.5em !important; color:#1e293b !important;">Mango Inventory Management</h2>
+        <h2 style="margin:0 !important; font-size:1.5em !important; color:#001641 !important;">Mango Inventory Management</h2>
         <div style="display:flex !important; gap:4px !important; align-items:center !important;">
-            <span id="phaseLabel1" style="padding:6px 14px !important; border-radius:6px !important; font-size:0.85em !important; font-weight:600 !important; background:#2563eb !important; color:#fff !important;">Phase 1: Supplier A</span>
+            <span id="phaseLabel1" style="padding:6px 14px !important; border-radius:6px !important; font-size:0.85em !important; font-weight:600 !important; background:#0033FF !important; color:#fff !important;">Phase 1: Supplier A</span>
             <span style="color:#cbd5e1 !important;">&#9654;</span>
             <span id="phaseLabel2" style="padding:6px 14px !important; border-radius:6px !important; font-size:0.85em !important; font-weight:600 !important; background:#e5e7eb !important; color:#94a3b8 !important;">Phase 2: Supplier B</span>
         </div>
     </div>
 
     <!-- Instruction Panel -->
-    <div id="instructionPanel" style="background:#eff6ff !important; border-left:4px solid #2563eb !important; border-radius:0 8px 8px 0 !important; padding:14px 18px !important; line-height:1.6 !important;">
+    <div id="instructionPanel" style="background:#E3F1F9 !important; border-left:4px solid #0033FF !important; border-radius:0 8px 8px 0 !important; padding:14px 18px !important; line-height:1.6 !important;">
         <div style="display:flex !important; justify-content:space-between !important; align-items:start !important;">
             <div id="instructionContent" style="flex:1 !important;"></div>
-            <button id="toggleInstructions" onclick="void(0)" style="background:none !important; border:none !important; color:#2563eb !important; cursor:pointer !important; font-size:0.85em !important; white-space:nowrap !important; padding:0 0 0 12px !important;">Show Less</button>
+            <button id="toggleInstructions" onclick="void(0)" style="background:none !important; border:none !important; color:#0033FF !important; cursor:pointer !important; font-size:0.85em !important; white-space:nowrap !important; padding:0 0 0 12px !important;">Show Less</button>
         </div>
     </div>
 
@@ -41,7 +66,7 @@
 
             <!-- Buttons -->
             <div style="display:flex !important; gap:10px !important; margin-top:8px !important;">
-                <button id="submitBtn" onclick="void(0)" style="flex:1 !important; padding:10px 16px !important; background:#2563eb !important; color:#fff !important; border:none !important; border-radius:6px !important; font-size:0.95em !important; font-weight:600 !important; cursor:pointer !important;">Submit Order</button>
+                <button id="submitBtn" onclick="void(0)" style="flex:1 !important; padding:10px 16px !important; background:#0033FF !important; color:#fff !important; border:none !important; border-radius:6px !important; font-size:0.95em !important; font-weight:600 !important; cursor:pointer !important;">Submit Order</button>
             </div>
         </div>
 
@@ -50,48 +75,48 @@
             <div style="width:100% !important; font-weight:700 !important; font-size:0.95em !important; color:#334155 !important;">Turn <span id="turnCounter">0</span> of 10</div>
 
             <!-- Cash on Hand -->
-            <div style="width:100% !important; padding:10px !important; border:2px solid #2563eb !important; border-radius:8px !important; text-align:center !important; background:#eff6ff !important;">
-                <div style="font-size:0.75em !important; color:#1e40af !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Cash on Hand</div>
-                <div id="metricCash" style="font-size:1.8em !important; font-weight:700 !important; color:#1e40af !important;">$1,500.00</div>
+            <div style="width:100% !important; padding:10px !important; border:2px solid #0033FF !important; border-radius:8px !important; text-align:center !important; background:#E3F1F9 !important;">
+                <div style="font-size:0.75em !important; color:#001641 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Cash on Hand</div>
+                <div id="metricCash" style="font-size:1.8em !important; font-weight:700 !important; color:#001641 !important;">$1,500.00</div>
             </div>
 
             <!-- Current Inventory -->
             <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
                 <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Current Inventory</div>
-                <div id="metricInventory" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">0</div>
+                <div id="metricInventory" style="font-size:1.4em !important; font-weight:700 !important; color:#001641 !important;">0</div>
             </div>
 
             <!-- Last Demand -->
             <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
                 <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Last Demand</div>
-                <div id="metricDemand" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+                <div id="metricDemand" style="font-size:1.4em !important; font-weight:700 !important; color:#001641 !important;">&mdash;</div>
             </div>
 
             <!-- Revenue -->
             <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
                 <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Revenue</div>
-                <div id="metricRevenue" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+                <div id="metricRevenue" style="font-size:1.4em !important; font-weight:700 !important; color:#001641 !important;">&mdash;</div>
             </div>
 
             <!-- Total Cost -->
             <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
                 <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Total Cost</div>
-                <div id="metricTotalCost" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+                <div id="metricTotalCost" style="font-size:1.4em !important; font-weight:700 !important; color:#001641 !important;">&mdash;</div>
             </div>
 
             <!-- Turn Profit -->
             <div style="flex:1 !important; min-width:130px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
                 <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important; letter-spacing:0.5px !important;">Turn Profit</div>
-                <div id="metricProfit" style="font-size:1.4em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+                <div id="metricProfit" style="font-size:1.4em !important; font-weight:700 !important; color:#001641 !important;">&mdash;</div>
             </div>
 
             <!-- EOQ (Protected Metric) -->
-            <div id="metricEOQCard" style="width:100% !important; padding:10px !important; border:2px dashed #93c5fd !important; border-radius:8px !important; text-align:center !important; background:#f0f7ff !important;">
-                <div style="font-size:0.75em !important; color:#1e40af !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Economic Order Quantity</div>
+            <div id="metricEOQCard" style="width:100% !important; padding:10px !important; border:2px dashed #0033FF !important; border-radius:8px !important; text-align:center !important; background:#E3F1F9 !important;">
+                <div style="font-size:0.75em !important; color:#001641 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Economic Order Quantity</div>
                 <div id="eoqPrompt" style="font-size:0.85em !important; color:#64748b !important; margin-top:4px !important;">Calculate: &radic;(2DS / H)</div>
                 <div id="eoqRevealed" style="display:none !important;">
-                    <div id="eoqValue" style="font-size:1.6em !important; font-weight:700 !important; color:#1e40af !important;">&mdash;</div>
-                    <div style="font-size:0.7em !important; color:#3b82f6 !important;">mangoes (based on your avg. demand)</div>
+                    <div id="eoqValue" style="font-size:1.6em !important; font-weight:700 !important; color:#001641 !important;">&mdash;</div>
+                    <div style="font-size:0.7em !important; color:#0033FF !important;">mangoes (based on your avg. demand)</div>
                 </div>
             </div>
         </div>
@@ -114,8 +139,8 @@
     <!-- History Table -->
     <div>
         <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:8px !important;">
-            <h3 style="margin:0 !important; font-size:1.1em !important; color:#1e293b !important;">Operations History</h3>
-            <button id="toggleHistory" onclick="void(0)" style="background:none !important; border:none !important; color:#2563eb !important; cursor:pointer !important; font-size:0.85em !important;">Hide Table</button>
+            <h3 style="margin:0 !important; font-size:1.1em !important; color:#001641 !important;">Operations History</h3>
+            <button id="toggleHistory" onclick="void(0)" style="background:none !important; border:none !important; color:#0033FF !important; cursor:pointer !important; font-size:0.85em !important;">Hide Table</button>
         </div>
         <div id="historyContainer" style="overflow-x:auto !important;">
             <table id="historyTable" style="width:100% !important; border-collapse:collapse !important; font-size:0.85em !important;">
@@ -142,11 +167,11 @@
     <!-- Discussion Insights Panel -->
     <div id="insightsPanel" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px 18px !important;">
         <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:12px !important;">
-            <div style="font-weight:700 !important; font-size:1.05em !important; color:#1e293b !important;">Discussion Insights</div>
+            <div style="font-weight:700 !important; font-size:1.05em !important; color:#001641 !important;">Discussion Insights</div>
             <div id="insightsCounter" style="font-size:0.85em !important; color:#64748b !important; font-weight:600 !important;">0 of 6</div>
         </div>
         <div id="insightsList" style="display:flex !important; flex-direction:column !important; gap:0px !important;"></div>
-        <div id="phaseAdvanceArea" style="display:none !important; margin-top:12px !important; padding:10px 12px !important; background:#eff6ff !important; border:1px solid #2563eb !important; border-radius:6px !important; text-align:center !important;"></div>
+        <div id="phaseAdvanceArea" style="display:none !important; margin-top:12px !important; padding:10px 12px !important; background:#E3F1F9 !important; border:1px solid #0033FF !important; border-radius:6px !important; text-align:center !important;"></div>
         <div id="overrideControls" style="margin-top:12px !important; padding-top:10px !important; border-top:1px dashed #e2e8f0 !important; display:flex !important; flex-wrap:wrap !important; gap:8px !important; justify-content:center !important;"></div>
     </div>
 </div>
@@ -330,7 +355,7 @@
         var ctx = el.inventoryChart.getContext('2d');
         inventoryChartObj = new Chart(ctx, {
             type: 'line',
-            data: { datasets: [{ label: 'Inventory Level', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#2563eb', fill: true, tension: 0 }] },
+            data: { datasets: [{ label: 'Inventory Level', data: [], borderColor: '#0033FF', backgroundColor: 'rgba(0,51,255,0.08)', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#0033FF', fill: true, tension: 0 }] },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 animation: { duration: 400 },
@@ -363,8 +388,8 @@
             data: {
                 labels: [],
                 datasets: [
-                    { label: 'Ordering Cost', data: [], backgroundColor: 'rgba(37,99,235,0.7)', borderColor: '#2563eb', borderWidth: 1 },
-                    { label: 'Holding Cost', data: [], backgroundColor: 'rgba(251,146,60,0.7)', borderColor: '#f97316', borderWidth: 1 }
+                    { label: 'Ordering Cost', data: [], backgroundColor: 'rgba(0,51,255,0.7)', borderColor: '#0033FF', borderWidth: 1 },
+                    { label: 'Holding Cost', data: [], backgroundColor: 'rgba(161,90,53,0.7)', borderColor: '#A15A35', borderWidth: 1 }
                 ]
             },
             options: {
@@ -584,13 +609,13 @@
     function updateMetrics(m) {
         el.turnCounter.textContent = state.phaseTurns;
         el.metricCash.textContent = fmt(state.cashOnHand);
-        el.metricCash.style.color = state.cashOnHand < 300 ? '#dc2626' : '#1e40af';
+        el.metricCash.style.color = state.cashOnHand < 300 ? '#ED0A00' : '#001641';
         el.metricInventory.textContent = fmtInt(m.remaining);
         el.metricDemand.textContent = fmtInt(m.demand);
         el.metricRevenue.textContent = fmt(m.revenue);
         el.metricTotalCost.textContent = fmt(m.totalCost);
         el.metricProfit.textContent = fmt(m.profit);
-        el.metricProfit.style.color = m.profit >= 0 ? '#16a34a' : '#dc2626';
+        el.metricProfit.style.color = m.profit >= 0 ? '#16a34a' : '#ED0A00';
     }
 
     function addHistoryRow(h) {
@@ -602,7 +627,7 @@
             td.style.padding = '6px 10px';
             td.style.textAlign = 'center';
             td.textContent = cells[i];
-            if (i === 10) { td.style.fontWeight = '600'; td.style.color = h.cash < 0 ? '#dc2626' : '#1e293b'; }
+            if (i === 10) { td.style.fontWeight = '600'; td.style.color = h.cash < 0 ? '#ED0A00' : '#001641'; }
             row.appendChild(td);
         }
         el.historyBody.insertBefore(row, el.historyBody.firstChild);
@@ -629,13 +654,13 @@
         el.statusMessage.style.display = 'block';
         el.statusMessage.textContent = msg;
         if (isError) {
-            el.statusMessage.style.background = '#fef2f2';
-            el.statusMessage.style.color = '#dc2626';
-            el.statusMessage.style.border = '1px solid #fecaca';
+            el.statusMessage.style.background = '#FBEDED';
+            el.statusMessage.style.color = '#ED0A00';
+            el.statusMessage.style.border = '1px solid #FBEDED';
         } else {
             el.statusMessage.style.background = '#f0fdf4';
             el.statusMessage.style.color = '#16a34a';
-            el.statusMessage.style.border = '1px solid #bbf7d0';
+            el.statusMessage.style.border = '1px solid #BBF7D0';
         }
     }
 
@@ -658,7 +683,7 @@
         el.eoqPrompt.style.display = 'none';
         el.eoqRevealed.style.display = 'block';
         el.metricEOQCard.style.borderStyle = 'solid';
-        el.metricEOQCard.style.borderColor = '#2563eb';
+        el.metricEOQCard.style.borderColor = '#0033FF';
     }
 
     /* ======================================================================
@@ -682,14 +707,14 @@
         state.currentPhase = phase;
         // Update phase indicator labels
         if (phase === 1) {
-            el.phaseLabel1.style.background = '#2563eb';
+            el.phaseLabel1.style.background = '#0033FF';
             el.phaseLabel1.style.color = '#fff';
             el.phaseLabel2.style.background = '#e5e7eb';
             el.phaseLabel2.style.color = '#94a3b8';
         } else {
             el.phaseLabel1.style.background = '#16a34a';
             el.phaseLabel1.style.color = '#fff';
-            el.phaseLabel2.style.background = '#2563eb';
+            el.phaseLabel2.style.background = '#0033FF';
             el.phaseLabel2.style.color = '#fff';
         }
         resetPhaseData();
@@ -728,7 +753,7 @@
         el.submitBtn.style.cursor = 'pointer';
         el.turnCounter.textContent = '0';
         el.metricCash.textContent = fmt(INITIAL_CASH);
-        el.metricCash.style.color = '#1e40af';
+        el.metricCash.style.color = '#001641';
         el.metricInventory.textContent = '0';
         el.metricDemand.textContent = '\u2014';
         el.metricRevenue.textContent = '\u2014';
@@ -807,15 +832,15 @@
         for (var i = 0; i < state.questionsShown; i++) {
             var ins = INSIGHTS[i];
             var div = document.createElement('div');
-            div.style.cssText = 'padding:10px 12px !important; border-left:3px solid ' + (i < state.insightsRevealed ? '#16a34a' : '#f59e0b') + ' !important; margin-bottom:8px !important; background:' + (i < state.insightsRevealed ? '#f0fdf4' : '#fffbeb') + ' !important; border-radius:0 6px 6px 0 !important;';
+            div.style.cssText = 'padding:10px 12px !important; border-left:3px solid ' + (i < state.insightsRevealed ? '#16a34a' : '#A15A35') + ' !important; margin-bottom:8px !important; background:' + (i < state.insightsRevealed ? '#f0fdf4' : '#F0E5D0') + ' !important; border-radius:0 6px 6px 0 !important;';
 
             var label = document.createElement('div');
-            label.style.cssText = 'font-size:0.75em !important; font-weight:600 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; color:' + (i < state.insightsRevealed ? '#16a34a' : '#d97706') + ' !important; margin-bottom:4px !important;';
+            label.style.cssText = 'font-size:0.75em !important; font-weight:600 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; color:' + (i < state.insightsRevealed ? '#16a34a' : '#A15A35') + ' !important; margin-bottom:4px !important;';
             label.textContent = (i < state.insightsRevealed ? '\u2713 ' : '') + 'Insight ' + (i + 1) + ' (Phase ' + ins.phase + ')';
             div.appendChild(label);
 
             var q = document.createElement('div');
-            q.style.cssText = 'font-weight:600 !important; color:#1e293b !important; margin-bottom:6px !important;';
+            q.style.cssText = 'font-weight:600 !important; color:#001641 !important; margin-bottom:6px !important;';
             q.textContent = ins.question;
             div.appendChild(q);
 
@@ -826,7 +851,7 @@
                 div.appendChild(a);
             } else if (i === state.insightsRevealed) {
                 var btn = document.createElement('button');
-                btn.style.cssText = 'padding:6px 14px !important; background:#f59e0b !important; color:#fff !important; border:none !important; border-radius:4px !important; font-size:0.85em !important; font-weight:600 !important; cursor:pointer !important;';
+                btn.style.cssText = 'padding:6px 14px !important; background:#A15A35 !important; color:#fff !important; border:none !important; border-radius:4px !important; font-size:0.85em !important; font-weight:600 !important; cursor:pointer !important;';
                 btn.textContent = 'Reveal Answer';
                 btn.setAttribute('data-insight', i);
                 btn.onclick = (function(idx) { return function() { revealInsightAnswer(idx); }; })(i);
@@ -849,7 +874,7 @@
         if (allRevealed && state.currentPhase < 2) {
             el.phaseAdvanceArea.style.display = 'block';
             el.phaseAdvanceArea.innerHTML = '<strong>All Phase ' + state.currentPhase + ' insights revealed!</strong><br>' +
-                '<button onclick="void(0)" id="advancePhaseBtn" style="margin-top:8px !important; padding:8px 20px !important; background:#2563eb !important; color:#fff !important; border:none !important; border-radius:6px !important; font-weight:600 !important; cursor:pointer !important;">Advance to Phase ' + (state.currentPhase + 1) + '</button>';
+                '<button onclick="void(0)" id="advancePhaseBtn" style="margin-top:8px !important; padding:8px 20px !important; background:#0033FF !important; color:#fff !important; border:none !important; border-radius:6px !important; font-weight:600 !important; cursor:pointer !important;">Advance to Phase ' + (state.currentPhase + 1) + '</button>';
             document.getElementById('advancePhaseBtn').addEventListener('click', function() { advancePhase(); });
         } else if (allRevealed && state.currentPhase === 2) {
             el.phaseAdvanceArea.style.display = 'block';
@@ -947,11 +972,11 @@
         el.metricRevenue.textContent = '\u2014';
         el.metricTotalCost.textContent = '\u2014';
         el.metricProfit.textContent = '\u2014';
-        el.metricProfit.style.color = '#1e293b';
+        el.metricProfit.style.color = '#001641';
         el.eoqPrompt.style.display = 'block';
         el.eoqRevealed.style.display = 'none';
         el.metricEOQCard.style.borderStyle = 'dashed';
-        el.metricEOQCard.style.borderColor = '#93c5fd';
+        el.metricEOQCard.style.borderColor = '#0033FF';
         el.costChartContainer.style.display = 'none';
         el.historyContainer.style.display = 'block';
         el.toggleHistory.textContent = 'Hide Table';
@@ -990,14 +1015,14 @@
     function restoreFromState() {
         // Restore phase indicator
         if (state.currentPhase === 1) {
-            el.phaseLabel1.style.background = '#2563eb';
+            el.phaseLabel1.style.background = '#0033FF';
             el.phaseLabel1.style.color = '#fff';
             el.phaseLabel2.style.background = '#e5e7eb';
             el.phaseLabel2.style.color = '#94a3b8';
         } else {
             el.phaseLabel1.style.background = '#16a34a';
             el.phaseLabel1.style.color = '#fff';
-            el.phaseLabel2.style.background = '#2563eb';
+            el.phaseLabel2.style.background = '#0033FF';
             el.phaseLabel2.style.color = '#fff';
         }
 
@@ -1018,7 +1043,7 @@
         // Restore metrics
         el.turnCounter.textContent = state.phaseTurns;
         el.metricCash.textContent = fmt(state.cashOnHand);
-        el.metricCash.style.color = state.cashOnHand < 300 ? '#dc2626' : '#1e40af';
+        el.metricCash.style.color = state.cashOnHand < 300 ? '#ED0A00' : '#001641';
 
         if (state.phaseTurns > 0) {
             var last = state.history[state.history.length - 1];
@@ -1028,7 +1053,7 @@
             el.metricTotalCost.textContent = fmt(last.totalCost);
             var profit = last.revenue - last.totalCost;
             el.metricProfit.textContent = fmt(profit);
-            el.metricProfit.style.color = profit >= 0 ? '#16a34a' : '#dc2626';
+            el.metricProfit.style.color = profit >= 0 ? '#16a34a' : '#ED0A00';
         }
 
         // Restore game over state

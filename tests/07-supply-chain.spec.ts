@@ -86,10 +86,10 @@ async function nextTurn(page: Page): Promise<void> {
 /** Use the override button to jump to a later phase (resets turn counter). */
 async function skipToPhase(page: Page, phase: 2 | 3): Promise<void> {
   await page.locator(`button:has-text("Skip to Phase ${phase}")`).first().click();
-  // setPhase() colors the active label blue (rgb(37, 99, 235)).
+  // setPhase() colors the active label UOW Bright Blue rgb(0, 51, 255).
   await expect(page.locator(`#phaseLabel${phase}`)).toHaveCSS(
     'background-color',
-    'rgb(37, 99, 235)',
+    'rgb(0, 51, 255)',
   );
   await expect(page.locator('#turnCounter')).toHaveText('0');
 }

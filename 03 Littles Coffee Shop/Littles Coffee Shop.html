@@ -1,12 +1,37 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div id="littles-coffee-sim-v2" style="display: flex; flex-direction: column; gap: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 12px; color: #1a1a1a;">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+<style data-uow-tokens>
+:root {
+  --uow-white:        #FFFFFF;
+  --uow-blue-dark:    #001641;
+  --uow-blue-bright:  #0033FF;
+  --uow-red:          #ED0A00;
+  --uow-grey-light:   #F2F2F2;
+  --uow-copper:       #A15A35;
+  --uow-copper-light: #C4744F;
+  --uow-cream:        #F0E5D0;
+  --uow-lavender:     #CDD6F8;
+  --uow-ice-blue:     #E3F1F9;
+  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --chart-1: #001641;
+  --chart-2: #ED0A00;
+  --chart-3: #0033FF;
+  --chart-4: #A15A35;
+  --chart-5: #6B7280;
+}
+[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
+  font-family: var(--uow-font) !important;
+}
+</style>
+
+<div id="littles-coffee-sim-v2" style="display: flex; flex-direction: column; gap: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 12px; color: #001641;">
 
     <!-- ROW 1: Title + Phase Progress -->
     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
-        <h2 style="margin: 0; font-size: 1.5em; color: #1e293b;">Little's Coffee Shop</h2>
+        <h2 style="margin: 0; font-size: 1.5em; color: #001641;">Little's Coffee Shop</h2>
         <div id="phaseIndicator" style="display: flex; gap: 4px; align-items: center;">
-            <span id="phaseLabel1" style="padding: 4px 10px; border-radius: 6px; font-size: 0.8em; font-weight: 600; background: #2563eb; color: #fff;">Phase 1: Staffing</span>
+            <span id="phaseLabel1" style="padding: 4px 10px; border-radius: 6px; font-size: 0.8em; font-weight: 600; background: #0033FF; color: #fff;">Phase 1: Staffing</span>
             <span style="color: #cbd5e1;">&#9654;</span>
             <span id="phaseLabel2" style="padding: 4px 10px; border-radius: 6px; font-size: 0.8em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Uncertainty</span>
             <span style="color: #cbd5e1;">&#9654;</span>
@@ -15,10 +40,10 @@
     </div>
 
     <!-- ROW 2: Instruction Panel -->
-    <div id="instructionPanel" style="background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; padding: 10px 14px; line-height: 1.4;">
+    <div id="instructionPanel" style="background: #E3F1F9; border-left: 4px solid #0033FF; border-radius: 0 8px 8px 0; padding: 10px 14px; line-height: 1.4;">
         <div style="display: flex; justify-content: space-between; align-items: start;">
             <div id="instructionContent"></div>
-            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #2563eb; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #0033FF; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
         </div>
     </div>
 
@@ -33,7 +58,7 @@
                 <div style="font-weight: 700; font-size: 0.95em; margin-bottom: 8px; color: #334155;">Your Decisions</div>
                 <div id="controlsArea"></div>
                 <div style="display: flex; gap: 10px; margin-top: 8px;">
-                    <button id="goBtn" onclick="void(0)" style="flex: 1; padding: 8px 14px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Go</button>
+                    <button id="goBtn" onclick="void(0)" style="flex: 1; padding: 8px 14px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Go</button>
                     <button id="resetBtn" onclick="void(0)" style="padding: 8px 14px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.95em; cursor: pointer;">Reset</button>
                 </div>
             </div>
@@ -54,8 +79,8 @@
                 <div style="font-weight: 700; font-size: 0.9em; color: #334155; margin-bottom: 4px;">Staff Status</div>
                 <div id="staffStatusContent"></div>
                 <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.8em; color: #64748b;">
-                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width: 14px; height: 14px; background: #FF9966; border: 1px solid #333; border-radius: 3px;"></div> Busy</div>
-                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width: 14px; height: 14px; background: #81c784; border: 1px solid #333; border-radius: 3px;"></div> Idle</div>
+                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width: 14px; height: 14px; background: #C4744F; border: 1px solid #333; border-radius: 3px;"></div> Busy</div>
+                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width: 14px; height: 14px; background: #BBF7D0; border: 1px solid #333; border-radius: 3px;"></div> Idle</div>
                 </div>
             </div>
 
@@ -85,11 +110,11 @@
     <!-- ROW 5: Discussion Insights Panel -->
     <div id="insightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div style="font-weight: 700; font-size: 1.05em; color: #1e293b;">Discussion Insights</div>
+            <div style="font-weight: 700; font-size: 1.05em; color: #001641;">Discussion Insights</div>
             <div id="insightsCounter" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 10</div>
         </div>
         <div id="insightsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
-        <div id="phaseAdvanceArea" style="display: none; margin-top: 8px; padding: 8px 10px; background: #eff6ff; border: 1px solid #2563eb; border-radius: 6px; text-align: center;"></div>
+        <div id="phaseAdvanceArea" style="display: none; margin-top: 8px; padding: 8px 10px; background: #E3F1F9; border: 1px solid #0033FF; border-radius: 6px; text-align: center;"></div>
         <div id="overrideControls" style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
     </div>
 
@@ -344,7 +369,7 @@
     // === INSTRUCTION TEXT ===
     var instructionText = {
         1: {
-            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 4px; color: #1e40af;">Phase 1: The Staffing Decision</div>' +
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 4px; color: #001641;">Phase 1: The Staffing Decision</div>' +
                 '<div style="margin-bottom: 4px;">Little\u2019s Coffee Shop experiences a morning rush from 8\u20139 AM. <strong>55 customers</strong> are expected to arrive in the hour. Each coffee takes exactly <strong>2 minutes</strong> to prepare, and a barista can only prepare one drink at a time.</div>' +
                 '<div style="margin-bottom: 3px;">Key information:</div>' +
                 '<ul style="margin: 0 0 4px 0; padding-left: 20px; line-height: 1.4;">' +
@@ -353,11 +378,11 @@
                 '<li>Each barista serves one customer at a time</li>' +
                 '<li>The simulation runs for 60 minutes (1 hour)</li>' +
                 '</ul>' +
-                '<div style="color: #1e40af; font-weight: 600;">Your task: Start with 1 barista and observe what happens. Commit to your staffing decision for the full hour \u2014 changing mid-shift is disruptive. After each run, reflect on the outcome and try a different level. Can you work out the minimum number of baristas needed?</div>',
-            short: '<span style="font-weight: 700; color: #1e40af;">Phase 1:</span> 55 customers, 2 min/customer, 60 min rush. Commit to a staffing level each run. Can you find the minimum baristas needed?'
+                '<div style="color: #001641; font-weight: 600;">Your task: Start with 1 barista and observe what happens. Commit to your staffing decision for the full hour \u2014 changing mid-shift is disruptive. After each run, reflect on the outcome and try a different level. Can you work out the minimum number of baristas needed?</div>',
+            short: '<span style="font-weight: 700; color: #001641;">Phase 1:</span> 55 customers, 2 min/customer, 60 min rush. Commit to a staffing level each run. Can you find the minimum baristas needed?'
         },
         2: {
-            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 4px; color: #7c3aed;">Phase 2: Demand Uncertainty</div>' +
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 4px; color: #A15A35;">Phase 2: Demand Uncertainty</div>' +
                 '<div style="margin-bottom: 4px;">The coffee shop now faces <strong>uncertain demand</strong>. Each day, somewhere between <strong>30 and 85 customers</strong> arrive during the rush hour (uniformly distributed). The service time is still 2 minutes per customer.</div>' +
                 '<div style="margin-bottom: 3px;">Key changes from Phase 1:</div>' +
                 '<ul style="margin: 0 0 4px 0; padding-left: 20px; line-height: 1.4;">' +
@@ -365,11 +390,11 @@
                 '<li>The \u201cDemand This Run\u201d card shows how many customers will arrive</li>' +
                 '<li>Service time is still 2 minutes per customer</li>' +
                 '</ul>' +
-                '<div style="color: #7c3aed; font-weight: 600;">Your task: Run the simulation multiple times. How do you staff when demand is uncertain? Can you calculate the range of staff you might need?</div>',
-            short: '<span style="font-weight: 700; color: #7c3aed;">Phase 2:</span> Demand varies 30\u201385 customers/hour. How do you staff for uncertainty?'
+                '<div style="color: #A15A35; font-weight: 600;">Your task: Run the simulation multiple times. How do you staff when demand is uncertain? Can you calculate the range of staff you might need?</div>',
+            short: '<span style="font-weight: 700; color: #A15A35;">Phase 2:</span> Demand varies 30\u201385 customers/hour. How do you staff for uncertainty?'
         },
         3: {
-            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 4px; color: #059669;">Phase 3: Sequential Operations</div>' +
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 4px; color: #1F8A2F;">Phase 3: Sequential Operations</div>' +
                 '<div style="margin-bottom: 4px;">As customer volume grows, simply adding baristas to one counter is not enough. The shop has split its operation into <strong>three specialised sequential stations</strong> to improve throughput and allow targeted staffing. Each customer passes through all three in order. You need to serve <strong>170 customers</strong> over a <strong>4-hour shift</strong> (240 minutes).</div>' +
                 '<div style="margin-bottom: 3px;">The three stations:</div>' +
                 '<ul style="margin: 0 0 4px 0; padding-left: 20px; line-height: 1.4;">' +
@@ -378,8 +403,8 @@
                 '<li><strong>Serving:</strong> 1 minute per customer</li>' +
                 '</ul>' +
                 '<div style="margin-bottom: 3px;">Each station has its own queue and staff. Customers must finish one station before moving to the next. <strong>In this phase, you can adjust staffing mid-shift</strong> \u2014 watch how queues respond in real time.</div>' +
-                '<div style="color: #059669; font-weight: 600;">Your task: Start with 1 staff at each station. Where does the bottleneck form? Try changing staffing at one station and watch the bottleneck shift. Apply Little\u2019s Law to each station independently to find the right balance.</div>',
-            short: '<span style="font-weight: 700; color: #059669;">Phase 3:</span> Three stations (Order 2min, Prep 3min, Serve 1min), 170 customers in 240 min. Adjust staffing mid-shift and watch bottlenecks form and shift.'
+                '<div style="color: #1F8A2F; font-weight: 600;">Your task: Start with 1 staff at each station. Where does the bottleneck form? Try changing staffing at one station and watch the bottleneck shift. Apply Little\u2019s Law to each station independently to find the right balance.</div>',
+            short: '<span style="font-weight: 700; color: #1F8A2F;">Phase 3:</span> Three stations (Order 2min, Prep 3min, Serve 1min), 170 customers in 240 min. Adjust staffing mid-shift and watch bottlenecks form and shift.'
         }
     };
 
@@ -390,11 +415,11 @@
         if (isProtected) {
             html += '<div id="' + id + 'Prompt" style="font-size: 0.8em; color: #64748b; margin: 4px 0 2px 0;">' + prompt + '</div>';
             html += '<div id="' + id + 'Revealed" style="display: none;">';
-            html += '<div id="' + id + 'Value" style="font-size: 1.25em; font-weight: 700; color: #1e293b;">&mdash;</div>';
+            html += '<div id="' + id + 'Value" style="font-size: 1.25em; font-weight: 700; color: #001641;">&mdash;</div>';
             if (unit) html += '<div style="font-size: 0.7em; color: #94a3b8;">' + unit + '</div>';
             html += '</div>';
         } else {
-            html += '<div id="' + id + 'Value" style="font-size: 1.25em; font-weight: 700; color: #1e293b;">&mdash;</div>';
+            html += '<div id="' + id + 'Value" style="font-size: 1.25em; font-weight: 700; color: #001641;">&mdash;</div>';
             if (unit) html += '<div style="font-size: 0.7em; color: #94a3b8;">' + unit + '</div>';
         }
         html += '</div>';
@@ -452,30 +477,30 @@
         if (state.currentPhase <= 2) {
             html += '<div style="margin-bottom: 10px;">';
             html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 4px; color: #475569;">';
-            html += 'Number of Baristas: <span id="staffDisplay" style="color: #2563eb; font-size: 1.1em;">1</span>';
+            html += 'Number of Baristas: <span id="staffDisplay" style="color: #0033FF; font-size: 1.1em;">1</span>';
             html += '</label>';
             html += '<input type="range" id="staffSlider" min="1" max="5" value="1" step="1" style="width: 100%; cursor: pointer;">';
             html += '<div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>';
             html += '</div>';
             if (state.currentPhase === 2) {
-                html += '<div style="padding: 6px 10px; background: #faf5ff; border: 1px solid #c084fc; border-radius: 6px; text-align: center; margin-bottom: 6px;">';
-                html += '<div style="font-size: 0.75em; color: #7c3aed; text-transform: uppercase; font-weight: 600;">Demand This Run</div>';
-                html += '<div id="demandDisplay" style="font-size: 1.3em; font-weight: 700; color: #7c3aed;">' + sim.targetCustomers + ' customers</div>';
+                html += '<div style="padding: 6px 10px; background: #F0E5D0; border: 1px solid #C4744F; border-radius: 6px; text-align: center; margin-bottom: 6px;">';
+                html += '<div style="font-size: 0.75em; color: #A15A35; text-transform: uppercase; font-weight: 600;">Demand This Run</div>';
+                html += '<div id="demandDisplay" style="font-size: 1.3em; font-weight: 700; color: #A15A35;">' + sim.targetCustomers + ' customers</div>';
                 html += '</div>';
             }
         } else {
             html += '<div style="margin-bottom: 8px;">';
-            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 3px; color: #475569;">Order Taking Staff: <span id="orderStaffDisplay" style="color: #2563eb;">1</span></label>';
+            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 3px; color: #475569;">Order Taking Staff: <span id="orderStaffDisplay" style="color: #0033FF;">1</span></label>';
             html += '<input type="range" id="orderStaffSlider" min="1" max="5" value="1" step="1" style="width: 100%; cursor: pointer;">';
             html += '<div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>';
             html += '</div>';
             html += '<div style="margin-bottom: 8px;">';
-            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 3px; color: #475569;">Preparation Staff: <span id="prepStaffDisplay" style="color: #2563eb;">1</span></label>';
+            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 3px; color: #475569;">Preparation Staff: <span id="prepStaffDisplay" style="color: #0033FF;">1</span></label>';
             html += '<input type="range" id="prepStaffSlider" min="1" max="5" value="1" step="1" style="width: 100%; cursor: pointer;">';
             html += '<div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>';
             html += '</div>';
             html += '<div style="margin-bottom: 8px;">';
-            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 3px; color: #475569;">Serving Staff: <span id="serveStaffDisplay" style="color: #2563eb;">1</span></label>';
+            html += '<label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 3px; color: #475569;">Serving Staff: <span id="serveStaffDisplay" style="color: #0033FF;">1</span></label>';
             html += '<input type="range" id="serveStaffSlider" min="1" max="5" value="1" step="1" style="width: 100%; cursor: pointer;">';
             html += '<div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>';
             html += '</div>';
@@ -517,9 +542,9 @@
     function renderStaffStatus() {
         var html = '';
         function statusBox(staffMember) {
-            var bg = staffMember.busy ? '#FF9966' : '#81c784';
+            var bg = staffMember.busy ? '#C4744F' : '#BBF7D0';
             if (staffMember.markedForRemoval) {
-                return '<div style="width: 24px; height: 24px; background-color: ' + bg + '; border: 2px dashed #ef4444; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7em; font-weight: 600; opacity: 0.4; transition: all 0.3s ease;" title="Finishing last customer, then leaving">' + staffMember.id.split('_')[1] + '</div>';
+                return '<div style="width: 24px; height: 24px; background-color: ' + bg + '; border: 2px dashed #ED0A00; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7em; font-weight: 600; opacity: 0.4; transition: all 0.3s ease;" title="Finishing last customer, then leaving">' + staffMember.id.split('_')[1] + '</div>';
             }
             return '<div style="width: 24px; height: 24px; background-color: ' + bg + '; border: 2px solid #333; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7em; font-weight: 600; transition: all 0.3s ease;">' + staffMember.id.split('_')[1] + '</div>';
         }
@@ -1178,20 +1203,20 @@
                 // ANSWERED
                 html += '<div style="padding: 8px 10px; margin-bottom: 2px; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0;">';
                 html += '<div style="display: flex; gap: 8px; align-items: start;">';
-                html += '<div style="min-width: 24px; height: 24px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="min-width: 24px; height: 24px; border-radius: 50%; background: #0033FF; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
                 html += '<div style="flex: 1;">';
                 html += '<div style="font-size: 0.85em; color: #475569; font-style: italic; margin-bottom: 4px;">\u201c' + insight.question + '\u201d</div>';
-                html += '<div style="font-size: 0.9em; color: #1e293b; font-weight: 500; padding: 4px 8px; background: #f0fdf4; border-left: 3px solid #22c55e; border-radius: 0 4px 4px 0;">' + insight.answer + '</div>';
+                html += '<div style="font-size: 0.9em; color: #001641; font-weight: 500; padding: 4px 8px; background: #f0fdf4; border-left: 3px solid #16A34A; border-radius: 0 4px 4px 0;">' + insight.answer + '</div>';
                 html += '</div></div></div>';
             } else if (i < state.questionsShown) {
                 // QUESTION SHOWN
-                html += '<div data-reveal-index="' + i + '" style="padding: 8px 10px; margin-bottom: 2px; border-radius: 6px; background: #fefce8; border: 1px solid #eab308; cursor: pointer;">';
+                html += '<div data-reveal-index="' + i + '" style="padding: 8px 10px; margin-bottom: 2px; border-radius: 6px; background: #F0E5D0; border: 1px solid #A15A35; cursor: pointer;">';
                 html += '<div style="display: flex; gap: 8px; align-items: start;">';
-                html += '<div style="min-width: 24px; height: 24px; border-radius: 50%; background: #eab308; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="min-width: 24px; height: 24px; border-radius: 50%; background: #A15A35; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
                 html += '<div style="flex: 1;">';
-                html += '<div style="font-size: 0.85em; color: #1e293b; font-style: italic; margin-bottom: 4px;">\u201c' + insight.question + '\u201d</div>';
+                html += '<div style="font-size: 0.85em; color: #001641; font-style: italic; margin-bottom: 4px;">\u201c' + insight.question + '\u201d</div>';
                 if (i === state.insightsRevealed) {
-                    html += '<div style="font-size: 0.8em; color: #92400e; font-weight: 600; padding: 4px 10px; background: #fef9c3; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
+                    html += '<div style="font-size: 0.8em; color: #A15A35; font-weight: 600; padding: 4px 10px; background: #F0E5D0; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
                 } else {
                     html += '<div style="font-size: 0.8em; color: #94a3b8; font-style: italic;">(answer the previous question first)</div>';
                 }
@@ -1219,8 +1244,8 @@
         if (allPhaseAnswered && phase < 3) {
             var nextPhase = phase + 1;
             el.phaseAdvanceArea.style.display = 'block';
-            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #1e40af; margin-bottom: 8px;">All Phase ' + phase + ' discussion points completed!</div>' +
-                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + nextPhase + ' &#9654;</button>';
+            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #001641; margin-bottom: 8px;">All Phase ' + phase + ' discussion points completed!</div>' +
+                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + nextPhase + ' &#9654;</button>';
         } else {
             el.phaseAdvanceArea.style.display = 'none';
             el.phaseAdvanceArea.innerHTML = '';
@@ -1306,7 +1331,7 @@
         state.history = state.history.filter(function(r) { return r.phase !== phase; });
 
         // Update phase indicator
-        var colors = { active: '#2563eb', completed: '#16a34a', upcoming: '#e5e7eb' };
+        var colors = { active: '#0033FF', completed: '#16a34a', upcoming: '#e5e7eb' };
         var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
         var phaseNames = { 1: 'Phase 1: Staffing', 2: 'Phase 2: Uncertainty', 3: 'Phase 3: Sequential Ops' };
         [1, 2, 3].forEach(function(p) {
@@ -1349,8 +1374,8 @@
         el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
 
         // Update border color
-        var borderColors = { 1: '#2563eb', 2: '#7c3aed', 3: '#059669' };
-        var bgColors = { 1: '#eff6ff', 2: '#faf5ff', 3: '#ecfdf5' };
+        var borderColors = { 1: '#0033FF', 2: '#A15A35', 3: '#1F8A2F' };
+        var bgColors = { 1: '#E3F1F9', 2: '#F0E5D0', 3: '#F0FDF4' };
         var panel = document.getElementById('instructionPanel');
         panel.style.borderLeftColor = borderColors[state.currentPhase];
         panel.style.background = bgColors[state.currentPhase];

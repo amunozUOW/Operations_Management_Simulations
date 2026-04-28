@@ -75,7 +75,7 @@ async function skipToPhase(page: Page, phase: 2 | 3): Promise<void> {
   await page.locator(btnId).click();
   await expect(page.locator(`#phaseLabel${phase}`)).toHaveCSS(
     'background-color',
-    'rgb(37, 99, 235)',
+    'rgb(0, 51, 255)',
   );
 }
 

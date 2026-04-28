@@ -70,10 +70,10 @@ async function setOrderInput(page: Page, qty: number): Promise<void> {
 /** Click the sim's dynamically-rendered "Skip to Phase 2" override button. */
 async function skipToPhase2(page: Page): Promise<void> {
   await page.locator('button:has-text("Skip to Phase 2")').click();
-  // setPhase(2) re-colors phaseLabel2 to the active blue (rgb(37,99,235)).
+  // setPhase(2) re-colors phaseLabel2 to UOW Bright Blue rgb(0, 51, 255).
   await expect(page.locator('#phaseLabel2')).toHaveCSS(
     'background-color',
-    'rgb(37, 99, 235)',
+    'rgb(0, 51, 255)',
   );
 }
 

@@ -158,10 +158,10 @@ async function runUntilDoneOrBudget(page: Page, timeoutMs = 20000): Promise<void
 async function skipToPhase(page: Page, phase: 2 | 3): Promise<void> {
   const btnId = phase === 2 ? '#gpSkip2' : '#gpSkip3';
   await page.locator(btnId).click();
-  // Active phase label is painted rgb(37, 99, 235).
+  // Active phase label is painted UOW Bright Blue rgb(0, 51, 255).
   await expect(page.locator(`#gpPhaseLabel${phase}`)).toHaveCSS(
     'background-color',
-    'rgb(37, 99, 235)',
+    'rgb(0, 51, 255)',
   );
 }
 

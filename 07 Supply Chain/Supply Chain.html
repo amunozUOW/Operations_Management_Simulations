@@ -1,12 +1,37 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div id="supply-chain-sim-v1" style="display:flex !important; flex-direction:column !important; gap:14px !important; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important; max-width:1200px !important; margin:0 auto !important; padding:16px !important; color:#1a1a1a !important; line-height:1.4 !important;">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+<style data-uow-tokens>
+:root {
+  --uow-white:        #FFFFFF;
+  --uow-blue-dark:    #001641;
+  --uow-blue-bright:  #0033FF;
+  --uow-red:          #ED0A00;
+  --uow-grey-light:   #F2F2F2;
+  --uow-copper:       #A15A35;
+  --uow-copper-light: #C4744F;
+  --uow-cream:        #F0E5D0;
+  --uow-lavender:     #CDD6F8;
+  --uow-ice-blue:     #E3F1F9;
+  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --chart-1: #001641;
+  --chart-2: #ED0A00;
+  --chart-3: #0033FF;
+  --chart-4: #A15A35;
+  --chart-5: #6B7280;
+}
+[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
+  font-family: var(--uow-font) !important;
+}
+</style>
+
+<div id="supply-chain-sim-v1" style="display:flex !important; flex-direction:column !important; gap:14px !important; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important; max-width:1200px !important; margin:0 auto !important; padding:16px !important; color:#001641 !important; line-height:1.4 !important;">
 
     <!-- Title + Phase Indicator -->
     <div style="display:flex !important; flex-wrap:wrap !important; align-items:center !important; justify-content:space-between !important; gap:10px !important;">
-        <h2 style="margin:0 !important; font-size:1.5em !important; color:#1e293b !important;">Supply Chain Management</h2>
+        <h2 style="margin:0 !important; font-size:1.5em !important; color:#001641 !important;">Supply Chain Management</h2>
         <div style="display:flex !important; gap:4px !important; align-items:center !important;">
-            <span id="phaseLabel1" style="padding:5px 12px !important; border-radius:6px !important; font-size:0.8em !important; font-weight:600 !important; background:#2563eb !important; color:#fff !important;">Phase 1</span>
+            <span id="phaseLabel1" style="padding:5px 12px !important; border-radius:6px !important; font-size:0.8em !important; font-weight:600 !important; background:#0033FF !important; color:#fff !important;">Phase 1</span>
             <span style="color:#cbd5e1 !important;">&#9654;</span>
             <span id="phaseLabel2" style="padding:5px 12px !important; border-radius:6px !important; font-size:0.8em !important; font-weight:600 !important; background:#e5e7eb !important; color:#94a3b8 !important;">Phase 2</span>
             <span style="color:#cbd5e1 !important;">&#9654;</span>
@@ -15,10 +40,10 @@
     </div>
 
     <!-- Instruction Panel -->
-    <div style="background:#eff6ff !important; border-left:4px solid #2563eb !important; border-radius:0 8px 8px 0 !important; padding:14px 18px !important; line-height:1.6 !important;">
+    <div style="background:#E3F1F9 !important; border-left:4px solid #0033FF !important; border-radius:0 8px 8px 0 !important; padding:14px 18px !important; line-height:1.6 !important;">
         <div style="display:flex !important; justify-content:space-between !important; align-items:start !important;">
             <div id="instructionContent" style="flex:1 !important;"></div>
-            <button id="toggleInstructions" onclick="void(0)" style="background:none !important; border:none !important; color:#2563eb !important; cursor:pointer !important; font-size:0.85em !important; white-space:nowrap !important; padding:0 0 0 12px !important;">Show Less</button>
+            <button id="toggleInstructions" onclick="void(0)" style="background:none !important; border:none !important; color:#0033FF !important; cursor:pointer !important; font-size:0.85em !important; white-space:nowrap !important; padding:0 0 0 12px !important;">Show Less</button>
         </div>
     </div>
 
@@ -28,29 +53,29 @@
         <div style="flex:1 !important; min-width:280px !important; background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px !important;">
             <div style="font-weight:700 !important; font-size:0.95em !important; margin-bottom:12px !important; color:#334155 !important;">Order Quantities (Q)</div>
             <div style="margin-bottom:12px !important;">
-                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#1e40af !important; margin-bottom:4px !important;">Factory Q: <span id="factoryValueDisplay">12</span></label>
+                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#001641 !important; margin-bottom:4px !important;">Factory Q: <span id="factoryValueDisplay">12</span></label>
                 <input type="range" id="factorySlider" min="0" max="20" value="12" style="width:100% !important;">
             </div>
             <div id="manufacturerSliderGroup" style="display:none !important; margin-bottom:12px !important;">
-                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#f97316 !important; margin-bottom:4px !important;">Manufacturer Q: <span id="manufacturerValueDisplay">12</span></label>
+                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#A15A35 !important; margin-bottom:4px !important;">Manufacturer Q: <span id="manufacturerValueDisplay">12</span></label>
                 <input type="range" id="manufacturerSlider" min="0" max="20" value="12" style="width:100% !important;">
             </div>
             <div style="margin-bottom:12px !important;">
-                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#0d9488 !important; margin-bottom:4px !important;">Retailer Q: <span id="retailerValueDisplay">12</span></label>
+                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#0033FF !important; margin-bottom:4px !important;">Retailer Q: <span id="retailerValueDisplay">12</span></label>
                 <input type="range" id="retailerSlider" min="0" max="20" value="12" style="width:100% !important;">
             </div>
-            <button id="nextTurnBtn" onclick="void(0)" style="width:100% !important; padding:10px 16px !important; background:#2563eb !important; color:#fff !important; border:none !important; border-radius:6px !important; font-size:0.95em !important; font-weight:600 !important; cursor:pointer !important;">Next Turn</button>
+            <button id="nextTurnBtn" onclick="void(0)" style="width:100% !important; padding:10px 16px !important; background:#0033FF !important; color:#fff !important; border:none !important; border-radius:6px !important; font-size:0.95em !important; font-weight:600 !important; cursor:pointer !important;">Next Turn</button>
             <div id="statusMessage" style="display:none !important; margin-top:10px !important; padding:8px 12px !important; border-radius:6px !important; font-size:0.85em !important;"></div>
         </div>
         <!-- Status Metrics -->
         <div style="flex:1.2 !important; min-width:280px !important; display:flex !important; flex-wrap:wrap !important; gap:10px !important; align-content:start !important;">
             <div style="width:100% !important; display:flex !important; justify-content:space-between !important; align-items:center !important;">
                 <div style="font-weight:700 !important; font-size:0.95em !important; color:#334155 !important;">Turn <span id="turnCounter">0</span> of 30</div>
-                <div style="font-size:0.85em !important; color:#64748b !important;">Demand: <span id="metricDemand" style="font-weight:700 !important; color:#1e293b !important;">&mdash;</span></div>
+                <div style="font-size:0.85em !important; color:#64748b !important;">Demand: <span id="metricDemand" style="font-weight:700 !important; color:#001641 !important;">&mdash;</span></div>
             </div>
-            <div style="width:100% !important; padding:12px !important; border:2px solid #2563eb !important; border-radius:8px !important; text-align:center !important; background:#eff6ff !important;">
-                <div style="font-size:0.75em !important; color:#1e40af !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Total Profit</div>
-                <div id="metricProfit" style="font-size:1.8em !important; font-weight:700 !important; color:#1e40af !important;">$0.00</div>
+            <div style="width:100% !important; padding:12px !important; border:2px solid #0033FF !important; border-radius:8px !important; text-align:center !important; background:#E3F1F9 !important;">
+                <div style="font-size:0.75em !important; color:#001641 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Total Profit</div>
+                <div id="metricProfit" style="font-size:1.8em !important; font-weight:700 !important; color:#001641 !important;">$0.00</div>
             </div>
             <div style="flex:1 !important; min-width:120px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
                 <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important;">Turn Revenue</div>
@@ -58,19 +83,19 @@
             </div>
             <div style="flex:1 !important; min-width:120px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
                 <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important;">Turn Cost</div>
-                <div id="metricCost" style="font-size:1.2em !important; font-weight:700 !important; color:#dc2626 !important;">&mdash;</div>
+                <div id="metricCost" style="font-size:1.2em !important; font-weight:700 !important; color:#ED0A00 !important;">&mdash;</div>
             </div>
             <div style="flex:1 !important; min-width:120px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
                 <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important;">Sales</div>
-                <div id="metricSales" style="font-size:1.2em !important; font-weight:700 !important; color:#1e293b !important;">&mdash;</div>
+                <div id="metricSales" style="font-size:1.2em !important; font-weight:700 !important; color:#001641 !important;">&mdash;</div>
             </div>
             <!-- Protected Metric: Bullwhip Ratio -->
-            <div id="bullwhipCard" style="width:100% !important; padding:10px !important; border:2px dashed #93c5fd !important; border-radius:8px !important; text-align:center !important; background:#f0f7ff !important;">
-                <div style="font-size:0.75em !important; color:#1e40af !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Bullwhip Ratio</div>
+            <div id="bullwhipCard" style="width:100% !important; padding:10px !important; border:2px dashed #0033FF !important; border-radius:8px !important; text-align:center !important; background:#E3F1F9 !important;">
+                <div style="font-size:0.75em !important; color:#001641 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Bullwhip Ratio</div>
                 <div id="bullwhipPrompt" style="font-size:0.85em !important; color:#64748b !important; margin-top:4px !important;">Var(Orders) / Var(Demand)</div>
                 <div id="bullwhipRevealed" style="display:none !important;">
-                    <div id="bullwhipValue" style="font-size:1.4em !important; font-weight:700 !important; color:#1e40af !important;">&mdash;</div>
-                    <div style="font-size:0.7em !important; color:#3b82f6 !important;">Higher = more amplification</div>
+                    <div id="bullwhipValue" style="font-size:1.4em !important; font-weight:700 !important; color:#001641 !important;">&mdash;</div>
+                    <div style="font-size:0.7em !important; color:#0033FF !important;">Higher = more amplification</div>
                 </div>
             </div>
         </div>
@@ -80,35 +105,35 @@
     <div id="scDiagram" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px !important; overflow-x:auto !important;">
         <div style="display:flex !important; align-items:center !important; justify-content:center !important; gap:0 !important; min-width:600px !important;">
             <!-- Reservoir -->
-            <div style="padding:8px 12px !important; background:#e0e7ff !important; border:1px solid #a5b4fc !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:70px !important;">
-                <div style="font-weight:600 !important; color:#4338ca !important;">Reservoir</div>
-                <div style="color:#6366f1 !important;">&infin;</div>
+            <div style="padding:8px 12px !important; background:#CDD6F8 !important; border:1px solid #CDD6F8 !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:70px !important;">
+                <div style="font-weight:600 !important; color:#475569 !important;">Reservoir</div>
+                <div style="color:#64748b !important;">&infin;</div>
             </div>
             <div style="padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
             <!-- Factory -->
-            <div style="padding:8px 12px !important; background:#dbeafe !important; border:2px solid rgb(54,162,235) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
-                <div style="font-weight:700 !important; color:#1e40af !important;">Factory</div>
+            <div style="padding:8px 12px !important; background:#E3F1F9 !important; border:2px solid rgb(0,22,65) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
+                <div style="font-weight:700 !important; color:#001641 !important;">Factory</div>
                 <div style="font-size:1.3em !important; font-weight:700 !important;" id="diagFactoryEI">EI: 12</div>
                 <div style="color:#64748b !important;">Q: <span id="diagFactoryQ">12</span> &bull; R: <span id="diagFactoryR">12</span></div>
             </div>
             <div style="padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
             <!-- Manufacturer (hidden in Phase 1&2) -->
-            <div id="diagManufacturerNode" style="display:none !important; padding:8px 12px !important; background:#fff7ed !important; border:2px solid rgb(255,159,64) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
-                <div style="font-weight:700 !important; color:#c2410c !important;">Manufacturer</div>
+            <div id="diagManufacturerNode" style="display:none !important; padding:8px 12px !important; background:#F0E5D0 !important; border:2px solid rgb(161,90,53) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
+                <div style="font-weight:700 !important; color:#A15A35 !important;">Manufacturer</div>
                 <div style="font-size:1.3em !important; font-weight:700 !important;" id="diagManufacturerEI">EI: 12</div>
                 <div style="color:#64748b !important;">Q: <span id="diagManufacturerQ">12</span> &bull; R: <span id="diagManufacturerR">12</span></div>
             </div>
             <div id="diagManufacturerArrow" style="display:none !important; padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
             <!-- Retailer -->
-            <div style="padding:8px 12px !important; background:#f0fdfa !important; border:2px solid rgb(75,192,192) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
-                <div style="font-weight:700 !important; color:#0f766e !important;">Retailer</div>
+            <div style="padding:8px 12px !important; background:#E3F1F9 !important; border:2px solid rgb(0,51,255) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
+                <div style="font-weight:700 !important; color:#001641 !important;">Retailer</div>
                 <div style="font-size:1.3em !important; font-weight:700 !important;" id="diagRetailerEI">EI: 12</div>
                 <div style="color:#64748b !important;">Q: <span id="diagRetailerQ">12</span> &bull; R: <span id="diagRetailerR">12</span></div>
             </div>
             <div style="padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
             <!-- Customer -->
-            <div style="padding:8px 12px !important; background:#fef2f2 !important; border:1px solid #fca5a5 !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:80px !important;">
-                <div style="font-weight:600 !important; color:#b91c1c !important;">Customer</div>
+            <div style="padding:8px 12px !important; background:#FBEDED !important; border:1px solid #ED0A00 !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:80px !important;">
+                <div style="font-weight:600 !important; color:#B00800 !important;">Customer</div>
                 <div id="diagDemand" style="font-weight:700 !important;">&mdash;</div>
                 <div style="color:#64748b !important;">Sales: <span id="diagSales">0</span></div>
             </div>
@@ -134,8 +159,8 @@
     <!-- History Table -->
     <div>
         <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:8px !important;">
-            <h3 style="margin:0 !important; font-size:1.1em !important; color:#1e293b !important;">Turn History</h3>
-            <button id="toggleHistory" onclick="void(0)" style="background:none !important; border:none !important; color:#2563eb !important; cursor:pointer !important; font-size:0.85em !important;">Hide Table</button>
+            <h3 style="margin:0 !important; font-size:1.1em !important; color:#001641 !important;">Turn History</h3>
+            <button id="toggleHistory" onclick="void(0)" style="background:none !important; border:none !important; color:#0033FF !important; cursor:pointer !important; font-size:0.85em !important;">Hide Table</button>
         </div>
         <div id="historyContainer" style="overflow-x:auto !important;">
             <table id="historyTable" style="width:100% !important; border-collapse:collapse !important; font-size:0.8em !important;">
@@ -148,11 +173,11 @@
     <!-- Discussion Insights -->
     <div style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px 18px !important;">
         <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:12px !important;">
-            <div style="font-weight:700 !important; font-size:1.05em !important; color:#1e293b !important;">Discussion Insights</div>
+            <div style="font-weight:700 !important; font-size:1.05em !important; color:#001641 !important;">Discussion Insights</div>
             <div id="insightsCounter" style="font-size:0.85em !important; color:#64748b !important; font-weight:600 !important;">0 of 9</div>
         </div>
         <div id="insightsList" style="display:flex !important; flex-direction:column !important; gap:0px !important;"></div>
-        <div id="phaseAdvanceArea" style="display:none !important; margin-top:12px !important; padding:10px 12px !important; background:#eff6ff !important; border:1px solid #2563eb !important; border-radius:6px !important; text-align:center !important;"></div>
+        <div id="phaseAdvanceArea" style="display:none !important; margin-top:12px !important; padding:10px 12px !important; background:#E3F1F9 !important; border:1px solid #0033FF !important; border-radius:6px !important; text-align:center !important;"></div>
         <div id="overrideControls" style="margin-top:12px !important; padding-top:10px !important; border-top:1px dashed #e2e8f0 !important; display:flex !important; flex-wrap:wrap !important; gap:8px !important; justify-content:center !important;"></div>
     </div>
 </div>
@@ -264,16 +289,16 @@
         if (qChartObj) qChartObj.destroy();
         var is3 = state.currentPhase === 3;
         var eiDatasets = [
-            { label:'Factory EI', data:state.factoryIData.slice(), borderColor:'rgb(54,162,235)', backgroundColor:'rgba(54,162,235,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(54,162,235)' },
-            { label:'Retailer EI', data:state.retailerIData.slice(), borderColor:'rgb(75,192,192)', backgroundColor:'rgba(75,192,192,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(75,192,192)' }
+            { label:'Factory EI', data:state.factoryIData.slice(), borderColor:'rgb(0,22,65)', backgroundColor:'rgba(0,22,65,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(0,22,65)' },
+            { label:'Retailer EI', data:state.retailerIData.slice(), borderColor:'rgb(0,51,255)', backgroundColor:'rgba(0,51,255,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(0,51,255)' }
         ];
         var qDatasets = [
-            { label:'Factory Q', data:state.factoryQData.slice(), borderColor:'rgb(54,162,235)', backgroundColor:'rgba(54,162,235,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(54,162,235)' },
-            { label:'Retailer Q', data:state.retailerQData.slice(), borderColor:'rgb(75,192,192)', backgroundColor:'rgba(75,192,192,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(75,192,192)' }
+            { label:'Factory Q', data:state.factoryQData.slice(), borderColor:'rgb(0,22,65)', backgroundColor:'rgba(0,22,65,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(0,22,65)' },
+            { label:'Retailer Q', data:state.retailerQData.slice(), borderColor:'rgb(0,51,255)', backgroundColor:'rgba(0,51,255,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(0,51,255)' }
         ];
         if (is3) {
-            eiDatasets.splice(1,0,{ label:'Manufacturer EI', data:state.manufacturerIData.slice(), borderColor:'rgb(255,159,64)', backgroundColor:'rgba(255,159,64,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(255,159,64)' });
-            qDatasets.splice(1,0,{ label:'Manufacturer Q', data:state.manufacturerQData.slice(), borderColor:'rgb(255,159,64)', backgroundColor:'rgba(255,159,64,0.1)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(255,159,64)' });
+            eiDatasets.splice(1,0,{ label:'Manufacturer EI', data:state.manufacturerIData.slice(), borderColor:'rgb(161,90,53)', backgroundColor:'rgba(161,90,53,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(161,90,53)' });
+            qDatasets.splice(1,0,{ label:'Manufacturer Q', data:state.manufacturerQData.slice(), borderColor:'rgb(161,90,53)', backgroundColor:'rgba(161,90,53,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(161,90,53)' });
         }
         var labels = [];
         for (var i = 0; i <= state.turnNumber; i++) labels.push(i);
@@ -448,7 +473,7 @@
         el.turnCounter.textContent = state.turnNumber;
         el.metricDemand.textContent = state.turnNumber > 0 ? state.lastDemand : '\u2014';
         el.metricProfit.textContent = fmt(state.totalProfit);
-        el.metricProfit.style.color = state.totalProfit >= 0 ? '#1e40af' : '#dc2626';
+        el.metricProfit.style.color = state.totalProfit >= 0 ? '#001641' : '#ED0A00';
         if (state.turnNumber > 0) {
             el.metricRevenue.textContent = fmt(state.lastRevenue);
             el.metricCost.textContent = fmt(state.lastCost);
@@ -457,7 +482,7 @@
         // Diagram
         var t = state.turnNumber;
         if (t > 0) {
-            var eiColor = function(v) { return v >= 0 ? '#1e293b' : '#dc2626'; };
+            var eiColor = function(v) { return v >= 0 ? '#001641' : '#ED0A00'; };
             el.diagFactoryEI.textContent = 'EI: ' + state.factoryI[t];
             el.diagFactoryEI.style.color = eiColor(state.factoryI[t]);
             el.diagFactoryQ.textContent = state.factoryQ[t];
@@ -515,9 +540,9 @@
     function showStatus(msg, isError) {
         el.statusMessage.style.display = 'block';
         el.statusMessage.textContent = msg;
-        el.statusMessage.style.background = isError ? '#fef2f2' : '#f0fdf4';
-        el.statusMessage.style.color = isError ? '#dc2626' : '#16a34a';
-        el.statusMessage.style.border = '1px solid ' + (isError ? '#fecaca' : '#bbf7d0');
+        el.statusMessage.style.background = isError ? '#FBEDED' : '#f0fdf4';
+        el.statusMessage.style.color = isError ? '#ED0A00' : '#16a34a';
+        el.statusMessage.style.border = '1px solid ' + (isError ? '#FBEDED' : '#BBF7D0');
     }
 
     function updateBullwhipDisplay() {
@@ -532,7 +557,7 @@
         el.bullwhipPrompt.style.display = 'none';
         el.bullwhipRevealed.style.display = 'block';
         el.bullwhipCard.style.borderStyle = 'solid';
-        el.bullwhipCard.style.borderColor = '#2563eb';
+        el.bullwhipCard.style.borderColor = '#0033FF';
     }
 
     /* ====================================================================== INSTRUCTIONS ====================================================================== */
@@ -548,7 +573,7 @@
         var labels = [el.phaseLabel1, el.phaseLabel2, el.phaseLabel3];
         for (var i = 0; i < 3; i++) {
             if (i + 1 < phase) { labels[i].style.background = '#16a34a'; labels[i].style.color = '#fff'; }
-            else if (i + 1 === phase) { labels[i].style.background = '#2563eb'; labels[i].style.color = '#fff'; }
+            else if (i + 1 === phase) { labels[i].style.background = '#0033FF'; labels[i].style.color = '#fff'; }
             else { labels[i].style.background = '#e5e7eb'; labels[i].style.color = '#94a3b8'; }
         }
         // Show/hide manufacturer
@@ -585,11 +610,11 @@
         // Reset UI
         el.nextTurnBtn.disabled = false; el.nextTurnBtn.style.opacity = '1';
         el.turnCounter.textContent = '0';
-        el.metricProfit.textContent = '$0.00'; el.metricProfit.style.color = '#1e40af';
+        el.metricProfit.textContent = '$0.00'; el.metricProfit.style.color = '#001641';
         el.metricRevenue.textContent = '\u2014'; el.metricCost.textContent = '\u2014'; el.metricSales.textContent = '\u2014'; el.metricDemand.textContent = '\u2014';
-        el.diagFactoryEI.textContent = 'EI: 12'; el.diagFactoryEI.style.color = '#1e293b';
-        el.diagRetailerEI.textContent = 'EI: 12'; el.diagRetailerEI.style.color = '#1e293b';
-        el.diagManufacturerEI.textContent = 'EI: 12'; el.diagManufacturerEI.style.color = '#1e293b';
+        el.diagFactoryEI.textContent = 'EI: 12'; el.diagFactoryEI.style.color = '#001641';
+        el.diagRetailerEI.textContent = 'EI: 12'; el.diagRetailerEI.style.color = '#001641';
+        el.diagManufacturerEI.textContent = 'EI: 12'; el.diagManufacturerEI.style.color = '#001641';
         el.diagFactoryQ.textContent = '12'; el.diagFactoryR.textContent = '12';
         el.diagRetailerQ.textContent = '12'; el.diagRetailerR.textContent = '12';
         el.diagManufacturerQ.textContent = '12'; el.diagManufacturerR.textContent = '12';
@@ -646,13 +671,13 @@
         for (var i = 0; i < state.questionsShown; i++) {
             var ins = INSIGHTS[i];
             var div = document.createElement('div');
-            div.style.cssText = 'padding:10px 12px !important; border-left:3px solid ' + (i < state.insightsRevealed ? '#16a34a' : '#f59e0b') + ' !important; margin-bottom:8px !important; background:' + (i < state.insightsRevealed ? '#f0fdf4' : '#fffbeb') + ' !important; border-radius:0 6px 6px 0 !important;';
+            div.style.cssText = 'padding:10px 12px !important; border-left:3px solid ' + (i < state.insightsRevealed ? '#16a34a' : '#A15A35') + ' !important; margin-bottom:8px !important; background:' + (i < state.insightsRevealed ? '#f0fdf4' : '#F0E5D0') + ' !important; border-radius:0 6px 6px 0 !important;';
             var label = document.createElement('div');
-            label.style.cssText = 'font-size:0.75em !important; font-weight:600 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; color:' + (i < state.insightsRevealed ? '#16a34a' : '#d97706') + ' !important; margin-bottom:4px !important;';
+            label.style.cssText = 'font-size:0.75em !important; font-weight:600 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; color:' + (i < state.insightsRevealed ? '#16a34a' : '#A15A35') + ' !important; margin-bottom:4px !important;';
             label.textContent = (i < state.insightsRevealed ? '\u2713 ' : '') + 'Insight ' + (i+1) + ' (Phase ' + ins.phase + ')';
             div.appendChild(label);
             var q = document.createElement('div');
-            q.style.cssText = 'font-weight:600 !important; color:#1e293b !important; margin-bottom:6px !important;';
+            q.style.cssText = 'font-weight:600 !important; color:#001641 !important; margin-bottom:6px !important;';
             q.textContent = ins.question;
             div.appendChild(q);
             if (i < state.insightsRevealed) {
@@ -662,7 +687,7 @@
                 div.appendChild(a);
             } else if (i === state.insightsRevealed) {
                 var btn = document.createElement('button');
-                btn.style.cssText = 'padding:6px 14px !important; background:#f59e0b !important; color:#fff !important; border:none !important; border-radius:4px !important; font-size:0.85em !important; font-weight:600 !important; cursor:pointer !important;';
+                btn.style.cssText = 'padding:6px 14px !important; background:#A15A35 !important; color:#fff !important; border:none !important; border-radius:4px !important; font-size:0.85em !important; font-weight:600 !important; cursor:pointer !important;';
                 btn.textContent = 'Reveal Answer';
                 btn.onclick = (function(idx){return function(){revealInsightAnswer(idx);};})(i);
                 div.appendChild(btn);
@@ -678,7 +703,7 @@
         for (var i = 0; i < pIns.length; i++) { if (pIns[i] >= state.insightsRevealed) { allDone = false; break; } }
         if (allDone && state.currentPhase < TOTAL_PHASES) {
             el.phaseAdvanceArea.style.display = 'block';
-            el.phaseAdvanceArea.innerHTML = '<strong>All Phase ' + state.currentPhase + ' insights revealed!</strong><br><button onclick="void(0)" id="advPhaseBtn" style="margin-top:8px !important; padding:8px 20px !important; background:#2563eb !important; color:#fff !important; border:none !important; border-radius:6px !important; font-weight:600 !important; cursor:pointer !important;">Advance to Phase ' + (state.currentPhase+1) + '</button>';
+            el.phaseAdvanceArea.innerHTML = '<strong>All Phase ' + state.currentPhase + ' insights revealed!</strong><br><button onclick="void(0)" id="advPhaseBtn" style="margin-top:8px !important; padding:8px 20px !important; background:#0033FF !important; color:#fff !important; border:none !important; border-radius:6px !important; font-weight:600 !important; cursor:pointer !important;">Advance to Phase ' + (state.currentPhase+1) + '</button>';
             document.getElementById('advPhaseBtn').addEventListener('click', function(){ advancePhase(); });
         } else if (allDone && state.currentPhase === TOTAL_PHASES) {
             el.phaseAdvanceArea.style.display = 'block';
@@ -716,7 +741,7 @@
         el.diagManufacturerArrow.style.display = 'none';
         el.bullwhipPrompt.style.display = 'block';
         el.bullwhipRevealed.style.display = 'none';
-        el.bullwhipCard.style.borderStyle = 'dashed'; el.bullwhipCard.style.borderColor = '#93c5fd';
+        el.bullwhipCard.style.borderStyle = 'dashed'; el.bullwhipCard.style.borderColor = '#0033FF';
         el.historyContainer.style.display = 'block'; el.toggleHistory.textContent = 'Hide Table';
         state.historyVisible = true; state.instructionExpanded = true;
         setPhase(1);
@@ -737,7 +762,7 @@
         var labels = [el.phaseLabel1, el.phaseLabel2, el.phaseLabel3];
         for (var i = 0; i < 3; i++) {
             if (i+1 < state.currentPhase) { labels[i].style.background = '#16a34a'; labels[i].style.color = '#fff'; }
-            else if (i+1 === state.currentPhase) { labels[i].style.background = '#2563eb'; labels[i].style.color = '#fff'; }
+            else if (i+1 === state.currentPhase) { labels[i].style.background = '#0033FF'; labels[i].style.color = '#fff'; }
             else { labels[i].style.background = '#e5e7eb'; labels[i].style.color = '#94a3b8'; }
         }
         var is3 = state.currentPhase === 3;

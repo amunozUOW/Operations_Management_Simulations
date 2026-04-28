@@ -1,12 +1,37 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div id="hammer-shop-sim-v1" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #1a1a1a; position: relative;">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+<style data-uow-tokens>
+:root {
+  --uow-white:        #FFFFFF;
+  --uow-blue-dark:    #001641;
+  --uow-blue-bright:  #0033FF;
+  --uow-red:          #ED0A00;
+  --uow-grey-light:   #F2F2F2;
+  --uow-copper:       #A15A35;
+  --uow-copper-light: #C4744F;
+  --uow-cream:        #F0E5D0;
+  --uow-lavender:     #CDD6F8;
+  --uow-ice-blue:     #E3F1F9;
+  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --chart-1: #001641;
+  --chart-2: #ED0A00;
+  --chart-3: #0033FF;
+  --chart-4: #A15A35;
+  --chart-5: #6B7280;
+}
+[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
+  font-family: var(--uow-font) !important;
+}
+</style>
+
+<div id="hammer-shop-sim-v1" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #001641; position: relative;">
 
     <!-- ROW 1: Title + Phase Progress -->
     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
-        <h2 style="margin: 0; font-size: 1.5em; color: #1e293b;">Hammer Shop Simulation</h2>
+        <h2 style="margin: 0; font-size: 1.5em; color: #001641;">Hammer Shop Simulation</h2>
         <div style="display: flex; gap: 4px; align-items: center;">
-            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #2563eb; color: #fff;">Phase 1: Service</span>
+            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #0033FF; color: #fff;">Phase 1: Service</span>
             <span style="color: #cbd5e1;">&#9654;</span>
             <span id="phaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Inventory</span>
             <span style="color: #cbd5e1;">&#9654;</span>
@@ -15,10 +40,10 @@
     </div>
 
     <!-- ROW 2: Instruction Panel -->
-    <div id="instructionPanel" style="background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
+    <div id="instructionPanel" style="background: #E3F1F9; border-left: 4px solid #0033FF; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
         <div style="display: flex; justify-content: space-between; align-items: start;">
             <div id="instructionContent"></div>
-            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #2563eb; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #0033FF; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
         </div>
     </div>
 
@@ -26,9 +51,9 @@
     <div id="notificationArea" style="display: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9em; text-align: center;"></div>
 
     <!-- Failure Overlay -->
-    <div id="failureOverlay" style="display: none; padding: 16px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; text-align: center;">
-        <div id="failureMessage" style="font-size: 1.1em; font-weight: 700; color: #dc2626;"></div>
-        <div style="font-size: 0.85em; color: #7f1d1d; margin-top: 4px;">Simulation terminated. Press Reset to try again.</div>
+    <div id="failureOverlay" style="display: none; padding: 16px; background: #FBEDED; border: 2px solid #ED0A00; border-radius: 8px; text-align: center;">
+        <div id="failureMessage" style="font-size: 1.1em; font-weight: 700; color: #ED0A00;"></div>
+        <div style="font-size: 0.85em; color: #B00800; margin-top: 4px;">Simulation terminated. Press Reset to try again.</div>
     </div>
 
     <!-- ROW 3: Controls + Metrics -->
@@ -39,7 +64,7 @@
 
             <!-- Simulation Controls -->
             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 14px;">
-                <button id="toggleBtn" onclick="void(0)" style="flex: 1; padding: 8px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Start</button>
+                <button id="toggleBtn" onclick="void(0)" style="flex: 1; padding: 8px 16px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Start</button>
                 <select id="speedSelect" style="padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; cursor: pointer; font-size: 0.85em;">
                     <option value="3000">Slow</option>
                     <option value="2000" selected>Medium</option>
@@ -55,7 +80,7 @@
                     <span>Cash: <strong id="cashDisplay" style="color: #16a34a;">$4,000.00</strong></span>
                 </div>
                 <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                    <div id="timeBar" style="height: 100%; width: 0%; background: #2563eb; transition: width 0.3s;"></div>
+                    <div id="timeBar" style="height: 100%; width: 0%; background: #0033FF; transition: width 0.3s;"></div>
                 </div>
             </div>
 
@@ -64,7 +89,7 @@
 
             <div style="margin-bottom: 10px;">
                 <label style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 2px; color: #475569;">
-                    Regular Staff ($5/min, 1 cust/min): <span id="regularStaffValue" style="color: #2563eb;">1</span>
+                    Regular Staff ($5/min, 1 cust/min): <span id="regularStaffValue" style="color: #0033FF;">1</span>
                 </label>
                 <input type="range" id="regularStaffSlider" min="1" max="10" value="1" step="1" style="width: 100%; cursor: pointer;">
                 <div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #94a3b8;"><span>1</span><span>5</span><span>10</span></div>
@@ -72,8 +97,8 @@
 
             <div style="margin-bottom: 14px;">
                 <label style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 2px; color: #475569;">
-                    Emergency Staff ($25/min, 2 cust/min): <span id="emergencyStaffValue" style="color: #2563eb;">0</span>
-                    <span id="emergencyLockLabel" style="font-size: 0.8em; color: #ef4444; font-weight: 400;">(locked until Phase 3)</span>
+                    Emergency Staff ($25/min, 2 cust/min): <span id="emergencyStaffValue" style="color: #0033FF;">0</span>
+                    <span id="emergencyLockLabel" style="font-size: 0.8em; color: #ED0A00; font-weight: 400;">(locked until Phase 3)</span>
                 </label>
                 <input type="range" id="emergencyStaffSlider" min="0" max="5" value="0" step="1" style="width: 100%; cursor: not-allowed; opacity: 0.4;" disabled>
                 <div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #94a3b8;"><span>0</span><span>2</span><span>5</span></div>
@@ -87,16 +112,16 @@
                     <div style="font-size: 0.8em; color: #475569; display: flex; align-items: center; gap: 4px;">
                         <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span> Red Stock
                     </div>
-                    <div id="redInventoryDisplay" style="font-size: 1.2em; font-weight: 700; color: #1e293b;">50</div>
-                    <div id="redWarning" style="display: none; font-size: 0.75em; color: #ef4444; font-weight: 600;">LOW STOCK</div>
+                    <div id="redInventoryDisplay" style="font-size: 1.2em; font-weight: 700; color: #001641;">50</div>
+                    <div id="redWarning" style="display: none; font-size: 0.75em; color: #ED0A00; font-weight: 600;">LOW STOCK</div>
                     <input type="number" id="redOrderQty" min="1" max="100" placeholder="Order qty" style="width: 100%; margin-top: 4px; padding: 4px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.85em;">
                 </div>
                 <div style="flex: 1; padding: 8px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px;">
                     <div style="font-size: 0.8em; color: #475569; display: flex; align-items: center; gap: 4px;">
-                        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span> Blue Stock
+                        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span> Blue Stock
                     </div>
-                    <div id="blueInventoryDisplay" style="font-size: 1.2em; font-weight: 700; color: #1e293b;">50</div>
-                    <div id="blueWarning" style="display: none; font-size: 0.75em; color: #4682B4; font-weight: 600;">LOW STOCK</div>
+                    <div id="blueInventoryDisplay" style="font-size: 1.2em; font-weight: 700; color: #001641;">50</div>
+                    <div id="blueWarning" style="display: none; font-size: 0.75em; color: #0033FF; font-weight: 600;">LOW STOCK</div>
                     <input type="number" id="blueOrderQty" min="1" max="100" placeholder="Order qty" style="width: 100%; margin-top: 4px; padding: 4px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.85em;">
                 </div>
             </div>
@@ -110,7 +135,7 @@
                     Red: <span id="pendingRedQty">0</span> arriving in <span id="pendingRedTime">0</span> min
                 </div>
                 <div id="pendingBlueDiv" style="display: none; align-items: center; gap: 4px;">
-                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4682B4;"></span>
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #0033FF;"></span>
                     Blue: <span id="pendingBlueQty">0</span> arriving in <span id="pendingBlueTime">0</span> min
                 </div>
             </div>
@@ -127,7 +152,7 @@
                     Red: <strong id="redSatisfaction">100</strong>%
                 </div>
                 <div style="font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span>
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span>
                     Blue: <strong id="blueSatisfaction">100</strong>%
                 </div>
             </div>
@@ -140,7 +165,7 @@
                     Red: <strong id="redFillRate">100</strong>%
                 </div>
                 <div style="font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span>
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span>
                     Blue: <strong id="blueFillRate">100</strong>%
                 </div>
             </div>
@@ -153,7 +178,7 @@
                     Red: <strong id="redWaitTime">0.0</strong> min
                 </div>
                 <div style="font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span>
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span>
                     Blue: <strong id="blueWaitTime">0.0</strong> min
                 </div>
             </div>
@@ -166,7 +191,7 @@
                     Red: <strong id="redQueueLength">0</strong>
                 </div>
                 <div style="font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4682B4; border: 1px solid #333;"></span>
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span>
                     Blue: <strong id="blueQueueLength">0</strong>
                 </div>
             </div>
@@ -174,13 +199,13 @@
             <!-- Wage Cost -->
             <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
                 <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Wage Cost/min</div>
-                <div style="font-size: 1.3em; font-weight: 700; color: #1e293b;">$<span id="wageCostDisplay">0</span></div>
+                <div style="font-size: 1.3em; font-weight: 700; color: #001641;">$<span id="wageCostDisplay">0</span></div>
             </div>
 
             <!-- Holding Cost -->
             <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
                 <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Holding Cost/min</div>
-                <div style="font-size: 1.3em; font-weight: 700; color: #1e293b;">$<span id="holdingCostDisplay">0</span></div>
+                <div style="font-size: 1.3em; font-weight: 700; color: #001641;">$<span id="holdingCostDisplay">0</span></div>
             </div>
 
             <!-- Revenue -->
@@ -192,16 +217,16 @@
             <!-- Profit -->
             <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
                 <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Profit/min</div>
-                <div id="profitDisplay" style="font-size: 1.3em; font-weight: 700; color: #1e293b;">$0</div>
+                <div id="profitDisplay" style="font-size: 1.3em; font-weight: 700; color: #001641;">$0</div>
             </div>
 
             <!-- Protected Metric: Cost per Customer -->
-            <div id="metricCPC" style="width: 100%; padding: 10px; border: 2px solid #2563eb; border-radius: 8px; text-align: center; background: #eff6ff; display: none;">
-                <div style="font-size: 0.72em; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Cost per Customer Served</div>
+            <div id="metricCPC" style="width: 100%; padding: 10px; border: 2px solid #0033FF; border-radius: 8px; text-align: center; background: #E3F1F9; display: none;">
+                <div style="font-size: 0.72em; color: #001641; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Cost per Customer Served</div>
                 <div style="font-size: 0.8em; color: #64748b; margin: 4px 0;">Calculate: Total Costs &divide; Customers Served</div>
                 <div id="cpcRevealedValue" style="display: none;">
-                    <div id="cpcValue" style="font-size: 1.5em; font-weight: 700; color: #1e40af;">&mdash;</div>
-                    <div style="font-size: 0.7em; color: #3b82f6;">$ per customer</div>
+                    <div id="cpcValue" style="font-size: 1.5em; font-weight: 700; color: #001641;">&mdash;</div>
+                    <div style="font-size: 0.7em; color: #0033FF;">$ per customer</div>
                 </div>
             </div>
         </div>
@@ -221,10 +246,10 @@
             </div>
             <div style="display: flex; gap: 12px; margin-left: auto; font-size: 0.8em;">
                 <div style="display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 14px; height: 14px; background: #FF9966; border: 1.5px solid #333; border-radius: 3px;"></div> Busy
+                    <div style="width: 14px; height: 14px; background: #C4744F; border: 1.5px solid #333; border-radius: 3px;"></div> Busy
                 </div>
                 <div style="display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 14px; height: 14px; background: #81c784; border: 1.5px solid #333; border-radius: 3px;"></div> Idle
+                    <div style="width: 14px; height: 14px; background: #BBF7D0; border: 1.5px solid #333; border-radius: 3px;"></div> Idle
                 </div>
             </div>
         </div>
@@ -247,7 +272,7 @@
     <!-- ROW 6: Order History (collapsible) -->
     <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <h3 style="margin: 0; font-size: 1.05em; color: #1e293b;">Order History</h3>
+            <h3 style="margin: 0; font-size: 1.05em; color: #001641;">Order History</h3>
             <button id="toggleHistory" onclick="void(0)" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.82em; text-decoration: underline;">Hide</button>
         </div>
         <div id="historyWrap" style="overflow-x: auto;">
@@ -268,11 +293,11 @@
     <!-- ROW 7: Discussion Insights Panel -->
     <div id="insightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div style="font-weight: 700; font-size: 1.05em; color: #1e293b;">Discussion Insights</div>
+            <div style="font-weight: 700; font-size: 1.05em; color: #001641;">Discussion Insights</div>
             <div id="insightsCounter" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 9</div>
         </div>
         <div id="insightsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
-        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #eff6ff; border: 1px solid #2563eb; border-radius: 6px; text-align: center;"></div>
+        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #E3F1F9; border: 1px solid #0033FF; border-radius: 6px; text-align: center;"></div>
         <div id="overrideControls" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
     </div>
 
@@ -818,7 +843,7 @@
         simInterval = null;
         el.toggleBtn.textContent = 'Failed';
         el.toggleBtn.disabled = true;
-        el.toggleBtn.style.background = '#ef4444';
+        el.toggleBtn.style.background = '#ED0A00';
         el.toggleBtn.style.cursor = 'not-allowed';
         el.failureMessage.textContent = message;
         el.failureOverlay.style.display = 'block';
@@ -871,7 +896,7 @@
     // === PHASE MANAGEMENT ===
     function setPhase(phase) {
         state.currentPhase = phase;
-        var colors = { active: '#2563eb', completed: '#16a34a', upcoming: '#e5e7eb' };
+        var colors = { active: '#0033FF', completed: '#16a34a', upcoming: '#e5e7eb' };
         var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
         [1, 2, 3].forEach(function(p) {
             var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
@@ -924,7 +949,7 @@
     // === INSTRUCTIONS ===
     var instructionText = {
         1: {
-            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #1e40af;">Phase 1: Service Capacity</div>' +
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #001641;">Phase 1: Service Capacity</div>' +
                 '<div style="margin-bottom: 8px;">You manage a hammer shop selling <strong>red hammers</strong> ($25 each) and <strong>blue hammers</strong> ($50 each). Customers arrive randomly each minute. Your main decision is <strong>how many regular staff to hire</strong>.</div>' +
                 '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
                 '<li>Red customers: <strong>1\u20134/min</strong>, buy 1\u20132 hammers, tolerate <strong>3 min</strong> wait</li>' +
@@ -932,26 +957,26 @@
                 '<li>Regular staff: <strong>1 customer/min</strong> at <strong>$5/min</strong></li>' +
                 '<li>Starting cash: <strong>$4,000</strong>. Failure at &lt; \u2013$1,000 or satisfaction &lt; 40% for 5 min</li>' +
                 '</ul>' +
-                '<div style="color: #1e40af; font-weight: 600;">Try different staffing levels. Watch how queue length, wait times, and satisfaction change.</div>',
-            short: '<span style="font-weight: 700; color: #1e40af;">Phase 1:</span> Adjust regular staff (emergency locked). Observe queue dynamics and customer satisfaction.'
+                '<div style="color: #001641; font-weight: 600;">Try different staffing levels. Watch how queue length, wait times, and satisfaction change.</div>',
+            short: '<span style="font-weight: 700; color: #001641;">Phase 1:</span> Adjust regular staff (emergency locked). Observe queue dynamics and customer satisfaction.'
         },
         2: {
-            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #7c3aed;">Phase 2: Inventory Strategy</div>' +
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #A15A35;">Phase 2: Inventory Strategy</div>' +
                 '<div style="margin-bottom: 8px;">Now focus on <strong>inventory management</strong>. When stock runs out, customers leave immediately with low satisfaction.</div>' +
                 '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
                 '<li>Red hammers: $15/unit + $20 order fee, <strong>$2/min holding cost</strong></li>' +
                 '<li>Blue hammers: $25/unit + $200 order fee, <strong>$4/min holding cost</strong></li>' +
                 '<li>All orders take <strong>2 minutes</strong> to arrive. Max inventory: 200 per type</li>' +
                 '</ul>' +
-                '<div style="color: #7c3aed; font-weight: 600;">Experiment with order timing and quantities. Can you keep stock without excessive holding costs?</div>',
-            short: '<span style="font-weight: 700; color: #7c3aed;">Phase 2:</span> Optimize inventory ordering. Balance holding costs vs stockout risk.'
+                '<div style="color: #A15A35; font-weight: 600;">Experiment with order timing and quantities. Can you keep stock without excessive holding costs?</div>',
+            short: '<span style="font-weight: 700; color: #A15A35;">Phase 2:</span> Optimize inventory ordering. Balance holding costs vs stockout risk.'
         },
         3: {
-            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #059669;">Phase 3: Integrated Optimization</div>' +
+            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #1F8A2F;">Phase 3: Integrated Optimization</div>' +
                 '<div style="margin-bottom: 8px;"><strong>Emergency staff</strong> are now available: they serve <strong>2 customers/min</strong> but cost <strong>$25/min</strong> (5\u00d7 regular). All controls are active.</div>' +
                 '<div style="margin-bottom: 8px;">Your goal: maximize profit over 60 minutes by optimizing <strong>staffing levels</strong>, <strong>emergency staff usage</strong>, and <strong>inventory ordering</strong> together.</div>' +
-                '<div style="color: #059669; font-weight: 600;">Can you find the right balance between service quality, inventory costs, and wage costs?</div>',
-            short: '<span style="font-weight: 700; color: #059669;">Phase 3:</span> Emergency staff unlocked. Optimize staffing + inventory for maximum profit.'
+                '<div style="color: #1F8A2F; font-weight: 600;">Can you find the right balance between service quality, inventory costs, and wage costs?</div>',
+            short: '<span style="font-weight: 700; color: #1F8A2F;">Phase 3:</span> Emergency staff unlocked. Optimize staffing + inventory for maximum profit.'
         }
     };
 
@@ -971,17 +996,17 @@
             if (i < state.insightsRevealed) {
                 html += '<div style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0;">';
                 html += '<div style="display: flex; gap: 10px; align-items: start;">';
-                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #0033FF; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
                 html += '<div style="flex: 1;"><div style="font-size: 0.85em; color: #475569; font-style: italic; margin-bottom: 6px;">\u201c' + ins.question + '\u201d</div>';
-                html += '<div style="font-size: 0.9em; color: #1e293b; font-weight: 500; padding: 6px 10px; background: #f0fdf4; border-left: 3px solid #22c55e; border-radius: 0 4px 4px 0;">' + ins.answer + '</div>';
+                html += '<div style="font-size: 0.9em; color: #001641; font-weight: 500; padding: 6px 10px; background: #f0fdf4; border-left: 3px solid #16A34A; border-radius: 0 4px 4px 0;">' + ins.answer + '</div>';
                 html += '</div></div></div>';
             } else if (i < state.questionsShown) {
-                html += '<div data-reveal-index="' + i + '" style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fefce8; border: 1px solid #eab308; cursor: pointer;">';
+                html += '<div data-reveal-index="' + i + '" style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #F0E5D0; border: 1px solid #A15A35; cursor: pointer;">';
                 html += '<div style="display: flex; gap: 10px; align-items: start;">';
-                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #eab308; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
-                html += '<div style="flex: 1;"><div style="font-size: 0.85em; color: #1e293b; font-style: italic; margin-bottom: 6px;">\u201c' + ins.question + '\u201d</div>';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #A15A35; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
+                html += '<div style="flex: 1;"><div style="font-size: 0.85em; color: #001641; font-style: italic; margin-bottom: 6px;">\u201c' + ins.question + '\u201d</div>';
                 if (i === state.insightsRevealed) {
-                    html += '<div style="font-size: 0.8em; color: #92400e; font-weight: 600; padding: 4px 10px; background: #fef9c3; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
+                    html += '<div style="font-size: 0.8em; color: #A15A35; font-weight: 600; padding: 4px 10px; background: #F0E5D0; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
                 } else {
                     html += '<div style="font-size: 0.8em; color: #94a3b8; font-style: italic;">(answer the previous question first)</div>';
                 }
@@ -1006,8 +1031,8 @@
         if (state.insightsRevealed > maxIdx && phase < 3) {
             el.phaseAdvanceArea.style.display = 'block';
             var next = phase + 1;
-            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #1e40af; margin-bottom: 8px;">All Phase ' + phase + ' insights completed!</div>' +
-                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + next + ' &#9654;</button>';
+            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #001641; margin-bottom: 8px;">All Phase ' + phase + ' insights completed!</div>' +
+                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + next + ' &#9654;</button>';
         } else {
             el.phaseAdvanceArea.style.display = 'none';
             el.phaseAdvanceArea.innerHTML = '';
@@ -1060,14 +1085,14 @@
         el.timeDisplay.textContent = state.simulatedTime;
         el.timeBar.style.width = (state.simulatedTime / SIM_DURATION * 100) + '%';
         el.cashDisplay.textContent = '$' + state.currentCash.toFixed(2);
-        el.cashDisplay.style.color = state.currentCash >= 0 ? '#16a34a' : '#dc2626';
+        el.cashDisplay.style.color = state.currentCash >= 0 ? '#16a34a' : '#ED0A00';
         el.redInventoryDisplay.textContent = state.inventoryRed;
         el.blueInventoryDisplay.textContent = state.inventoryBlue;
         el.wageCostDisplay.textContent = state.curMinStaffCost.toFixed(0);
         el.holdingCostDisplay.textContent = state.curMinHoldingCost.toFixed(0);
         el.revenueDisplay.textContent = state.curMinRevenue.toFixed(0);
         var curProfit = state.curMinRevenue - state.curMinStaffCost - state.curMinHoldingCost;
-        el.profitDisplay.innerHTML = '<span style="color:' + (curProfit >= 0 ? '#16a34a' : '#dc2626') + '">$' + curProfit.toFixed(0) + '</span>';
+        el.profitDisplay.innerHTML = '<span style="color:' + (curProfit >= 0 ? '#16a34a' : '#ED0A00') + '">$' + curProfit.toFixed(0) + '</span>';
         var avg = calculateMovingAverages();
         el.redSatisfaction.textContent = Math.round(avg.satisfaction.red);
         el.blueSatisfaction.textContent = Math.round(avg.satisfaction.blue);
@@ -1099,7 +1124,7 @@
         el.emergencyStaffStatus.innerHTML = '';
         for (var i = 0; i < staff.length; i++) {
             var box = document.createElement('div');
-            box.style.cssText = 'width: 24px; height: 24px; background: ' + (staff[i].busy ? '#FF9966' : '#81c784') +
+            box.style.cssText = 'width: 24px; height: 24px; background: ' + (staff[i].busy ? '#C4744F' : '#BBF7D0') +
                 '; border: 1.5px solid #333; border-radius: 3px; transition: background 0.3s;';
             if (staff[i].type === 'regular') el.regularStaffStatus.appendChild(box);
             else el.emergencyStaffStatus.appendChild(box);
@@ -1174,7 +1199,7 @@
             type: 'line',
             data: { labels: state.chartSatLabels.slice(), datasets: [
                 { label: 'Red Satisfaction', data: state.chartSatRed.slice(), borderColor: '#ff4444', borderWidth: 2, fill: false, pointRadius: 1 },
-                { label: 'Blue Satisfaction', data: state.chartSatBlue.slice(), borderColor: '#4682B4', borderWidth: 2, fill: false, pointRadius: 1 }
+                { label: 'Blue Satisfaction', data: state.chartSatBlue.slice(), borderColor: '#0033FF', borderWidth: 2, fill: false, pointRadius: 1 }
             ] },
             options: Object.assign({}, commonOpts, { scales: Object.assign({}, commonOpts.scales, {
                 y: Object.assign({}, commonOpts.scales.y, { beginAtZero: true, max: 100, title: { display: true, text: 'Satisfaction (%)', font: { size: 13, weight: 'bold' } } })
@@ -1185,7 +1210,7 @@
             type: 'line',
             data: { labels: state.chartWaitLabels.slice(), datasets: [
                 { label: 'Red Wait Time', data: state.chartWaitRed.slice(), borderColor: '#ff4444', borderWidth: 2, fill: false, pointRadius: 1 },
-                { label: 'Blue Wait Time', data: state.chartWaitBlue.slice(), borderColor: '#4682B4', borderWidth: 2, fill: false, pointRadius: 1 }
+                { label: 'Blue Wait Time', data: state.chartWaitBlue.slice(), borderColor: '#0033FF', borderWidth: 2, fill: false, pointRadius: 1 }
             ] },
             options: Object.assign({}, commonOpts, { scales: Object.assign({}, commonOpts.scales, {
                 y: Object.assign({}, commonOpts.scales.y, { beginAtZero: true, title: { display: true, text: 'Wait Time (minutes)', font: { size: 13, weight: 'bold' } } })
@@ -1255,7 +1280,7 @@
         if (state.failureOccurred) {
             el.toggleBtn.textContent = 'Failed';
             el.toggleBtn.disabled = true;
-            el.toggleBtn.style.background = '#ef4444';
+            el.toggleBtn.style.background = '#ED0A00';
             el.toggleBtn.style.cursor = 'not-allowed';
             el.failureMessage.textContent = state.failureMessage || 'Simulation failed';
             el.failureOverlay.style.display = 'block';
@@ -1302,7 +1327,7 @@
         el.failureOverlay.style.display = 'none';
         el.toggleBtn.textContent = 'Start';
         el.toggleBtn.disabled = false;
-        el.toggleBtn.style.background = '#2563eb';
+        el.toggleBtn.style.background = '#0033FF';
         el.toggleBtn.style.cursor = 'pointer';
         rebuildStaff();
         if (satChart) {

@@ -51,9 +51,10 @@ async function skipToPhase(page: Page, phase: 2 | 3): Promise<void> {
   for (let i = 0; i < steps; i++) {
     await page.locator('#vmSkipPhase').click();
     // Wait for the phase label background to flip to the active color for
-    // the phase we just advanced to: phase 2 = #7c3aed, phase 3 = #059669.
+    // the phase we just advanced to. Post-UOW remap: phase 2 = #A15A35
+    // (copper), phase 3 = #1F8A2F (success green).
     const target = 1 + i + 1;
-    const color = target === 2 ? 'rgb(124, 58, 237)' : 'rgb(5, 150, 105)';
+    const color = target === 2 ? 'rgb(161, 90, 53)' : 'rgb(31, 138, 47)';
     await expect(page.locator(`#vmPhaseLabel${target}`)).toHaveCSS('background-color', color);
   }
 }

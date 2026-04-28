@@ -1,11 +1,36 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<div id="garden-project-sim-v1" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #1a1a1a;">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+<style data-uow-tokens>
+:root {
+  --uow-white:        #FFFFFF;
+  --uow-blue-dark:    #001641;
+  --uow-blue-bright:  #0033FF;
+  --uow-red:          #ED0A00;
+  --uow-grey-light:   #F2F2F2;
+  --uow-copper:       #A15A35;
+  --uow-copper-light: #C4744F;
+  --uow-cream:        #F0E5D0;
+  --uow-lavender:     #CDD6F8;
+  --uow-ice-blue:     #E3F1F9;
+  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --chart-1: #001641;
+  --chart-2: #ED0A00;
+  --chart-3: #0033FF;
+  --chart-4: #A15A35;
+  --chart-5: #6B7280;
+}
+[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
+  font-family: var(--uow-font) !important;
+}
+</style>
+
+<div id="garden-project-sim-v1" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #001641;">
 
 <!-- Title + Phase -->
 <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
-    <h2 style="margin: 0; font-size: 1.5em; color: #1e293b;">Garden Project Simulation</h2>
+    <h2 style="margin: 0; font-size: 1.5em; color: #001641;">Garden Project Simulation</h2>
     <div style="display: flex; gap: 4px; align-items: center;">
-        <span id="gpPhaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #2563eb; color: #fff;">Phase 1: Process</span>
+        <span id="gpPhaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #0033FF; color: #fff;">Phase 1: Process</span>
         <span style="color: #cbd5e1;">&#9654;</span>
         <span id="gpPhaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Bottlenecks</span>
         <span style="color: #cbd5e1;">&#9654;</span>
@@ -14,10 +39,10 @@
 </div>
 
 <!-- Instruction Panel -->
-<div style="background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
+<div style="background: #E3F1F9; border-left: 4px solid #0033FF; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
     <div style="display: flex; justify-content: space-between; align-items: start;">
         <div id="gpInstructionContent"></div>
-        <button id="gpToggleInstr" onclick="void(0)" style="background: none; border: none; color: #2563eb; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+        <button id="gpToggleInstr" onclick="void(0)" style="background: none; border: none; color: #0033FF; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
     </div>
 </div>
 
@@ -26,11 +51,11 @@
 
 <!-- Controls Row -->
 <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
-    <span style="font-size: 0.9em; font-weight: 600; color: #334155;">Day: <span id="gpTime" style="color: #2563eb;">0</span> / 112</span>
+    <span style="font-size: 0.9em; font-weight: 600; color: #334155;">Day: <span id="gpTime" style="color: #0033FF;">0</span> / 112</span>
     <div style="width: 120px; height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-        <div id="gpTimeBar" style="height: 100%; width: 0%; background: #2563eb; transition: width 0.3s;"></div>
+        <div id="gpTimeBar" style="height: 100%; width: 0%; background: #0033FF; transition: width 0.3s;"></div>
     </div>
-    <button id="gpStartBtn" onclick="void(0)" style="padding: 6px 16px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; cursor: pointer;">Start</button>
+    <button id="gpStartBtn" onclick="void(0)" style="padding: 6px 16px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; cursor: pointer;">Start</button>
     <select id="gpSpeed" style="padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em;">
         <option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option>
     </select>
@@ -46,21 +71,21 @@
 
 <!-- Metrics Row -->
 <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-    <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #E1F5FE;">
-        <div style="font-size: 0.72em; color: #0277BD; text-transform: uppercase; font-weight: 600;">Time Performance</div>
+    <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #E3F1F9;">
+        <div style="font-size: 0.72em; color: #001641; text-transform: uppercase; font-weight: 600;">Time Performance</div>
         <div style="font-size: 0.82em; margin-top: 4px;">Avg Cycle Time: <strong id="gpAvgCycle">0.0</strong> days</div>
         <div style="font-size: 0.82em;">On-Time: <strong id="gpOnTime">0.0</strong>%</div>
         <div style="font-size: 0.82em;">Queue Length: <strong id="gpTotalQueue">0</strong></div>
     </div>
     <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #E8F5E9;">
-        <div style="font-size: 0.72em; color: #2E7D32; text-transform: uppercase; font-weight: 600;">Cost Performance</div>
+        <div style="font-size: 0.72em; color: #1F8A2F; text-transform: uppercase; font-weight: 600;">Cost Performance</div>
         <div style="font-size: 0.82em; margin-top: 4px;">Spending: $<strong id="gpTotalCost">0</strong></div>
         <div style="font-size: 0.82em;">Budget Left: $<strong id="gpBudgetLeft">16000</strong></div>
         <div id="gpCpcRow" style="font-size: 0.82em; display: none;">Cost/Plot: <strong id="gpCostPerPlot">0.00</strong></div>
         <div id="gpCpcPrompt" style="font-size: 0.78em; color: #64748b; font-style: italic; display: none;">Calculate: Total Cost &divide; Plots Completed</div>
     </div>
     <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #FFF3E0;">
-        <div style="font-size: 0.72em; color: #E65100; text-transform: uppercase; font-weight: 600;">Resource Performance</div>
+        <div style="font-size: 0.72em; color: #A15A35; text-transform: uppercase; font-weight: 600;">Resource Performance</div>
         <div style="font-size: 0.82em; margin-top: 4px;">Utilization: <strong id="gpOverallUtil">0.0</strong>%</div>
         <div style="font-size: 0.82em;">In Process: <strong id="gpInProcess">0</strong></div>
         <div style="font-size: 0.82em;">Completed: <strong id="gpCompleted">0</strong> / <span id="gpTotalPlots">15</span></div>
@@ -78,27 +103,27 @@
 <!-- Workflow Operations -->
 <div style="display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto;">
     <div style="flex: 1; min-width: 100px;">
-        <div style="background: #e0e7ff; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #3730a3;">Planning<br><span style="font-weight: 400; font-size: 0.9em;" id="gpPlanQ">0</span></div>
+        <div style="background: #CDD6F8; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #001641;">Planning<br><span style="font-weight: 400; font-size: 0.9em;" id="gpPlanQ">0</span></div>
         <div id="gpPlanOp" data-operation="planning" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
     </div>
     <div style="flex: 1; min-width: 100px;">
-        <div style="background: #fce7f3; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #9d174d;">Soil Prep<br><span style="font-size: 0.75em; font-weight: 400;">(No Volunteers)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpSoilQ">0</span></div>
+        <div style="background: #fce7f3; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #A15A35;">Soil Prep<br><span style="font-size: 0.75em; font-weight: 400;">(No Volunteers)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpSoilQ">0</span></div>
         <div id="gpSoilOp" data-operation="soilprep" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
     </div>
     <div style="flex: 1; min-width: 100px;">
-        <div style="background: #d1fae5; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #065f46;">Planting<br><span style="font-weight: 400; font-size: 0.9em;" id="gpPlantQ">0</span></div>
+        <div style="background: #F0FDF4; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #1F8A2F;">Planting<br><span style="font-weight: 400; font-size: 0.9em;" id="gpPlantQ">0</span></div>
         <div id="gpPlantOp" data-operation="planting" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
     </div>
     <div style="flex: 1; min-width: 100px;">
-        <div style="background: #fef3c7; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #92400e;">Growing<br><span style="font-size: 0.75em; font-weight: 400;">(10 days, auto)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpGrowQ">0</span></div>
+        <div style="background: #fef3c7; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #A15A35;">Growing<br><span style="font-size: 0.75em; font-weight: 400;">(10 days, auto)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpGrowQ">0</span></div>
         <div style="min-height: 80px; border: 2px dashed #e5e7eb; padding: 6px; background: #f9fafb; display: flex; align-items: center; justify-content: center; font-style: italic; color: #94a3b8; font-size: 0.82em;">No staff needed</div>
     </div>
     <div style="flex: 1; min-width: 100px;">
-        <div style="background: #fee2e2; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #991b1b;">Inspection<br><span style="font-size: 0.75em; font-weight: 400;">(Masters only)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpInspQ">0</span></div>
+        <div style="background: #fee2e2; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #B00800;">Inspection<br><span style="font-size: 0.75em; font-weight: 400;">(Masters only)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpInspQ">0</span></div>
         <div id="gpInspOp" data-operation="inspection" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
     </div>
     <div style="flex: 1; min-width: 100px;">
-        <div style="background: #ede9fe; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #5b21b6;">Harvesting<br><span style="font-weight: 400; font-size: 0.9em;" id="gpHarvQ">0</span></div>
+        <div style="background: #ede9fe; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #A15A35;">Harvesting<br><span style="font-weight: 400; font-size: 0.9em;" id="gpHarvQ">0</span></div>
         <div id="gpHarvOp" data-operation="harvesting" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
     </div>
 </div>
@@ -109,7 +134,7 @@
 <!-- Task History -->
 <div>
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <h3 style="margin: 0; font-size: 1em; color: #1e293b;">Completed Plots</h3>
+        <h3 style="margin: 0; font-size: 1em; color: #001641;">Completed Plots</h3>
         <button id="gpToggleHist" onclick="void(0)" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.82em; text-decoration: underline;">Hide</button>
     </div>
     <div id="gpHistWrap" style="overflow-x: auto;">
@@ -130,11 +155,11 @@
 <!-- Insights Panel -->
 <div id="gpInsightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div style="font-weight: 700; font-size: 1.05em; color: #1e293b;">Discussion Insights</div>
+        <div style="font-weight: 700; font-size: 1.05em; color: #001641;">Discussion Insights</div>
         <div id="gpInsCount" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 9</div>
     </div>
     <div id="gpInsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
-    <div id="gpPhaseAdv" style="display: none; margin-top: 12px; padding: 10px 12px; background: #eff6ff; border: 1px solid #2563eb; border-radius: 6px; text-align: center;"></div>
+    <div id="gpPhaseAdv" style="display: none; margin-top: 12px; padding: 10px 12px; background: #E3F1F9; border: 1px solid #0033FF; border-radius: 6px; text-align: center;"></div>
     <div id="gpOverrides" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
 </div>
 </div>
@@ -279,20 +304,20 @@ function createStaffElement(s) {
     var uText=state.simulationTime>0?staffUtil(s,state.simulationTime).toFixed(1)+'%':'0%';
     e.textContent=staffLabel(s)+'\nUtil: '+uText;
     e.style.cssText='display:inline-block;padding:5px;margin:3px;border:1px solid #333;border-radius:4px;cursor:move;user-select:none;white-space:pre;text-align:center;min-width:60px;font-size:0.85em;position:relative;';
-    e.style.backgroundColor=s.skillLevel===1?'#ffecb3':s.skillLevel===2?'#c8e6c9':'#bbdefb';
+    e.style.backgroundColor=s.skillLevel===1?'#F0E5D0':s.skillLevel===2?'#c8e6c9':'#bbdefb';
     e.draggable=!isRunning;
     e.dataset.staffId=s.id;
     if (s.busy) {
         var dur=staffDuration(s,s.currentOperation)||1;
         var elapsed=state.simulationTime-s.busyStartTime;
         var pct=Math.min(100,Math.round((elapsed/dur)*100));
-        if (isRunning) { e.draggable=false; e.style.cursor='default'; e.style.border='1px solid #1a73e8'; }
+        if (isRunning) { e.draggable=false; e.style.cursor='default'; e.style.border='1px solid #0033FF'; }
         else { e.style.border='2px dashed #e53935'; }
         e.title='Progress: '+pct+'%';
         var pc=document.createElement('div');
         pc.style.cssText='width:100%;height:6px;background:#e0e0e0;position:absolute;bottom:0;left:0;border-radius:0 0 4px 4px;';
         var pb=document.createElement('div');
-        pb.style.cssText='width:'+pct+'%;height:100%;background:#4caf50;border-radius:0 0 '+(pct<100?'0':'4px')+' 4px;';
+        pb.style.cssText='width:'+pct+'%;height:100%;background:#16A34A;border-radius:0 0 '+(pct<100?'0':'4px')+' 4px;';
         pc.appendChild(pb); e.appendChild(pc);
     }
     e.addEventListener('dragstart',function(ev){
@@ -522,7 +547,7 @@ function showCpcMetric() {
 function initChart() {
     var ctx=document.getElementById('gpQueueChart');
     if(!ctx) return;
-    var colors=['rgb(54,162,235)','rgb(153,102,255)','rgb(255,159,64)','rgb(75,192,192)','rgb(255,99,132)','rgb(255,205,86)'];
+    var colors=['rgb(0,22,65)','rgb(161,90,53)','rgb(161,90,53)','rgb(0,51,255)','rgb(237,10,0)','rgb(196,116,79)'];
     var labels=['Planning','Soil Prep','Planting','Growing','Inspection','Harvesting'];
     var datasets=[];
     for(var i=0;i<6;i++) datasets.push({label:labels[i]+' Queue',data:state.chartData[OPS[i]],borderColor:colors[i],backgroundColor:colors[i].replace('rgb','rgba').replace(')',',0.15)'),tension:0.1,fill:true,borderWidth:1.5,pointRadius:0});
@@ -545,7 +570,7 @@ function updateChartData() {
 }
 // Phase management
 var instrText = {
-    1:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#1e40af;">Phase 1: Understanding the Process</div>'+
+    1:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#001641;">Phase 1: Understanding the Process</div>'+
         '<div style="margin-bottom:8px;">You manage a community garden with <strong>'+PLOT_COUNTS.beginner+' pumpkin plots</strong> for the Harvest Festival in <strong>16 weeks (112 days)</strong>. Each plot goes through 6 sequential operations.</div>'+
         '<table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-bottom:8px;"><tr style="background:#f1f5f9;"><th style="padding:4px;border:1px solid #e2e8f0;">Operation</th><th style="padding:4px;border:1px solid #e2e8f0;">Volunteer</th><th style="padding:4px;border:1px solid #e2e8f0;">Experienced ($40/d)</th><th style="padding:4px;border:1px solid #e2e8f0;">Master ($120/d)</th></tr>'+
         '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Planning</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">6d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr>'+
@@ -556,21 +581,21 @@ var instrText = {
         '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Harvesting</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">6d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr></table>'+
         '<div style="margin-bottom:6px;"><strong>Team:</strong> 4 Volunteers (free), 3 Experienced ($40/day), 2 Masters ($120/day). Budget: $16,000.</div>'+
         '<div style="margin-bottom:6px;"><strong>Rules:</strong> Volunteers need Experienced/Master supervision. Pause to reassign staff (even busy ones).</div>'+
-        '<div style="color:#1e40af;font-weight:600;">Drag gardeners to operations and press Start. Watch how work flows through the system.</div>',
-      short:'<span style="font-weight:700;color:#1e40af;">Phase 1:</span> Assign gardeners to operations. Learn the workflow, constraints, and processing times.'},
-    2:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#7c3aed;">Phase 2: Bottleneck Analysis</div>'+
+        '<div style="color:#001641;font-weight:600;">Drag gardeners to operations and press Start. Watch how work flows through the system.</div>',
+      short:'<span style="font-weight:700;color:#001641;">Phase 1:</span> Assign gardeners to operations. Learn the workflow, constraints, and processing times.'},
+    2:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#A15A35;">Phase 2: Bottleneck Analysis</div>'+
         '<div style="margin-bottom:8px;">Focus on <strong>identifying bottlenecks</strong>. Watch the queue chart to see where work accumulates. A bottleneck is any operation where input rate exceeds throughput.</div>'+
         '<div style="margin-bottom:6px;">Key questions: Which queue grows fastest? Where are gardeners idle? Can you balance the flow by reallocating staff?</div>'+
-        '<div style="color:#7c3aed;font-weight:600;">Pause the simulation, redistribute staff to address bottlenecks, then resume. Repeat until flow is balanced.</div>',
-      short:'<span style="font-weight:700;color:#7c3aed;">Phase 2:</span> Watch the queue chart. Identify and resolve bottlenecks by reallocating staff.'},
-    3:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#059669;">Phase 3: Cost-Time Optimization</div>'+
+        '<div style="color:#A15A35;font-weight:600;">Pause the simulation, redistribute staff to address bottlenecks, then resume. Repeat until flow is balanced.</div>',
+      short:'<span style="font-weight:700;color:#A15A35;">Phase 2:</span> Watch the queue chart. Identify and resolve bottlenecks by reallocating staff.'},
+    3:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#1F8A2F;">Phase 3: Cost-Time Optimization</div>'+
         '<div style="margin-bottom:8px;">All difficulty levels are now available. Higher levels have more plots but proportionally less budget per plot.</div>'+
         '<ul style="margin:0 0 8px 0;padding-left:20px;line-height:1.6;">'+
         '<li>Beginner: 15 plots, $16,000 ($1,067/plot)</li>'+
         '<li>Intermediate: 25 plots, $24,000 ($960/plot)</li>'+
         '<li>Advanced: 40 plots, $32,000 ($800/plot)</li></ul>'+
-        '<div style="color:#059669;font-weight:600;">Can you complete all plots on time and under budget? Select a difficulty and press Apply to try.</div>',
-      short:'<span style="font-weight:700;color:#059669;">Phase 3:</span> Difficulty unlocked. Optimize for cost, time, and completion rate.'}
+        '<div style="color:#1F8A2F;font-weight:600;">Can you complete all plots on time and under budget? Select a difficulty and press Apply to try.</div>',
+      short:'<span style="font-weight:700;color:#1F8A2F;">Phase 3:</span> Difficulty unlocked. Optimize for cost, time, and completion rate.'}
 };
 function renderInstructions() {
     var inst=instrText[state.currentPhase];
@@ -579,7 +604,7 @@ function renderInstructions() {
 }
 function setPhase(phase) {
     state.currentPhase=phase;
-    var colors={active:'#2563eb',completed:'#16a34a',upcoming:'#e5e7eb'};
+    var colors={active:'#0033FF',completed:'#16a34a',upcoming:'#e5e7eb'};
     var tc={active:'#fff',completed:'#fff',upcoming:'#94a3b8'};
     [1,2,3].forEach(function(p){
         var st=p===phase?'active':p<phase?'completed':'upcoming';
@@ -611,10 +636,10 @@ function renderInsights() {
     for(var i=0;i<total;i++){
         var ins=insights[i];
         if(i<state.insightsRevealed){
-            html+='<div style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#fff;border:1px solid #e2e8f0;"><div style="display:flex;gap:10px;align-items:start;"><div style="min-width:28px;height:28px;border-radius:50%;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#475569;font-style:italic;margin-bottom:6px;">\u201c'+ins.q+'\u201d</div><div style="font-size:0.9em;color:#1e293b;font-weight:500;padding:6px 10px;background:#f0fdf4;border-left:3px solid #22c55e;border-radius:0 4px 4px 0;">'+ins.a+'</div></div></div></div>';
+            html+='<div style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#fff;border:1px solid #e2e8f0;"><div style="display:flex;gap:10px;align-items:start;"><div style="min-width:28px;height:28px;border-radius:50%;background:#0033FF;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#475569;font-style:italic;margin-bottom:6px;">\u201c'+ins.q+'\u201d</div><div style="font-size:0.9em;color:#001641;font-weight:500;padding:6px 10px;background:#f0fdf4;border-left:3px solid #16A34A;border-radius:0 4px 4px 0;">'+ins.a+'</div></div></div></div>';
         } else if(i<state.questionsShown){
-            html+='<div data-reveal-index="'+i+'" style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#fefce8;border:1px solid #eab308;cursor:pointer;"><div style="display:flex;gap:10px;align-items:start;"><div style="min-width:28px;height:28px;border-radius:50%;background:#eab308;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#1e293b;font-style:italic;margin-bottom:6px;">\u201c'+ins.q+'\u201d</div>';
-            if(i===state.insightsRevealed) html+='<div style="font-size:0.8em;color:#92400e;font-weight:600;padding:4px 10px;background:#fef9c3;border-radius:4px;display:inline-block;">Click to reveal answer</div>';
+            html+='<div data-reveal-index="'+i+'" style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#F0E5D0;border:1px solid #A15A35;cursor:pointer;"><div style="display:flex;gap:10px;align-items:start;"><div style="min-width:28px;height:28px;border-radius:50%;background:#A15A35;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#001641;font-style:italic;margin-bottom:6px;">\u201c'+ins.q+'\u201d</div>';
+            if(i===state.insightsRevealed) html+='<div style="font-size:0.8em;color:#A15A35;font-weight:600;padding:4px 10px;background:#F0E5D0;border-radius:4px;display:inline-block;">Click to reveal answer</div>';
             else html+='<div style="font-size:0.8em;color:#94a3b8;font-style:italic;">(answer previous first)</div>';
             html+='</div></div></div>';
         } else {
@@ -625,7 +650,7 @@ function renderInsights() {
     var phase=state.currentPhase,pi=PHASE_INSIGHTS[phase],mx=pi[pi.length-1];
     if(state.insightsRevealed>mx&&phase<3){
         el.phaseAdv.style.display='block';
-        el.phaseAdv.innerHTML='<div style="font-size:0.9em;color:#1e40af;margin-bottom:8px;">All Phase '+phase+' insights completed!</div><button id="gpAdvBtn" onclick="void(0)" style="padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;">Continue to Phase '+(phase+1)+' &#9654;</button>';
+        el.phaseAdv.innerHTML='<div style="font-size:0.9em;color:#001641;margin-bottom:8px;">All Phase '+phase+' insights completed!</div><button id="gpAdvBtn" onclick="void(0)" style="padding:8px 20px;background:#0033FF;color:#fff;border:none;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;">Continue to Phase '+(phase+1)+' &#9654;</button>';
     } else { el.phaseAdv.style.display='none'; el.phaseAdv.innerHTML=''; }
     var ls='background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.78em;padding:2px 6px;text-decoration:underline;';
     var oh='';
@@ -706,7 +731,7 @@ function resetSim(full) {
         state.currentPhase=savedPhase;state.questionsShown=savedQ;state.insightsRevealed=savedR;state.instructionExpanded=savedExp;state.historyVisible=savedHist;state.cpcVisible=savedCpc;}
     generateAllPlots(); initStaff();
     el.histBody.innerHTML='';
-    el.startBtn.textContent='Start';el.startBtn.disabled=false;el.startBtn.style.background='#2563eb';el.startBtn.style.cursor='pointer';
+    el.startBtn.textContent='Start';el.startBtn.disabled=false;el.startBtn.style.background='#0033FF';el.startBtn.style.cursor='pointer';
     if(queueChart){queueChart.data.labels=[];for(var d=0;d<6;d++)queueChart.data.datasets[d].data=[];queueChart.update();}
     setPhase(state.currentPhase); updateUI(); saveState();
 }

@@ -1,10 +1,35 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div id="number-guess-sim-v1" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 720px; margin: 0 auto; color: #1a1a2e; line-height: 1.5;">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+<style data-uow-tokens>
+:root {
+  --uow-white:        #FFFFFF;
+  --uow-blue-dark:    #001641;
+  --uow-blue-bright:  #0033FF;
+  --uow-red:          #ED0A00;
+  --uow-grey-light:   #F2F2F2;
+  --uow-copper:       #A15A35;
+  --uow-copper-light: #C4744F;
+  --uow-cream:        #F0E5D0;
+  --uow-lavender:     #CDD6F8;
+  --uow-ice-blue:     #E3F1F9;
+  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --chart-1: #001641;
+  --chart-2: #ED0A00;
+  --chart-3: #0033FF;
+  --chart-4: #A15A35;
+  --chart-5: #6B7280;
+}
+[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
+  font-family: var(--uow-font) !important;
+}
+</style>
+
+<div id="number-guess-sim-v1" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 720px; margin: 0 auto; color: #001641; line-height: 1.5;">
 
     <!-- Scenario Brief -->
-    <div style="background: #f0f4ff; border-left: 4px solid #3a56d4; padding: 12px 16px; margin-bottom: 10px; border-radius: 0 6px 6px 0;">
-        <p style="margin: 0 0 6px 0; font-size: 15px; font-weight: 600; color: #3a56d4;">Your First Decision as Operations Manager</p>
+    <div style="background: #E3F1F9; border-left: 4px solid #0033FF; padding: 12px 16px; margin-bottom: 10px; border-radius: 0 6px 6px 0;">
+        <p style="margin: 0 0 6px 0; font-size: 15px; font-weight: 600; color: #0033FF;">Your First Decision as Operations Manager</p>
         <p style="margin: 0; font-size: 13.5px; color: #333; line-height: 1.45;">The company is launching a brand-new product today and you need to decide how many units to stock. The problem? You have <strong>zero demand data</strong> — all you know is that demand is somewhere between 1 and 200 units. No spreadsheets, no forecasts, just your judgement. Make a guess, read the feedback, and refine. The fewer guesses it takes you, the better.</p>
     </div>
 
@@ -24,27 +49,27 @@
     </details>
 
     <!-- Control Bar: input + buttons + stats in one row -->
-    <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; background: #f0f4ff; padding: 14px 18px; border-radius: 6px; border: 2px solid #c7d2f4;">
+    <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; background: #E3F1F9; padding: 14px 18px; border-radius: 6px; border: 2px solid #CDD6F8;">
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <label for="ngs-guessInput" style="font-size: 15px; font-weight: 700; white-space: nowrap; color: #2c44b0;">Your guess:</label>
+            <label for="ngs-guessInput" style="font-size: 15px; font-weight: 700; white-space: nowrap; color: #001641;">Your guess:</label>
             <input type="number" id="ngs-guessInput" min="1" max="200" placeholder="1–200"
-                style="width: 90px; padding: 9px 10px; font-size: 18px; font-weight: 600; border: 2px solid #b0bce0; border-radius: 6px; outline: none; text-align: center; transition: border-color 0.2s; background: #fff;"
-                onfocus="this.style.borderColor='#3a56d4';this.style.boxShadow='0 0 0 3px rgba(58,86,212,0.15)'" onblur="this.style.borderColor='#b0bce0';this.style.boxShadow='none'">
+                style="width: 90px; padding: 9px 10px; font-size: 18px; font-weight: 600; border: 2px solid #CDD6F8; border-radius: 6px; outline: none; text-align: center; transition: border-color 0.2s; background: #fff;"
+                onfocus="this.style.borderColor='#0033FF';this.style.boxShadow='0 0 0 3px rgba(58,86,212,0.15)'" onblur="this.style.borderColor='#CDD6F8';this.style.boxShadow='none'">
             <button id="ngs-submitBtn" onclick="window._ngs.makeGuess()"
-                style="padding: 9px 20px; font-size: 15px; font-weight: 700; color: #fff; background: #3a56d4; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; white-space: nowrap;"
-                onmouseover="this.style.background='#2c44b0'" onmouseout="this.style.background='#3a56d4'">
+                style="padding: 9px 20px; font-size: 15px; font-weight: 700; color: #fff; background: #0033FF; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; white-space: nowrap;"
+                onmouseover="this.style.background='#001641'" onmouseout="this.style.background='#0033FF'">
                 Submit
             </button>
             <button id="ngs-resetBtn" onclick="window._ngs.resetGame()"
-                style="padding: 9px 16px; font-size: 14px; font-weight: 600; color: #3a56d4; background: #fff; border: 2px solid #3a56d4; border-radius: 6px; cursor: pointer; transition: background 0.2s; white-space: nowrap; display: none;"
+                style="padding: 9px 16px; font-size: 14px; font-weight: 600; color: #0033FF; background: #fff; border: 2px solid #0033FF; border-radius: 6px; cursor: pointer; transition: background 0.2s; white-space: nowrap; display: none;"
                 onmouseover="this.style.background='#eef2ff'" onmouseout="this.style.background='#fff'">
                 Play Again
             </button>
         </div>
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <span style="display: inline-block; width: 1px; height: 24px; background: #c7d2f4;"></span>
-            <span style="font-size: 14px; color: #555; white-space: nowrap;">Guesses: <strong id="ngs-guessCount" style="color: #1a1a2e; font-size: 16px;">0</strong></span>
-            <span id="ngs-rangeIndicator" style="font-size: 14px; background: #fff; padding: 4px 12px; border-radius: 12px; border: 1px solid #c7d2f4; white-space: nowrap;">Range: <strong>1 – 200</strong></span>
+            <span style="display: inline-block; width: 1px; height: 24px; background: #CDD6F8;"></span>
+            <span style="font-size: 14px; color: #555; white-space: nowrap;">Guesses: <strong id="ngs-guessCount" style="color: #001641; font-size: 16px;">0</strong></span>
+            <span id="ngs-rangeIndicator" style="font-size: 14px; background: #fff; padding: 4px 12px; border-radius: 12px; border: 1px solid #CDD6F8; white-space: nowrap;">Range: <strong>1 – 200</strong></span>
         </div>
     </div>
 
@@ -60,7 +85,7 @@
     </details>
 
     <!-- Chart -->
-    <div style="margin-bottom: 8px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 10px 6px 10px; background: #fcfcfd;">
+    <div style="margin-bottom: 8px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 10px 6px 10px; background: #FFFFFF;">
         <div style="position: relative; height: 36vh; max-height: 300px; min-height: 190px;">
             <canvas id="ngs-chart"></canvas>
         </div>
@@ -95,10 +120,10 @@
         logEmpty.style.display = 'none';
 
         var colors = {
-            info: { bg: '#eef2ff', border: '#3a56d4', text: '#2c44b0' },
-            success: { bg: '#ecfdf5', border: '#16a34a', text: '#15803d' },
-            warn: { bg: '#fff7ed', border: '#ea580c', text: '#c2410c' },
-            welcome: { bg: '#f0f9ff', border: '#0284c7', text: '#0369a1' }
+            info: { bg: '#eef2ff', border: '#0033FF', text: '#001641' },
+            success: { bg: '#F0FDF4', border: '#16a34a', text: '#1F8A2F' },
+            warn: { bg: '#F0E5D0', border: '#A15A35', text: '#A15A35' },
+            welcome: { bg: '#E3F1F9', border: '#0033FF', text: '#001641' }
         };
         var c = colors[type] || colors.info;
 
@@ -193,7 +218,7 @@
         guessInput.style.background = '#fff';
         guessInput.value = '';
         submitBtn.disabled = false;
-        submitBtn.style.background = '#3a56d4';
+        submitBtn.style.background = '#0033FF';
         submitBtn.style.cursor = 'pointer';
         resetBtn.style.display = 'none';
         guessCountEl.textContent = '0';
@@ -211,9 +236,9 @@
         var datasets = [{
             label: 'Your Guesses',
             data: guesses.slice(),
-            borderColor: '#3a56d4',
+            borderColor: '#0033FF',
             backgroundColor: 'rgba(58, 86, 212, 0.1)',
-            pointBackgroundColor: '#3a56d4',
+            pointBackgroundColor: '#0033FF',
             pointRadius: 5,
             pointHoverRadius: 7,
             borderWidth: 2,
@@ -249,7 +274,7 @@
                         labels: { font: { size: 13 }, usePointStyle: true, padding: 16 }
                     },
                     tooltip: {
-                        backgroundColor: '#1a1a2e',
+                        backgroundColor: '#001641',
                         titleFont: { size: 13 },
                         bodyFont: { size: 13 },
                         padding: 10,
