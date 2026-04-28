@@ -163,6 +163,7 @@
         if (guess < answer && guess >= knownLow) knownLow = guess + 1;
         if (guess > answer && guess <= knownHigh) knownHigh = guess - 1;
         if (guess === answer) { knownLow = answer; knownHigh = answer; }
+        guessInput.placeholder = knownLow + '–' + knownHigh;
     }
 
     function makeGuess() {
@@ -220,6 +221,7 @@
         guessInput.disabled = false;
         guessInput.style.background = '#fff';
         guessInput.value = '';
+        guessInput.placeholder = '1–200';
         submitBtn.disabled = false;
         submitBtn.style.background = '#0033FF';
         submitBtn.style.cursor = 'pointer';
