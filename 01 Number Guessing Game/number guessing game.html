@@ -234,7 +234,7 @@
     }
 
     function updateChart() {
-        var labels = guesses.map(function(_, i) { return 'Guess ' + (i + 1); });
+        var labels = guesses.map(function(_, i) { return i + 1; });
         var datasets = [{
             label: 'Your Guesses',
             data: guesses.slice(),
@@ -285,12 +285,12 @@
                 },
                 scales: {
                     x: {
-                        title: { display: true, text: 'Guess Number', font: { size: 13, weight: 'bold' }, color: '#555' },
+                        title: { display: true, text: 'Guesses', font: { size: 13, weight: 'bold' }, color: '#555' },
                         ticks: { font: { size: 12 }, color: '#666' },
                         grid: { color: 'rgba(0,0,0,0.05)' }
                     },
                     y: {
-                        title: { display: true, text: 'Units Guessed', font: { size: 13, weight: 'bold' }, color: '#555' },
+                        title: { display: true, text: 'Units', font: { size: 13, weight: 'bold' }, color: '#555' },
                         ticks: { font: { size: 12 }, color: '#666' },
                         grid: { color: 'rgba(0,0,0,0.08)' },
                         min: 0,
