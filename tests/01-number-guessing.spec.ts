@@ -196,6 +196,27 @@ test.describe('Number Guessing — UI affordances', () => {
     }
   });
 
+  test('rotation survives a hostile parent stylesheet (Moodle simulation)', async ({ page }) => {
+    await loadSim(page, SIM_PATH);
+
+    // Inject a hostile stylesheet that tries to nuke any transform on
+    // children of <summary>. This mimics what an LMS parent theme might do
+    // by accident. Our rotation must still work because the sim sets the
+    // transform inline with !important from JS, which beats this stylesheet.
+    await page.addStyleTag({
+      content: `
+        summary > * { transform: none !important; }
+        summary > * { display: inline !important; }
+      `,
+    });
+
+    const ROT_90 = 'matrix(0, 1, -1, 0, 0, 0)';
+    const summaries = page.locator('details > summary');
+    const triangles = page.locator('.ngs-disclosure');
+    await summaries.first().click();
+    await expect(triangles.first()).toHaveCSS('transform', ROT_90);
+  });
+
   test('input is wide enough to fully render the longest range placeholder', async ({ page }) => {
     await loadSim(page, SIM_PATH);
     const input = page.locator('#ngs-guessInput');

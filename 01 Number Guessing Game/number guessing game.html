@@ -126,6 +126,27 @@
     var logEntries = document.getElementById('ngs-logEntries');
     var logEmpty = document.getElementById('ngs-logEmpty');
 
+    // Drive the disclosure-triangle rotation from JS rather than CSS only.
+    // When the sim is embedded in Moodle (or any LMS), external stylesheets
+    // can override our scoped <style> rules. Setting the transform inline
+    // with !important from JS wins the cascade unconditionally and also
+    // works even if the host page strips the <style> block entirely.
+    var sim = document.getElementById('number-guess-sim-v1');
+    var allDetails = sim.querySelectorAll('details');
+    for (var di = 0; di < allDetails.length; di++) {
+        (function (d) {
+            var tri = d.querySelector('.ngs-disclosure');
+            if (!tri) return;
+            function syncTriangle() {
+                tri.style.setProperty('display', 'inline-block', 'important');
+                tri.style.setProperty('transition', 'transform 0.18s ease', 'important');
+                tri.style.setProperty('transform', d.open ? 'rotate(90deg)' : 'rotate(0deg)', 'important');
+            }
+            d.addEventListener('toggle', syncTriangle);
+            syncTriangle();
+        })(allDetails[di]);
+    }
+
     // Enter key submits
     guessInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') { e.preventDefault(); makeGuess(); }
