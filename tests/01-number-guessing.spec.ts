@@ -163,6 +163,69 @@ test.describe('Number Guessing — oracle', () => {
   });
 });
 
+test.describe('Number Guessing — UI affordances', () => {
+  test('disclosure triangles rotate to 90° when the section is open', async ({ page }) => {
+    await loadSim(page, SIM_PATH);
+
+    // Computed-style matrices for rotate(0) and rotate(90) — these are what
+    // getComputedStyle returns regardless of whether the source CSS uses
+    // 'none' or an explicit 'rotate(0deg)'.
+    const ROT_0 = ['none', 'matrix(1, 0, 0, 1, 0, 0)'];
+    const ROT_90 = 'matrix(0, 1, -1, 0, 0, 0)';
+
+    const triangles = page.locator('.ngs-disclosure');
+    expect(await triangles.count()).toBe(2);
+
+    // Both sections start collapsed.
+    for (let i = 0; i < 2; i++) {
+      const closed = await triangles.nth(i).evaluate((el) => getComputedStyle(el).transform);
+      expect(ROT_0, `triangle ${i} closed transform: ${closed}`).toContain(closed);
+    }
+
+    // Click each summary to open the section.
+    const summaries = page.locator('details > summary');
+    const n = await summaries.count();
+    for (let i = 0; i < n; i++) {
+      await summaries.nth(i).click();
+    }
+
+    // After opening, both triangles should be rotated 90°. toHaveCSS polls,
+    // so it waits past the 0.18s transition.
+    for (let i = 0; i < 2; i++) {
+      await expect(triangles.nth(i)).toHaveCSS('transform', ROT_90);
+    }
+  });
+
+  test('input is wide enough to fully render the longest range placeholder', async ({ page }) => {
+    await loadSim(page, SIM_PATH);
+    const input = page.locator('#ngs-guessInput');
+
+    // Worst-case placeholder is "151–200" / "199–200" etc. — 7 chars at 18px/600.
+    // The input's content-area width must fit the rendered text without clipping.
+    const { contentWidth, textWidth } = await input.evaluate((el) => {
+      const i = el as HTMLInputElement;
+      const cs = getComputedStyle(i);
+      const padL = parseFloat(cs.paddingLeft);
+      const padR = parseFloat(cs.paddingRight);
+      const borderL = parseFloat(cs.borderLeftWidth);
+      const borderR = parseFloat(cs.borderRightWidth);
+      const total = i.getBoundingClientRect().width;
+      const contentW = total - padL - padR - borderL - borderR;
+
+      // Measure the worst-case placeholder string in the same font.
+      const probe = document.createElement('span');
+      probe.style.cssText = `font-family: ${cs.fontFamily}; font-size: ${cs.fontSize}; font-weight: ${cs.fontWeight}; visibility: hidden; white-space: pre; position: absolute;`;
+      probe.textContent = '199–200';  // longest plausible: 3-en-3 = 7 chars
+      document.body.appendChild(probe);
+      const w = probe.getBoundingClientRect().width;
+      probe.remove();
+      return { contentWidth: contentW, textWidth: w };
+    });
+
+    expect(contentWidth, `worst-case placeholder "199–200" needs ~${Math.ceil(textWidth)}px, content-area is ${contentWidth}px`).toBeGreaterThanOrEqual(textWidth);
+  });
+});
+
 test.describe('Number Guessing — claims', () => {
   for (const c of claims.claims) {
     if (c.type === 'formula' && c.formula && c.inputs && c.expected !== undefined) {
