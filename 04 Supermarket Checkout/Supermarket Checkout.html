@@ -1,22 +1,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
 <style data-uow-tokens>
 :root {
-  --uow-white:        #FFFFFF;
-  --uow-blue-dark:    #001641;
-  --uow-blue-bright:  #0033FF;
-  --uow-red:          #ED0A00;
-  --uow-grey-light:   #F2F2F2;
-  --uow-copper:       #A15A35;
-  --uow-copper-light: #C4744F;
-  --uow-cream:        #F0E5D0;
-  --uow-lavender:     #CDD6F8;
-  --uow-ice-blue:     #E3F1F9;
   --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --uow-navy: #001641;
+  --uow-red: #ED0A00;
+  --uow-copper: #A15A35;
+  --uow-ice: #E3F1F9;
+  --uow-cream: #F4ECDB;
+  --uow-grey: #5C657B;
+  --uow-box: #F0F2F5;
+  --uow-green: #2E7D32;
   --chart-1: #001641;
   --chart-2: #ED0A00;
-  --chart-3: #0033FF;
+  --chart-3: #001641;
   --chart-4: #A15A35;
   --chart-5: #6B7280;
 }
@@ -25,25 +23,25 @@
 }
 </style>
 
-<div id="supermarket-checkout-v2" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #001641;">
+<div id="supermarket-checkout-v2" style="display: flex; flex-direction: column; gap: 14px; font-family: var(--uow-font); max-width: 1200px; margin: 0 auto; padding: 16px; color: #001641;">
 
     <!-- ROW 1: Title + Phase Progress -->
     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
         <h2 style="margin: 0; font-size: 1.5em; color: #001641;">Supermarket Checkout Operations</h2>
         <div id="phaseIndicator" style="display: flex; gap: 4px; align-items: center;">
-            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #0033FF; color: #fff;">Phase 1: Applying the Basics</span>
-            <span style="color: #cbd5e1;">&#9654;</span>
-            <span id="phaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Forecasting Demand</span>
-            <span style="color: #cbd5e1;">&#9654;</span>
-            <span id="phaseLabel3" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 3: Managing Forecast Error</span>
+            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #001641; white-space: nowrap; color: #fff;">Phase 1: Applying the Basics</span>
+            <span style="color: #5C657B; font-size: 0.7rem;">&#9654;</span>
+            <span id="phaseLabel2" style="padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #F0F2F5; color: #5C657B; white-space: nowrap;">Phase 2: Forecasting Demand</span>
+            <span style="color: #5C657B; font-size: 0.7rem;">&#9654;</span>
+            <span id="phaseLabel3" style="padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #F0F2F5; color: #5C657B; white-space: nowrap;">Phase 3: Managing Forecast Error</span>
         </div>
     </div>
 
     <!-- ROW 2: Instruction Panel -->
-    <div id="instructionPanel" style="background: #E3F1F9; border-left: 4px solid #0033FF; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
+    <div id="instructionPanel" style="background: #E3F1F9; border-left: 4px solid #001641; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5; position: relative;">
         <div style="display: flex; justify-content: space-between; align-items: start;">
             <div id="instructionContent"></div>
-            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #0033FF; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+            <button id="toggleInstructions" onclick="void(0)" style="position: absolute; top: 10px; right: 14px; background: none; border: none; color: #001641; font-family: var(--uow-font); font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: underline;">Show less</button>
         </div>
     </div>
 
@@ -51,76 +49,66 @@
     <div style="display: flex; flex-wrap: wrap; gap: 14px;">
 
         <!-- Controls Panel -->
-        <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
-            <div style="font-weight: 700; font-size: 0.95em; margin-bottom: 12px; color: #334155;">Your Decisions</div>
+        <div style="flex: 1; min-width: 300px; background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 12px; color: #001641;">Your Decisions</div>
 
             <div style="margin-bottom: 14px;">
-                <label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 4px; color: #475569;">
-                    Number of Staffed Checkout Counters: <span id="staffValue" style="color: #0033FF; font-size: 1.1em;">5</span>
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: #001641;">
+                    Number of Staffed Checkout Counters: <span id="staffValue" style="color: #001641; font-size: 1.1em; font-weight: 700;">5</span>
                 </label>
                 <input type="range" id="staffSlider" min="1" max="20" value="5" step="1" style="width: 100%; cursor: pointer;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #5C657B;">
                     <span>1</span><span>10</span><span>20</span>
                 </div>
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 8px;">
-                <button id="nextTurnBtn" onclick="void(0)" style="flex: 1; padding: 10px 16px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Next Turn</button>
-                <button id="resetBtn" onclick="void(0)" style="padding: 10px 16px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.95em; cursor: pointer;">Reset</button>
+                <button id="nextTurnBtn" onclick="void(0)" style="flex: 1; padding: 10px 16px; background: #001641; color: #fff; border: none; border-radius: 8px; font-family: var(--uow-font); font-size: 0.85rem; font-weight: 700; cursor: pointer;">Next Turn</button>
+                <button id="resetBtn" onclick="void(0)" style="padding: 10px 16px; background: #5C657B; color: #fff; border: none; border-radius: 8px; font-family: var(--uow-font); font-size: 0.85rem; font-weight: 700; cursor: pointer;">Reset</button>
             </div>
         </div>
 
         <!-- Metrics Dashboard -->
         <div style="flex: 1.2; min-width: 300px; display: flex; flex-wrap: wrap; gap: 10px; align-content: start;">
-            <div style="width: 100%; font-weight: 700; font-size: 0.95em; color: #334155;">Turn <span id="turnCounter">0</span> of <span id="maxTurnsDisplay">5</span></div>
+            <div style="width: 100%; font-weight: 700; font-size: 0.85rem; color: #001641;">Turn <span id="turnCounter">0</span> of <span id="maxTurnsDisplay">5</span></div>
 
-            <div id="metricDemand" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Last Turn Demand</div>
-                <div id="demandDisplay" style="font-size: 1.4em; font-weight: 700; color: #001641;">&mdash;</div>
-                <div style="font-size: 0.7em; color: #94a3b8;">customers</div>
+            <div id="metricDemand" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Last Turn Demand</div>
+                <div style="white-space: nowrap;"><span id="demandDisplay" style="font-size: 1.15rem; font-weight: 700; color: #001641;">&mdash;</span> <span style="font-size: 0.65rem; color: #5C657B;">customers</span></div>
             </div>
 
             <!-- Capacity Card (protected) -->
-            <div id="metricCapacity" style="flex: 1; min-width: 130px; padding: 10px; border: 2px solid #0033FF; border-radius: 8px; text-align: center; background: #E3F1F9;">
-                <div style="font-size: 0.75em; color: #001641; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Last Turn Capacity</div>
-                <div id="capacityPrompt" style="font-size: 0.8em; color: #64748b; margin: 6px 0 2px 0;">Calculate: (60 &divide; Service Time) &times; Counters</div>
-                <div id="capacityRevealed" style="display: none;">
-                    <div id="capacityDisplay" style="font-size: 1.4em; font-weight: 700; color: #001641;">&mdash;</div>
-                    <div style="font-size: 0.7em; color: #0033FF;">customers</div>
-                </div>
+            <div id="metricCapacity" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: none;">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Last Turn Capacity</div>
+                <div style="white-space: nowrap;"><span id="capacityDisplay" style="font-size: 1.15rem; font-weight: 700; color: #001641;">&mdash;</span> <span style="font-size: 0.7em; color: #5C657B;">customers</span></div>
             </div>
 
-            <div id="metricProfit" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Last Turn Profit</div>
-                <div id="profitDisplay" style="font-size: 1.4em; font-weight: 700; color: #001641;">$&mdash;</div>
+            <div id="metricProfit" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Last Turn Profit</div>
+                <div id="profitDisplay" style="font-size: 1.15rem; font-weight: 700; color: #001641;">$&mdash;</div>
             </div>
 
             <!-- Utilization Card (protected) -->
-            <div id="metricUtilization" style="flex: 1; min-width: 130px; padding: 10px; border: 2px solid #0033FF; border-radius: 8px; text-align: center; background: #E3F1F9;">
-                <div style="font-size: 0.75em; color: #001641; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Last Turn Utilization</div>
-                <div id="utilizationPrompt" style="font-size: 0.8em; color: #64748b; margin: 6px 0 2px 0;">Calculate: (Demand &divide; Capacity) &times; 100</div>
-                <div id="utilizationRevealed" style="display: none;">
-                    <div id="utilizationDisplay" style="font-size: 1.4em; font-weight: 700; color: #001641;">&mdash;</div>
-                    <div style="font-size: 0.7em; color: #0033FF;">%</div>
-                </div>
+            <div id="metricUtilization" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08); display: none;">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Last Turn Utilisation</div>
+                <div style="white-space: nowrap;"><span id="utilizationDisplay" style="font-size: 1.15rem; font-weight: 700; color: #001641;">&mdash;</span><span style="font-size: 0.7em; color: #5C657B;">%</span></div>
             </div>
 
-            <div id="metricThroughput" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Throughput Time</div>
-                <div id="throughputDisplay" style="font-size: 1.4em; font-weight: 700; color: #001641;">&mdash;</div>
-                <div style="font-size: 0.7em; color: #94a3b8;">min</div>
+            <div id="metricThroughput" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Throughput Time</div>
+                <div style="white-space: nowrap;"><span id="throughputDisplay" style="font-size: 1.15rem; font-weight: 700; color: #001641;">&mdash;</span> <span style="font-size: 0.65rem; color: #5C657B;">min</span></div>
             </div>
 
-            <!-- Total Profit -->
-            <div id="metricTotalProfit" style="width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <span style="font-size: 0.8em; color: #64748b;">Total Profit: </span>
-                <span id="totalProfitDisplay" style="font-size: 1em; font-weight: 700; color: #001641;">$0.00</span>
+            <!-- Total Profit (side by side with Throughput) -->
+            <div id="metricTotalProfit" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Phase Profit</div>
+                <div id="totalProfitDisplay" style="font-size: 1.15rem; font-weight: 700; color: #001641;">$0.00</div>
             </div>
         </div>
     </div>
 
-    <!-- ROW 4: Chart -->
-    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+    <!-- ROW 4: Chart (hidden until first turn) -->
+    <div id="chartSection" style="display: none; flex-wrap: wrap; gap: 14px;">
         <div style="flex: 1; min-width: 340px;">
             <div style="position: relative; height: 40vh; max-height: 350px;">
                 <canvas id="demandCapacityChart"></canvas>
@@ -128,29 +116,29 @@
         </div>
     </div>
 
-    <!-- ROW 5: History Table (collapsible) -->
-    <div id="historySection">
-        <div id="historyToggleBar" onclick="void(0)" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; user-select: none;">
-            <span id="historyToggleLabel" style="font-size: 0.9em; font-weight: 600; color: #64748b;">Historical Performance (0 turns)</span>
-            <span id="historyToggleArrow" style="font-size: 0.8em; color: #94a3b8;">&#9654;</span>
+    <!-- ROW 5: History Table (collapsible, hidden until first turn) -->
+    <div id="historySection" style="display: none;">
+        <div id="historyToggleBar" onclick="void(0)" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #F0F2F5; border: none; border-radius: 10px; cursor: pointer; user-select: none;">
+            <span id="historyToggleLabel" style="font-size: 0.9em; font-weight: 600; color: #5C657B;">Historical Performance (0 turns)</span>
+            <span id="historyToggleArrow" style="font-size: 0.8em; color: #5C657B;">&#9654;</span>
         </div>
         <div id="historyContent" style="display: none; overflow-x: auto; margin-top: 4px;">
             <table id="historyTable" style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
-                <thead><tr id="historyHeader" style="background: #f8fafc;"></tr></thead>
+                <thead><tr id="historyHeader" style="background: #001641;"></tr></thead>
                 <tbody id="historyBody"></tbody>
             </table>
         </div>
     </div>
 
     <!-- ROW 6: Discussion Insights Panel -->
-    <div id="insightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+    <div id="insightsPanel" style="background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div style="font-weight: 700; font-size: 1.05em; color: #001641;">Discussion Insights</div>
-            <div id="insightsCounter" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 9</div>
+            <div id="insightsCounter" style="font-size: 0.85em; color: #5C657B; font-weight: 600;">0 of 9</div>
         </div>
         <div id="insightsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
-        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #E3F1F9; border: 1px solid #0033FF; border-radius: 6px; text-align: center;"></div>
-        <div id="overrideControls" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #E8F5E9; border-radius: 10px; text-align: center;"></div>
+        <div id="overrideControls" style="margin-top: 12px; padding-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
     </div>
 
 </div>
@@ -191,8 +179,8 @@
     var insights = [
         {
             id: 1,
-            question: "You already know Little\u2019s Law from the Coffee Shop. Apply it here: if demand ranges from 50 to 70 and service time from 3 to 7 min, what is the min and max number of counters you could need?",
-            answer: "Min: 50\u00d73=150min \u2192 CEIL(150/60)=3 counters. Max: 70\u00d77=490min \u2192 CEIL(490/60)=9 counters. Average: 60\u00d75=300min \u2192 5 counters. Viable range: 3\u20139 counters. Anything outside this range is sub-optimal.",
+            question: "You already know Little\u2019s Law from the Coffee Shop. Apply it here: Capacity per hour = (60 \u00f7 Service Time) \u00d7 Counters. If demand ranges from 50 to 70 and service time from 3 to 7 min, what is the min and max number of counters you could need?",
+            answer: "Min: 50\u00d73=150min \u2192 150/60=2.5, round up to 3 counters. Max: 70\u00d77=490min \u2192 490/60=8.2, round up to 9 counters. Average: 60\u00d75=300min \u2192 300/60=5 counters. Viable range: 3\u20139 counters. Anything outside this range is sub-optimal.",
             action: function() {
                 renderHistoryHeader();
                 rerenderHistory();
@@ -201,8 +189,8 @@
         },
         {
             id: 2,
-            question: "Look at your last two turns. Even with the same counters, your capacity changed. Why? What does this randomness mean for your confidence in any single staffing decision?",
-            answer: "Service time is random (3\u20137 min), so capacity fluctuates each turn. With 5 counters, capacity ranges from ~43 to ~100. No staffing level guarantees a specific outcome. Utilisation tells you how close to the edge you are.",
+            question: "Look at your last two turns. Even with the same counters, your capacity changed. Why? Utilisation = (Demand \u00f7 Capacity) \u00d7 100. What does this randomness mean for your confidence in any single staffing decision?",
+            answer: "Service time is random (3\u20137 min), so capacity fluctuates each turn. With 5 counters, capacity ranges from ~43 to ~100. No staffing level guarantees a specific outcome. This creates a core trade-off: more counters reduce throughput time (better service) but increase staffing costs. Utilisation tells you how close to the edge you are.",
             action: function() {
                 renderHistoryHeader();
                 rerenderHistory();
@@ -211,8 +199,8 @@
         },
         {
             id: 3,
-            question: "If you could see the next 5 turns of demand, would you change your approach? What staffing would you choose as a safe default with no foresight?",
-            answer: "With foresight: match staffing exactly to each turn. Without: pick a level covering the average case with a buffer (~5\u20137 counters). The gap between these two approaches is the value of forecasting. In Phase 2, demand will change over time \u2014 you\u2019ll need a forecast.",
+            question: "If you could run the simulation again for another 5 turns of demand, would you change your approach? What staffing would you choose as a safe default with no foresight?",
+            answer: "Assuming the first five turns are indicative of the next five turns: staffing would be set at the higher end of the possible range (i.e., 7\u20139) to ensure no understaffing and penalty costs are incurred. In Phase 2, demand will change over time \u2014 you\u2019ll need a forecast.",
             action: null
         },
         {
@@ -223,14 +211,14 @@
         },
         {
             id: 5,
-            question: "Compare two strategies: (A) fixed staffing for all 15 turns, or (B) adapt each turn based on your forecast. What does the capacity vs demand chart look like for each? Which generates more profit?",
-            answer: "Fixed = flat capacity line: overstaffed early (wasted cost) or understaffed late (penalties). Adaptive tracks the demand trend. Adaptive almost always wins because it avoids both wasted costs and penalties simultaneously.",
+            question: "Using your demand forecast and an average service time of 5 min, apply Little\u2019s Law: how many counters do you need for the next turn? How does the random service time affect this calculation?",
+            answer: "E.g. forecast 63 customers: 63\u00d75\u00f760=5.25, round up to 6 counters. But at worst-case 7 min: 63\u00d77\u00f760=7.35, round up to 8 counters. You must decide: staff for the expected case (cheaper, riskier) or the worst case (safer, more expensive). This is the core trade-off.",
             action: null
         },
         {
             id: 6,
-            question: "Using your demand forecast and an average service time of 5 min, apply Little\u2019s Law: how many counters do you need for the next turn? How does the random service time affect this calculation?",
-            answer: "E.g. forecast 63 customers: CEIL(63\u00d75\u00f760)=6 counters. But at worst-case 7 min: CEIL(63\u00d77\u00f760)=8 counters. You must decide: staff for the expected case (cheaper, riskier) or the worst case (safer, more expensive). This is the core trade-off.",
+            question: "Compare two strategies: (A) fixed staffing for all 15 turns, or (B) adapt each turn based on your forecast. What does the capacity vs demand chart look like for each? Which generates more profit?",
+            answer: "Fixed = flat capacity line: overstaffed early (wasted cost) or understaffed late (penalties). Adaptive tracks the demand trend. Adaptive almost always wins because it avoids both wasted costs and penalties simultaneously.",
             action: null
         },
         {
@@ -248,7 +236,7 @@
         {
             id: 9,
             question: "Your forecast was inevitably wrong at some point. What strategies \u2014 in this simulation and in real operations \u2014 help manage the cost of forecast errors?",
-            answer: "In this sim: buffer 1\u20132 extra counters, react quickly to new information, accept that the asymmetric penalty rewards caution. Real world: flexible staffing (casual workers), self-checkout technology, express lanes, off-peak promotions, cross-training staff.",
+            answer: "In this sim: buffer 1\u20132 extra counters, react quickly to new information, accept that the asymmetric penalty rewards caution. Real world: flexible staffing (casual workers), self-checkout technology, express lanes, off-peak promotions, cross-training staff. Remember this is simplified \u2014 real queues involve customers leaving when waits are too long (reneging) and switching between queues (jockeying), making the problem harder still.",
             action: null
         }
     ];
@@ -279,12 +267,8 @@
         el.maxTurnsDisplay = document.getElementById('maxTurnsDisplay');
         el.demandDisplay = document.getElementById('demandDisplay');
         el.capacityDisplay = document.getElementById('capacityDisplay');
-        el.capacityPrompt = document.getElementById('capacityPrompt');
-        el.capacityRevealed = document.getElementById('capacityRevealed');
         el.profitDisplay = document.getElementById('profitDisplay');
         el.utilizationDisplay = document.getElementById('utilizationDisplay');
-        el.utilizationPrompt = document.getElementById('utilizationPrompt');
-        el.utilizationRevealed = document.getElementById('utilizationRevealed');
         el.throughputDisplay = document.getElementById('throughputDisplay');
         el.totalProfitDisplay = document.getElementById('totalProfitDisplay');
         el.historyToggleBar = document.getElementById('historyToggleBar');
@@ -312,7 +296,7 @@
         var slope = (maxDemand - minDemand) / (numTurns - 1);
         var demand = Math.round((slope * (turn - 1)) + minDemand);
         var noise = Math.floor(Math.random() * (2 * noiseRange + 1)) - noiseRange;
-        return demand + noise;
+        return Math.max(minDemand, Math.min(maxDemand, demand + noise));
     }
 
     function generateDemandPhase3(turn) {
@@ -320,7 +304,7 @@
             var baseDemand = PHASE3_DEMAND_PATTERN[turn - 1];
             var noiseRange = 6;
             var noise = Math.floor(Math.random() * (2 * noiseRange + 1)) - noiseRange;
-            return baseDemand + noise;
+            return Math.max(15, baseDemand + noise);
         }
         return 20;
     }
@@ -334,9 +318,9 @@
     // === CORE CALCULATION ===
     function calculateTurn(staffedCounters, demand) {
         var serviceTime = Math.floor(Math.random() * 5) + 3;
-        var revenue = Math.floor(Math.random() * 26) + 50;
+        var revenue = Math.floor(Math.random() * 6) + 5;
 
-        var capacity = (60 / serviceTime) * staffedCounters;
+        var capacity = Math.round((60 / serviceTime) * staffedCounters);
         var utilization = (demand / capacity) * 100;
         var throughputTime = (serviceTime * demand) / staffedCounters;
 
@@ -352,7 +336,7 @@
             serviceTime: serviceTime,
             revenue: revenue,
             capacity: capacity,
-            utilization: Math.min(utilization, 100),
+            utilization: utilization,
             throughputTime: throughputTime,
             staffingCosts: staffingCosts,
             penaltyCosts: penaltyCosts,
@@ -371,7 +355,7 @@
                 '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
                 '<li>Customer demand is <strong>50\u201370 customers per turn</strong> (uniform random)</li>' +
                 '<li>Service time is <strong>3\u20137 minutes</strong> per customer (random each turn)</li>' +
-                '<li>Revenue per customer is <strong>$50\u2013$75</strong> (random each turn)</li>' +
+                '<li>Revenue per customer is <strong>$5\u2013$10</strong> (random each turn)</li>' +
                 '<li>Each staffed counter costs <strong>$25/hour</strong></li>' +
                 '<li>If Throughput Time exceeds 60 minutes, a <strong>$100 penalty per unserved customer</strong> is applied</li>' +
                 '</ul>' +
@@ -409,28 +393,8 @@
     function utilizationIsRevealed() { return state.insightsRevealed >= 2; }
 
     function updateProtectedVisibility() {
-        el.capacityPrompt.style.display = capacityIsRevealed() ? 'none' : 'block';
-        el.capacityRevealed.style.display = capacityIsRevealed() ? 'block' : 'none';
-        el.utilizationPrompt.style.display = utilizationIsRevealed() ? 'none' : 'block';
-        el.utilizationRevealed.style.display = utilizationIsRevealed() ? 'block' : 'none';
-
-        // Update card styling when revealed
-        var capCard = document.getElementById('metricCapacity');
-        var utilCard = document.getElementById('metricUtilization');
-        if (capacityIsRevealed()) {
-            capCard.style.border = '1px solid #e2e8f0';
-            capCard.style.background = '#fff';
-        } else {
-            capCard.style.border = '2px solid #0033FF';
-            capCard.style.background = '#E3F1F9';
-        }
-        if (utilizationIsRevealed()) {
-            utilCard.style.border = '1px solid #e2e8f0';
-            utilCard.style.background = '#fff';
-        } else {
-            utilCard.style.border = '2px solid #0033FF';
-            utilCard.style.background = '#E3F1F9';
-        }
+        document.getElementById('metricCapacity').style.display = capacityIsRevealed() ? '' : 'none';
+        document.getElementById('metricUtilization').style.display = utilizationIsRevealed() ? '' : 'none';
     }
 
     // === INSIGHTS PANEL (three-state lifecycle) ===
@@ -443,11 +407,11 @@
             var insight = insights[i];
 
             if (i < state.insightsRevealed) {
-                html += '<div style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0;">';
+                html += '<div style="padding: 10px 12px; margin-bottom: 2px; border-radius: 8px; background: #fff;">';
                 html += '<div style="display: flex; gap: 10px; align-items: start;">';
-                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #0033FF; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #001641; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
                 html += '<div style="flex: 1;">';
-                html += '<div style="font-size: 0.85em; color: #475569; font-style: italic; margin-bottom: 6px;">\u201c' + insight.question + '\u201d</div>';
+                html += '<div style="font-size: 0.85em; color: #001641; margin-bottom: 6px;">\u201c' + insight.question + '\u201d</div>';
                 html += '<div style="font-size: 0.9em; color: #001641; font-weight: 500; padding: 6px 10px; background: #f0fdf4; border-left: 3px solid #16A34A; border-radius: 0 4px 4px 0;">' + insight.answer + '</div>';
                 html += '</div></div></div>';
 
@@ -460,15 +424,15 @@
                 if (i === state.insightsRevealed) {
                     html += '<div style="font-size: 0.8em; color: #A15A35; font-weight: 600; padding: 4px 10px; background: #F0E5D0; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
                 } else {
-                    html += '<div style="font-size: 0.8em; color: #94a3b8; font-style: italic;">(answer the previous question first)</div>';
+                    html += '<div style="font-size: 0.8em; color: #5C657B; font-style: italic;">(answer the previous question first)</div>';
                 }
                 html += '</div></div></div>';
 
             } else {
                 html += '<div style="padding: 6px 12px; margin-bottom: 2px;">';
                 html += '<div style="display: flex; gap: 10px; align-items: center;">';
-                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #e5e7eb; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
-                html += '<div style="font-size: 0.82em; color: #cbd5e1; font-style: italic;">(not yet revealed)</div>';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #F0F2F5; color: #5C657B; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="font-size: 0.82em; color: #5C657B; font-style: italic;">(not yet revealed)</div>';
                 html += '</div></div>';
             }
         }
@@ -487,8 +451,8 @@
         if (allPhaseAnswered && phase < 3) {
             var nextPhase = phase + 1;
             el.phaseAdvanceArea.style.display = 'block';
-            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #001641; margin-bottom: 8px;">All Phase ' + phase + ' discussion points completed!</div>' +
-                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + nextPhase + ' &#9654;</button>';
+            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.85rem; font-weight: 600; color: #2E7D32; margin-bottom: 8px;">All Phase ' + phase + ' discussion points completed!</div>' +
+                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 10px 24px; background: #2E7D32; color: #fff; border: none; border-radius: 8px; font-family: var(--uow-font); font-size: 0.85rem; font-weight: 700; cursor: pointer;">Continue to Phase ' + nextPhase + ' &#9654;</button>';
         } else {
             el.phaseAdvanceArea.style.display = 'none';
             el.phaseAdvanceArea.innerHTML = '';
@@ -497,7 +461,7 @@
 
     function renderOverrides() {
         var phase = state.currentPhase;
-        var linkStyle = 'background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78em; padding: 2px 6px; text-decoration: underline;';
+        var linkStyle = 'background: none; border: none; color: #5C657B; cursor: pointer; font-size: 0.78em; padding: 2px 6px; text-decoration: underline;';
         var html = '';
         if (phase < 2) html += '<button id="overrideSkip2" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 2</button>';
         if (phase < 3) html += '<button id="overrideSkip3" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 3</button>';
@@ -508,9 +472,10 @@
 
     // === INSIGHT ACTIONS ===
     function checkForNewQuestion() {
+        if (state.questionsShown > state.insightsRevealed) return;
         for (var i = 0; i < CHECKPOINT_SCHEDULE.length; i++) {
             var cp = CHECKPOINT_SCHEDULE[i];
-            if (cp.phase === state.currentPhase && cp.turn === state.phaseTurns && cp.insightIndex >= state.questionsShown) {
+            if (cp.phase === state.currentPhase && cp.turn <= state.phaseTurns && cp.insightIndex >= state.questionsShown) {
                 state.questionsShown = cp.insightIndex + 1;
                 renderInsights();
                 return;
@@ -529,9 +494,11 @@
             insight.action();
         }
 
+        checkForNewQuestion();
         renderInsights();
         rerenderHistory();
         updateProtectedVisibility();
+        updateChart();
         saveState();
     }
 
@@ -568,9 +535,10 @@
         state.currentTurn = 0;
         state.phaseTurns = 0;
         state.history = [];
+        state.cumulativeProfit = 0;
 
-        var colors = { active: '#0033FF', completed: '#16a34a', upcoming: '#e5e7eb' };
-        var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
+        var colors = { active: '#001641', completed: '#16a34a', upcoming: '#F0F2F5' };
+        var textColors = { active: '#fff', completed: '#fff', upcoming: '#5C657B' };
         [1, 2, 3].forEach(function(p) {
             var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
             var label = document.getElementById('phaseLabel' + p);
@@ -582,7 +550,7 @@
 
         // Re-enable Next Turn button
         el.nextTurnBtn.disabled = false;
-        el.nextTurnBtn.style.backgroundColor = '#0033FF';
+        el.nextTurnBtn.style.backgroundColor = '#001641';
         el.nextTurnBtn.style.cursor = 'pointer';
         el.staffSlider.disabled = false;
 
@@ -593,10 +561,15 @@
         el.profitDisplay.innerHTML = '$\u2014';
         el.utilizationDisplay.textContent = '\u2014';
         el.throughputDisplay.textContent = '\u2014';
+        el.totalProfitDisplay.innerHTML = '$0.00';
 
         // Clear history table
         el.historyBody.innerHTML = '';
         el.historyToggleLabel.textContent = 'Historical Performance (0 turns)';
+
+        // Hide chart and history until first turn
+        document.getElementById('chartSection').style.display = 'none';
+        document.getElementById('historySection').style.display = 'none';
 
         // Reinitialize chart
         initChart();
@@ -612,26 +585,28 @@
     function renderInstructions() {
         var inst = instructionText[state.currentPhase];
         el.instructionContent.innerHTML = state.instructionExpanded ? inst.full : inst.short;
-        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
+        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show less' : 'Show more';
     }
 
     // === HISTORY TABLE ===
     function renderHistoryHeader() {
-        var headers = ['Turn', 'Staffed<br>Counters', 'Actual<br>Demand', 'Service<br>Time', 'Revenue<br>per Cust.', 'Capacity', 'Utilization', 'Throughput<br>Time', 'Staffing<br>Costs', 'Penalty<br>Costs', 'Profit'];
-        var s = 'padding: 8px 6px; text-align: center; font-weight: 600; font-size: 0.8em; border-bottom: 2px solid #e2e8f0; color: #475569;';
+        var headers = ['Turn', 'Staffed<br>Counters', 'Actual<br>Demand', 'Service<br>Time', 'Revenue<br>per Cust.', 'Capacity', 'Utilisation', 'Throughput<br>Time', 'Staffing<br>Costs', 'Penalty<br>Costs', 'Profit'];
+        var s = 'padding: 6px 8px; text-align: center; font-weight: 600; background: #001641; color: #fff; white-space: nowrap;';
         el.historyHeader.innerHTML = headers.map(function(h) { return '<th style="' + s + '">' + h + '</th>'; }).join('');
     }
 
     function addHistoryRow(m, turnNum) {
-        var cs = 'padding: 6px; text-align: center; border-bottom: 1px solid #f1f5f9;';
+        var cs = 'padding: 5px 8px; text-align: center; border-bottom: 1px solid #e8e8e8;';
 
         var capDisplay = capacityIsRevealed()
             ? m.capacity.toFixed(0)
-            : '<span style="color: #94a3b8; font-style: italic;">?</span>';
+            : '<span style="color: #5C657B; font-style: italic;">?</span>';
 
         var utilDisplay = utilizationIsRevealed()
-            ? m.utilization.toFixed(0) + '%'
-            : '<span style="color: #94a3b8; font-style: italic;">?</span>';
+            ? (m.utilization > 100
+                ? '<span style="color: #ED0A00; font-weight: 600;">&gt;100%</span>'
+                : m.utilization.toFixed(0) + '%')
+            : '<span style="color: #5C657B; font-style: italic;">?</span>';
 
         var profitColor = m.turnProfit >= 0 ? '#16a34a' : '#ED0A00';
         var throughputColor = m.throughputTime > 60 ? '#ED0A00' : '#001641';
@@ -672,7 +647,13 @@
         el.demandDisplay.textContent = m.demand;
         el.capacityDisplay.textContent = m.capacity.toFixed(0);
         el.profitDisplay.innerHTML = '<span style="color:' + (m.turnProfit >= 0 ? '#16a34a' : '#ED0A00') + '">$' + fmt(m.turnProfit) + '</span>';
-        el.utilizationDisplay.textContent = m.utilization.toFixed(0);
+        if (m.utilization > 100) {
+            el.utilizationDisplay.parentElement.innerHTML = '<span id="utilizationDisplay" style="font-size: 1.15rem; font-weight: 700; color: #ED0A00;">&gt;100</span><span style="font-size: 0.7em; color: #ED0A00;">%</span>';
+            el.utilizationDisplay = document.getElementById('utilizationDisplay');
+        } else {
+            el.utilizationDisplay.parentElement.innerHTML = '<span id="utilizationDisplay" style="font-size: 1.15rem; font-weight: 700; color: #001641;">' + m.utilization.toFixed(0) + '</span><span style="font-size: 0.7em; color: #5C657B;">%</span>';
+            el.utilizationDisplay = document.getElementById('utilizationDisplay');
+        }
         el.throughputDisplay.innerHTML = '<span style="color:' + (m.throughputTime > 60 ? '#ED0A00' : '#001641') + '">' + m.throughputTime.toFixed(0) + '</span>';
         el.totalProfitDisplay.innerHTML = '<span style="color:' + (state.cumulativeProfit >= 0 ? '#16a34a' : '#ED0A00') + '">$' + fmt(state.cumulativeProfit) + '</span>';
         updateProtectedVisibility();
@@ -696,28 +677,29 @@
                     {
                         label: 'Capacity',
                         data: Array(maxTurns).fill(null),
-                        borderColor: 'rgb(54, 162, 235)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                        borderWidth: 2,
+                        borderColor: '#001641',
+                        backgroundColor: 'rgba(0, 22, 65, 0.08)',
+                        borderWidth: 2.5,
                         pointRadius: 4,
-                        pointBackgroundColor: 'rgb(54, 162, 235)',
+                        pointBackgroundColor: '#001641',
                         pointHoverRadius: 6,
-                        pointHoverBackgroundColor: 'rgb(54, 162, 235)',
-                        legendBorderColor: '#666',
-                        legendBackgroundColor: 'rgb(54, 162, 235)'
+                        pointHoverBackgroundColor: '#001641',
+                        legendBorderColor: '#001641',
+                        legendBackgroundColor: '#001641',
+                        hidden: !capacityIsRevealed()
                     },
                     {
                         label: 'Actual Demand',
                         data: Array(maxTurns).fill(null),
-                        borderColor: 'rgb(255, 159, 64)',
-                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
-                        borderWidth: 2,
+                        borderColor: '#ED0A00',
+                        backgroundColor: 'rgba(237, 10, 0, 0.08)',
+                        borderWidth: 2.5,
                         pointRadius: 4,
-                        pointBackgroundColor: 'rgb(255, 159, 64)',
+                        pointBackgroundColor: '#ED0A00',
                         pointHoverRadius: 6,
-                        pointHoverBackgroundColor: 'rgb(255, 159, 64)',
-                        legendBorderColor: '#666',
-                        legendBackgroundColor: 'rgb(255, 159, 64)'
+                        pointHoverBackgroundColor: '#ED0A00',
+                        legendBorderColor: '#ED0A00',
+                        legendBackgroundColor: '#ED0A00'
                     }
                 ]
             },
@@ -750,7 +732,12 @@
                             font: { size: 14 },
                             generateLabels: function(chart) {
                                 var datasets = chart.data.datasets;
-                                return datasets.map(function(dataset, i) {
+                                return datasets.filter(function(dataset, i) {
+                                    // Hide Capacity from legend until revealed
+                                    if (i === 0 && !capacityIsRevealed()) return false;
+                                    return true;
+                                }).map(function(dataset) {
+                                    var i = datasets.indexOf(dataset);
                                     return {
                                         text: dataset.label,
                                         fillStyle: dataset.legendBackgroundColor,
@@ -770,6 +757,10 @@
 
     function updateChart() {
         if (!chartInstance) return;
+        // Show chart section once there's data
+        if (state.history.length > 0) {
+            document.getElementById('chartSection').style.display = 'flex';
+        }
         var maxTurns = PHASE_CONFIG[state.currentPhase].maxTurns;
         var capacityData = Array(maxTurns).fill(null);
         var demandData = Array(maxTurns).fill(null);
@@ -781,6 +772,11 @@
 
         chartInstance.data.datasets[0].data = capacityData;
         chartInstance.data.datasets[1].data = demandData;
+
+        // Gate capacity line visibility: hidden until Insight 1 answered
+        var capMeta = chartInstance.getDatasetMeta(0);
+        capMeta.hidden = !capacityIsRevealed();
+
         chartInstance.update();
     }
 
@@ -801,6 +797,7 @@
 
         updateMetrics(metrics);
         addHistoryRow(metrics, state.currentTurn);
+        document.getElementById('historySection').style.display = '';
         el.historyToggleLabel.textContent = 'Historical Performance (' + state.history.length + ' turns)';
         updateChart();
         checkForNewQuestion();
@@ -861,8 +858,8 @@
         // Set phase without resetting history
         var phase = state.currentPhase;
 
-        var colors = { active: '#0033FF', completed: '#16a34a', upcoming: '#e5e7eb' };
-        var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
+        var colors = { active: '#001641', completed: '#16a34a', upcoming: '#F0F2F5' };
+        var textColors = { active: '#fff', completed: '#fff', upcoming: '#5C657B' };
         [1, 2, 3].forEach(function(p) {
             var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
             var label = document.getElementById('phaseLabel' + p);
@@ -883,7 +880,7 @@
             el.staffSlider.disabled = true;
         } else {
             el.nextTurnBtn.disabled = false;
-            el.nextTurnBtn.style.backgroundColor = '#0033FF';
+            el.nextTurnBtn.style.backgroundColor = '#001641';
             el.nextTurnBtn.style.cursor = 'pointer';
             el.staffSlider.disabled = false;
         }
@@ -891,6 +888,12 @@
         // Init chart and rebuild from history
         initChart();
         updateChart();
+
+        // Show chart and history sections if there's data
+        if (state.history.length > 0) {
+            document.getElementById('chartSection').style.display = 'flex';
+            document.getElementById('historySection').style.display = '';
+        }
 
         // Rebuild history table
         renderHistoryHeader();
