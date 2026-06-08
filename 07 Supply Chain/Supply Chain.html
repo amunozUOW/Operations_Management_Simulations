@@ -1,804 +1,940 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
-<style data-uow-tokens>
-:root {
-  --uow-white:        #FFFFFF;
-  --uow-blue-dark:    #001641;
-  --uow-blue-bright:  #0033FF;
-  --uow-red:          #ED0A00;
-  --uow-grey-light:   #F2F2F2;
-  --uow-copper:       #A15A35;
-  --uow-copper-light: #C4744F;
-  --uow-cream:        #F0E5D0;
-  --uow-lavender:     #CDD6F8;
-  --uow-ice-blue:     #E3F1F9;
-  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  --chart-1: #001641;
-  --chart-2: #ED0A00;
-  --chart-3: #0033FF;
-  --chart-4: #A15A35;
-  --chart-5: #6B7280;
-}
-[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
-  font-family: var(--uow-font) !important;
-}
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
+<!-- Moodle strips style blocks, so this sim uses inline literal styles only (no CSS variables). -->
 
-<div id="supply-chain-sim-v1" style="display:flex !important; flex-direction:column !important; gap:14px !important; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important; max-width:1200px !important; margin:0 auto !important; padding:16px !important; color:#001641 !important; line-height:1.4 !important;">
+<div id="ops802-supplychain-sim-v1" style="max-width:1200px;margin:0 auto;padding:16px;font-family:'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;color:#001641;line-height:1.5;">
 
-    <!-- Title + Phase Indicator -->
-    <div style="display:flex !important; flex-wrap:wrap !important; align-items:center !important; justify-content:space-between !important; gap:10px !important;">
-        <h2 style="margin:0 !important; font-size:1.5em !important; color:#001641 !important;">Supply Chain Management</h2>
-        <div style="display:flex !important; gap:4px !important; align-items:center !important;">
-            <span id="phaseLabel1" style="padding:5px 12px !important; border-radius:6px !important; font-size:0.8em !important; font-weight:600 !important; background:#0033FF !important; color:#fff !important;">Phase 1</span>
-            <span style="color:#cbd5e1 !important;">&#9654;</span>
-            <span id="phaseLabel2" style="padding:5px 12px !important; border-radius:6px !important; font-size:0.8em !important; font-weight:600 !important; background:#e5e7eb !important; color:#94a3b8 !important;">Phase 2</span>
-            <span style="color:#cbd5e1 !important;">&#9654;</span>
-            <span id="phaseLabel3" style="padding:5px 12px !important; border-radius:6px !important; font-size:0.8em !important; font-weight:600 !important; background:#e5e7eb !important; color:#94a3b8 !important;">Phase 3</span>
-        </div>
+<div style="display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+    <div id="stageIndicators" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <div data-stage="1" style="padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;background:#001641;color:#fff;white-space:nowrap;">Stage 1: Two Echelons</div>
+        <div style="color:#5C657B;font-size:0.7rem;">&#9654;</div>
+        <div data-stage="2" style="padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;background:#F0F2F5;color:#5C657B;white-space:nowrap;">Stage 2: Demand Shock</div>
+        <div style="color:#5C657B;font-size:0.7rem;">&#9654;</div>
+        <div data-stage="3" style="padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;background:#F0F2F5;color:#5C657B;white-space:nowrap;">Stage 3: Three Echelons</div>
     </div>
+</div>
 
-    <!-- Instruction Panel -->
-    <div style="background:#E3F1F9 !important; border-left:4px solid #0033FF !important; border-radius:0 8px 8px 0 !important; padding:14px 18px !important; line-height:1.6 !important;">
-        <div style="display:flex !important; justify-content:space-between !important; align-items:start !important;">
-            <div id="instructionContent" style="flex:1 !important;"></div>
-            <button id="toggleInstructions" onclick="void(0)" style="background:none !important; border:none !important; color:#0033FF !important; cursor:pointer !important; font-size:0.85em !important; white-space:nowrap !important; padding:0 0 0 12px !important;">Show Less</button>
-        </div>
-    </div>
-
-    <!-- Controls + Status Row -->
-    <div style="display:flex !important; flex-wrap:wrap !important; gap:14px !important;">
-        <!-- Slider Controls -->
-        <div style="flex:1 !important; min-width:280px !important; background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px !important;">
-            <div style="font-weight:700 !important; font-size:0.95em !important; margin-bottom:12px !important; color:#334155 !important;">Order Quantities (Q)</div>
-            <div style="margin-bottom:12px !important;">
-                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#001641 !important; margin-bottom:4px !important;">Factory Q: <span id="factoryValueDisplay">12</span></label>
-                <input type="range" id="factorySlider" min="0" max="20" value="12" style="width:100% !important;">
+<div id="instructionPanel" style="background:#E3F1F9;border-left:4px solid #001641;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:16px;position:relative;">
+    <button id="instrToggle" style="position:absolute;top:10px;right:14px;background:none;border:none;color:#001641;font-family:'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;text-decoration:underline;">Show less</button>
+    <h3 id="instrTitle" style="font-size:0.85rem;font-weight:700;margin:0 0 4px 0;padding-right:80px;"></h3>
+    <p id="instrFull" style="font-size:0.8rem;color:#001641;margin:0;"></p>
+    <p id="instrShort" style="font-size:0.8rem;color:#001641;margin:0;display:none;"></p>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,22,65,0.12);">
+        <table style="font-size:0.74rem;color:#001641;border-collapse:collapse;margin:0 0 8px 0;">
+            <tr><td style="font-weight:700;padding:1px 8px 1px 0;white-space:nowrap;vertical-align:top;">EI</td><td style="padding:1px 0;">Effective inventory = stock &minus; backlog. A negative EI is a backlog you owe.</td></tr>
+            <tr><td style="font-weight:700;padding:1px 8px 1px 0;white-space:nowrap;vertical-align:top;">Q</td><td style="padding:1px 0;">The order you set each turn. It takes a turn to arrive.</td></tr>
+            <tr><td style="font-weight:700;padding:1px 8px 1px 0;white-space:nowrap;vertical-align:top;">R</td><td style="padding:1px 0;">Incoming replenishment — an order placed earlier, now arriving; it joins usable inventory next turn.</td></tr>
+        </table>
+        <p style="font-size:0.78rem;color:#001641;margin:0 0 8px 0;"><strong>Costs each turn:</strong> holding $0.50/unit &middot; backlog $1.00/unit &middot; sale price $5.00/unit &middot; <strong>no ordering cost</strong>.</p>
+        <p style="font-size:0.78rem;color:#001641;margin:0 0 6px 0;font-weight:600;">Two things move in opposite directions — read the arrows in the diagram below carefully:</p>
+        <div style="display:flex;flex-wrap:wrap;gap:5px 22px;font-size:0.78rem;color:#001641;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="display:inline-flex;align-items:center;width:34px;"><span style="color:#001641;font-size:0.95rem;line-height:0;margin-right:-1px;">&#9664;</span><span style="flex:1;border-top:2px dashed #001641;"></span></span>
+                <span><strong>Orders &amp; information</strong> travel <strong>upstream</strong> (right&nbsp;&rarr;&nbsp;left) &mdash; you tell each supplier what you need</span>
             </div>
-            <div id="manufacturerSliderGroup" style="display:none !important; margin-bottom:12px !important;">
-                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#A15A35 !important; margin-bottom:4px !important;">Manufacturer Q: <span id="manufacturerValueDisplay">12</span></label>
-                <input type="range" id="manufacturerSlider" min="0" max="20" value="12" style="width:100% !important;">
-            </div>
-            <div style="margin-bottom:12px !important;">
-                <label style="display:flex !important; justify-content:space-between !important; font-size:0.9em !important; font-weight:600 !important; color:#0033FF !important; margin-bottom:4px !important;">Retailer Q: <span id="retailerValueDisplay">12</span></label>
-                <input type="range" id="retailerSlider" min="0" max="20" value="12" style="width:100% !important;">
-            </div>
-            <button id="nextTurnBtn" onclick="void(0)" style="width:100% !important; padding:10px 16px !important; background:#0033FF !important; color:#fff !important; border:none !important; border-radius:6px !important; font-size:0.95em !important; font-weight:600 !important; cursor:pointer !important;">Next Turn</button>
-            <div id="statusMessage" style="display:none !important; margin-top:10px !important; padding:8px 12px !important; border-radius:6px !important; font-size:0.85em !important;"></div>
-        </div>
-        <!-- Status Metrics -->
-        <div style="flex:1.2 !important; min-width:280px !important; display:flex !important; flex-wrap:wrap !important; gap:10px !important; align-content:start !important;">
-            <div style="width:100% !important; display:flex !important; justify-content:space-between !important; align-items:center !important;">
-                <div style="font-weight:700 !important; font-size:0.95em !important; color:#334155 !important;">Turn <span id="turnCounter">0</span> of 30</div>
-                <div style="font-size:0.85em !important; color:#64748b !important;">Demand: <span id="metricDemand" style="font-weight:700 !important; color:#001641 !important;">&mdash;</span></div>
-            </div>
-            <div style="width:100% !important; padding:12px !important; border:2px solid #0033FF !important; border-radius:8px !important; text-align:center !important; background:#E3F1F9 !important;">
-                <div style="font-size:0.75em !important; color:#001641 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Total Profit</div>
-                <div id="metricProfit" style="font-size:1.8em !important; font-weight:700 !important; color:#001641 !important;">$0.00</div>
-            </div>
-            <div style="flex:1 !important; min-width:120px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
-                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important;">Turn Revenue</div>
-                <div id="metricRevenue" style="font-size:1.2em !important; font-weight:700 !important; color:#16a34a !important;">&mdash;</div>
-            </div>
-            <div style="flex:1 !important; min-width:120px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
-                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important;">Turn Cost</div>
-                <div id="metricCost" style="font-size:1.2em !important; font-weight:700 !important; color:#ED0A00 !important;">&mdash;</div>
-            </div>
-            <div style="flex:1 !important; min-width:120px !important; padding:10px !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; text-align:center !important; background:#fff !important;">
-                <div style="font-size:0.75em !important; color:#64748b !important; text-transform:uppercase !important;">Sales</div>
-                <div id="metricSales" style="font-size:1.2em !important; font-weight:700 !important; color:#001641 !important;">&mdash;</div>
-            </div>
-            <!-- Protected Metric: Bullwhip Ratio -->
-            <div id="bullwhipCard" style="width:100% !important; padding:10px !important; border:2px dashed #0033FF !important; border-radius:8px !important; text-align:center !important; background:#E3F1F9 !important;">
-                <div style="font-size:0.75em !important; color:#001641 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; font-weight:600 !important;">Bullwhip Ratio</div>
-                <div id="bullwhipPrompt" style="font-size:0.85em !important; color:#64748b !important; margin-top:4px !important;">Var(Orders) / Var(Demand)</div>
-                <div id="bullwhipRevealed" style="display:none !important;">
-                    <div id="bullwhipValue" style="font-size:1.4em !important; font-weight:700 !important; color:#001641 !important;">&mdash;</div>
-                    <div style="font-size:0.7em !important; color:#0033FF !important;">Higher = more amplification</div>
-                </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="display:inline-flex;align-items:center;width:34px;"><span style="flex:1;border-top:3px solid #2E7D32;"></span><span style="color:#2E7D32;font-size:0.95rem;line-height:0;margin-left:-1px;">&#9654;</span></span>
+                <span><strong>Goods &amp; replenishment</strong> travel <strong>downstream</strong> (left&nbsp;&rarr;&nbsp;right) &mdash; and take a turn to arrive (the delay)</span>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Supply Chain Diagram -->
-    <div id="scDiagram" style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px !important; overflow-x:auto !important;">
-        <div style="display:flex !important; align-items:center !important; justify-content:center !important; gap:0 !important; min-width:600px !important;">
-            <!-- Reservoir -->
-            <div style="padding:8px 12px !important; background:#CDD6F8 !important; border:1px solid #CDD6F8 !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:70px !important;">
-                <div style="font-weight:600 !important; color:#475569 !important;">Reservoir</div>
-                <div style="color:#64748b !important;">&infin;</div>
+<div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:280px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+        <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;">Your Orders — Turn <span id="turnLabel">0</span> of 30</h3>
+
+        <div data-echelon-control="factory" style="margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <label style="font-size:0.8rem;font-weight:600;white-space:nowrap;min-width:96px;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#36A2EB;margin-right:5px;"></span>Factory Q:</label>
+                <input type="range" id="factorySlider" min="0" max="20" value="12" style="flex:1;accent-color:#001641;">
+                <span id="factoryValue" style="font-size:1.05rem;font-weight:700;color:#001641;min-width:28px;text-align:center;">12</span>
             </div>
-            <div style="padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
-            <!-- Factory -->
-            <div style="padding:8px 12px !important; background:#E3F1F9 !important; border:2px solid rgb(0,22,65) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
-                <div style="font-weight:700 !important; color:#001641 !important;">Factory</div>
-                <div style="font-size:1.3em !important; font-weight:700 !important;" id="diagFactoryEI">EI: 12</div>
-                <div style="color:#64748b !important;">Q: <span id="diagFactoryQ">12</span> &bull; R: <span id="diagFactoryR">12</span></div>
+        </div>
+
+        <div data-echelon-control="manufacturer" style="margin-bottom:12px;display:none;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <label style="font-size:0.8rem;font-weight:600;white-space:nowrap;min-width:96px;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#FF9F40;margin-right:5px;"></span>Manuf. Q:</label>
+                <input type="range" id="manufacturerSlider" min="0" max="20" value="12" style="flex:1;accent-color:#001641;">
+                <span id="manufacturerValue" style="font-size:1.05rem;font-weight:700;color:#001641;min-width:28px;text-align:center;">12</span>
             </div>
-            <div style="padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
-            <!-- Manufacturer (hidden in Phase 1&2) -->
-            <div id="diagManufacturerNode" style="display:none !important; padding:8px 12px !important; background:#F0E5D0 !important; border:2px solid rgb(161,90,53) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
-                <div style="font-weight:700 !important; color:#A15A35 !important;">Manufacturer</div>
-                <div style="font-size:1.3em !important; font-weight:700 !important;" id="diagManufacturerEI">EI: 12</div>
-                <div style="color:#64748b !important;">Q: <span id="diagManufacturerQ">12</span> &bull; R: <span id="diagManufacturerR">12</span></div>
+        </div>
+
+        <div data-echelon-control="retailer" style="margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <label style="font-size:0.8rem;font-weight:600;white-space:nowrap;min-width:96px;"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#4BC0C0;margin-right:5px;"></span>Retailer Q:</label>
+                <input type="range" id="retailerSlider" min="0" max="20" value="12" style="flex:1;accent-color:#001641;">
+                <span id="retailerValue" style="font-size:1.05rem;font-weight:700;color:#001641;min-width:28px;text-align:center;">12</span>
             </div>
-            <div id="diagManufacturerArrow" style="display:none !important; padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
-            <!-- Retailer -->
-            <div style="padding:8px 12px !important; background:#E3F1F9 !important; border:2px solid rgb(0,51,255) !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:100px !important;">
-                <div style="font-weight:700 !important; color:#001641 !important;">Retailer</div>
-                <div style="font-size:1.3em !important; font-weight:700 !important;" id="diagRetailerEI">EI: 12</div>
-                <div style="color:#64748b !important;">Q: <span id="diagRetailerQ">12</span> &bull; R: <span id="diagRetailerR">12</span></div>
-            </div>
-            <div style="padding:0 6px !important; color:#94a3b8 !important; font-size:1.2em !important;">&#10142;</div>
-            <!-- Customer -->
-            <div style="padding:8px 12px !important; background:#FBEDED !important; border:1px solid #ED0A00 !important; border-radius:6px !important; text-align:center !important; font-size:0.8em !important; min-width:80px !important;">
-                <div style="font-weight:600 !important; color:#B00800 !important;">Customer</div>
-                <div id="diagDemand" style="font-weight:700 !important;">&mdash;</div>
-                <div style="color:#64748b !important;">Sales: <span id="diagSales">0</span></div>
-            </div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+            <button id="btnNextTurn" style="flex:1;padding:12px;border:none;border-radius:8px;background:#001641;color:#fff;font-family:'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">Next Turn &#9654;</button>
+            <button id="btnResetStage" style="padding:12px 16px;border:none;border-radius:8px;background:#5C657B;color:#fff;font-family:'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">Reset</button>
         </div>
     </div>
 
-    <!-- Charts -->
-    <div style="display:flex !important; flex-wrap:wrap !important; gap:14px !important;">
-        <div style="flex:1 !important; min-width:340px !important;">
-            <div style="font-weight:600 !important; font-size:0.9em !important; color:#334155 !important; margin-bottom:6px !important;">Effective Inventories</div>
-            <div style="position:relative !important; height:40vh !important; max-height:350px !important;">
-                <canvas id="eiChart"></canvas>
+    <div style="flex:1.5;min-width:320px;">
+        <div id="metricsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;">
+            <div id="metricTurn" style="background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Turn</div>
+                <div style="font-size:1.15rem;font-weight:700;color:#001641;">0 / 30</div>
+            </div>
+            <div id="metricProfit" style="background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Total Profit</div>
+                <div style="font-size:1.15rem;font-weight:700;color:#2E7D32;">$0.00</div>
+            </div>
+            <div id="metricDelta" style="background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">This Turn</div>
+                <div style="font-size:1.15rem;font-weight:700;color:#001641;">—</div>
+            </div>
+            <div id="metricDemand" style="background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Customer Demand</div>
+                <div style="font-size:1.15rem;font-weight:700;color:#001641;">—</div>
+            </div>
+            <div id="metricSales" style="background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Retailer Sales</div>
+                <div style="font-size:1.15rem;font-weight:700;color:#001641;">—</div>
             </div>
         </div>
-        <div style="flex:1 !important; min-width:340px !important;">
-            <div style="font-weight:600 !important; font-size:0.9em !important; color:#334155 !important; margin-bottom:6px !important;">Order Quantities</div>
-            <div style="position:relative !important; height:40vh !important; max-height:350px !important;">
-                <canvas id="qChart"></canvas>
-            </div>
-        </div>
     </div>
+</div>
 
-    <!-- History Table -->
-    <div>
-        <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:8px !important;">
-            <h3 style="margin:0 !important; font-size:1.1em !important; color:#001641 !important;">Turn History</h3>
-            <button id="toggleHistory" onclick="void(0)" style="background:none !important; border:none !important; color:#0033FF !important; cursor:pointer !important; font-size:0.85em !important;">Hide Table</button>
-        </div>
-        <div id="historyContainer" style="overflow-x:auto !important;">
-            <table id="historyTable" style="width:100% !important; border-collapse:collapse !important; font-size:0.8em !important;">
-                <thead><tr id="historyHeader" style="background:#f8fafc !important;"></tr></thead>
-                <tbody id="historyBody"></tbody>
-            </table>
-        </div>
-    </div>
+<div style="background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:16px;">
+    <div id="flowDiagram" style="display:flex;align-items:stretch;gap:2px;overflow-x:auto;padding-bottom:6px;"></div>
+</div>
 
-    <!-- Discussion Insights -->
-    <div style="background:#f8fafc !important; border:1px solid #e2e8f0 !important; border-radius:8px !important; padding:16px 18px !important;">
-        <div style="display:flex !important; justify-content:space-between !important; align-items:center !important; margin-bottom:12px !important;">
-            <div style="font-weight:700 !important; font-size:1.05em !important; color:#001641 !important;">Discussion Insights</div>
-            <div id="insightsCounter" style="font-size:0.85em !important; color:#64748b !important; font-weight:600 !important;">0 of 9</div>
-        </div>
-        <div id="insightsList" style="display:flex !important; flex-direction:column !important; gap:0px !important;"></div>
-        <div id="phaseAdvanceArea" style="display:none !important; margin-top:12px !important; padding:10px 12px !important; background:#E3F1F9 !important; border:1px solid #0033FF !important; border-radius:6px !important; text-align:center !important;"></div>
-        <div id="overrideControls" style="margin-top:12px !important; padding-top:10px !important; border-top:1px dashed #e2e8f0 !important; display:flex !important; flex-wrap:wrap !important; gap:8px !important; justify-content:center !important;"></div>
+<div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:320px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+        <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 10px 0;">Effective Inventories</h3>
+        <div style="position:relative;height:300px;"><canvas id="eiChart"></canvas></div>
     </div>
+    <div style="flex:1;min-width:320px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+        <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 10px 0;">Order Quantities</h3>
+        <div style="position:relative;height:300px;"><canvas id="qChart"></canvas></div>
+    </div>
+</div>
+
+<div id="historySection" style="background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:16px;">
+    <h3 id="historyToggle" style="font-size:0.85rem;font-weight:700;margin:0;cursor:pointer;">Turn History &#9660;</h3>
+    <div id="historyWrap" style="overflow-x:auto;margin-top:8px;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.72rem;">
+            <thead><tr id="historyHeadRow"></tr></thead>
+            <tbody id="historyBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div style="margin-bottom:8px;">
+    <h3 style="font-size:0.95rem;font-weight:700;margin:0 0 12px 0;">Discussion Insights <span id="insightsCounter" style="font-weight:400;color:#94a3b8;font-size:0.85em;"></span></h3>
+    <div id="insightsContainer"></div>
+</div>
+
+<div id="stageAdvance" style="text-align:center;padding:16px;margin:10px 0;background:#E8F5E9;border-radius:10px;display:none;">
+    <p id="stageAdvanceMsg" style="font-size:0.85rem;font-weight:600;color:#2E7D32;margin:0 0 8px 0;"></p>
+    <button id="btnStageAdvance" style="padding:10px 24px;border:none;border-radius:8px;background:#2E7D32;color:#fff;font-family:'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;"></button>
+</div>
+
+<div id="skipLinks" style="margin-top:12px;text-align:center;font-size:0.7rem;">
+    <a id="skipReveal" style="color:#5C657B;cursor:pointer;margin:0 8px;text-decoration:underline;">Reveal Next Question</a>
+    <a id="skipStage2" style="color:#5C657B;cursor:pointer;margin:0 8px;text-decoration:underline;">Skip to Stage 2</a>
+    <a id="skipStage3" style="color:#5C657B;cursor:pointer;margin:0 8px;text-decoration:underline;">Skip to Stage 3</a>
+    <a id="fullReset" style="color:#5C657B;cursor:pointer;margin:0 8px;text-decoration:underline;">Full Reset</a>
+</div>
+
 </div>
 
 <script>
 (function() {
-    'use strict';
+'use strict';
 
-    var STORAGE_KEY = 'ops802_supply_chain_v1';
-    var MAX_TURNS = 30;
-    var COST_B = 1.0;
-    var COST_I = 0.50;
-    var SALE_PRICE = 5.0;
-    var INIT_EI = 12;
-    var INIT_R = 12;
-    var TOTAL_INSIGHTS = 9;
-    var TOTAL_PHASES = 3;
+/* ===== CONSTANTS (verbatim from the original beer-game sims) ===== */
+var MAX_TURNS = 30;
+var COST_HOLD = 0.50;   // costofI
+var COST_BACKLOG = 1.0; // costofB
+var SALE_PRICE = 5.0;   // salePrice
+var START = 12;         // initial EI, R and Q for every echelon
 
-    var PHASE_INSIGHTS = { 1: [0,1,2], 2: [3,4,5], 3: [6,7,8] };
+var COLORS = { factory: '#36A2EB', manufacturer: '#FF9F40', retailer: '#4BC0C0' };
 
-    var CHECKPOINT_SCHEDULE = [
-        { phase: 1, turn: 8, insightIndex: 0 },
-        { phase: 1, turn: 16, insightIndex: 1 },
-        { phase: 1, turn: 25, insightIndex: 2 },
-        { phase: 2, turn: 5, insightIndex: 3 },
-        { phase: 2, turn: 15, insightIndex: 4 },
-        { phase: 2, turn: 25, insightIndex: 5 },
-        { phase: 3, turn: 8, insightIndex: 6 },
-        { phase: 3, turn: 16, insightIndex: 7 },
-        { phase: 3, turn: 25, insightIndex: 8 }
-    ];
+var STAGE_CONFIG = {
+    1: { name: 'Two Echelons',   echelons: ['factory', 'retailer'] },
+    2: { name: 'Demand Shock',   echelons: ['factory', 'retailer'] },
+    3: { name: 'Three Echelons', echelons: ['factory', 'manufacturer', 'retailer'] }
+};
 
-    var INSIGHTS = [
-        { phase:1, question:'With steady demand of 4\u20135 units, what ordering quantities keep effective inventory stable without excessive build-up or backlog?', answer:'Matching orders to expected demand (~4\u20135 units) keeps EI stable. Ordering significantly more builds costly excess inventory ($0.50/unit); ordering less creates backlog ($1.00/unit). A small buffer above demand provides insurance against the 1-turn ordering lag.', action:null },
-        { phase:1, question:'What happens to the retailer when the factory develops a backlog? How does the ordering lag affect downstream performance?', answer:'When the factory cannot fulfil the retailer\u2019s order, the retailer receives less than expected (R < Q). This shortfall hits the retailer one turn later due to the ordering delay. The retailer then faces its own backlog with customers, demonstrating how disruptions cascade downstream.', action:null },
-        { phase:1, question:'Compare the cost of holding excess inventory ($0.50/unit) vs. running a backlog ($1.00/unit). What does this imply about your safety stock strategy?', answer:'Backlog costs are double holding costs. This means it is cheaper to hold a small buffer of excess inventory than to risk stockouts. The optimal strategy slightly favours over-ordering, especially given the 1-turn lag between ordering and receiving.', action:null },
-        { phase:2, question:'Demand has shifted! What happened to your supply chain when demand jumped? How quickly were you able to adapt?', answer:'The demand jump from ~7\u20138 to ~15\u201319 creates an immediate backlog at the retailer. The factory, still receiving orders based on old demand levels, cannot supply enough. The 1-turn lag means adaptation takes several turns \u2014 during which backlogs and costs accumulate rapidly.', action:null },
-        { phase:2, question:'Compare the effective inventory patterns of the factory vs. retailer. Which fluctuates more, and why?', answer:'The factory\u2019s EI typically fluctuates more because it absorbs amplified ordering from the retailer. When the retailer faces a backlog, it tends to over-order to recover, sending a larger signal upstream. This amplification of order variability upstream is called the bullwhip effect.', action:'revealBullwhip' },
-        { phase:2, question:'What strategies could reduce the impact of sudden demand changes on your supply chain?', answer:'Strategies include: (1) sharing demand information upstream so the factory can anticipate changes, (2) smoothing orders rather than reacting sharply to backlogs, (3) maintaining safety stock to absorb shocks. The key insight is that reducing information lag reduces amplification.', action:null },
-        { phase:3, question:'With a third echelon (manufacturer) and highly variable demand (0\u201326), how do supply chain dynamics change compared to the 2-echelon setup?', answer:'Adding a middle echelon creates an additional buffer but also an additional ordering delay. With demand ranging 0\u201326, the variability is much harder to predict. Each echelon\u2019s orders amplify the uncertainty, and the factory (furthest from the customer) sees the most volatile patterns.', action:null },
-        { phase:3, question:'Compare ordering patterns across all three echelons. Where is the bullwhip effect most visible?', answer:'The bullwhip effect is most visible at the factory. Each echelon amplifies order variability: the retailer reacts to customer demand, the manufacturer reacts to retailer orders, and the factory reacts to manufacturer orders. By the time the signal reaches the factory, it bears little resemblance to actual customer demand.', action:'updateBullwhip' },
-        { phase:3, question:'Across all three phases, what have you learned about supply chain design? What is the fundamental trade-off?', answer:'More echelons mean more amplification and lag. The fundamental trade-off is between decentralised responsiveness (each node reacts independently) and centralised accuracy (sharing real demand data). The bullwhip effect shows that independent decision-making with limited information leads to system-wide inefficiency.', action:null }
-    ];
+var ECHELON_LABEL = { factory: 'Factory', manufacturer: 'Manufacturer', retailer: 'Retailer' };
 
-    var INSTRUCTIONS = {
-        1: {
-            full:'<strong>Phase 1: Two-Echelon Supply Chain \u2014 Steady Demand</strong><br><br>You manage a 2-echelon supply chain: <strong>Factory \u2192 Retailer \u2192 Customer</strong>. The factory orders from an infinite reservoir. Each location orders quantity Q per turn and receives its order the following turn.<br><br><em>Key parameters:</em><br>\u2022 Demand: 4\u20135 units/turn (steady) &bull; Sale price: $5.00/unit<br>\u2022 Holding cost: $0.50/unit &bull; Backlog cost: $1.00/unit<br>\u2022 30 turns &bull; Starting EI: 12 at each location<br><br><strong>Your task:</strong> Set order quantities for Factory and Retailer each turn. Maximise profit by balancing inventory costs against backlog costs. <em>(Hint: What if demand is lower than expected?)</em>',
-            short:'Phase 1: 2-echelon chain, steady demand (4\u20135). Set Factory Q and Retailer Q to maximise profit over 30 turns.'
-        },
-        2: {
-            full:'<strong>Phase 2: Demand Disruption \u2014 The Bullwhip Effect</strong><br><br>Same 2-echelon chain, but <strong>demand will change</strong>. Early turns have moderate demand, then demand increases significantly. Your supply chain must adapt.<br><br><em>Key parameters:</em> Same as Phase 1, but demand pattern changes mid-game.<br><br><strong>Your task:</strong> Manage the transition. Watch how disruptions propagate through the chain. <em>(Hint: Demand is likely to change \u2014 what do you do?)</em>',
-            short:'Phase 2: 2-echelon chain with a <strong>demand shift</strong> mid-game. Adapt your strategy as demand changes.'
-        },
-        3: {
-            full:'<strong>Phase 3: Three-Echelon Chain \u2014 High Variability</strong><br><br>The chain now includes a <strong>Manufacturer</strong> between Factory and Retailer: <strong>Factory \u2192 Manufacturer \u2192 Retailer \u2192 Customer</strong>. Customer demand is highly variable (0\u201326 units/turn).<br><br><em>Key parameters:</em> Same costs. You now control <strong>three</strong> order quantities.<br><br><strong>Your task:</strong> Manage a longer chain with unpredictable demand. Observe how order variability amplifies upstream. <em>(Hint: With more echelons come more possibilities \u2014 both benefits and risks.)</em>',
-            short:'Phase 3: <strong>3-echelon</strong> chain with high variability (0\u201326). Control Factory, Manufacturer, and Retailer orders.'
+/* ===== INSTRUCTIONS (per stage, paraphrased from the original intros + hints) ===== */
+var INSTRUCTIONS = {
+    1: {
+        full: 'You are the <strong>single planner for the whole chain</strong>: each turn you set the order (<strong>Q</strong>) for every location. The <strong>Factory</strong> orders from an infinite reservoir; the <strong>Retailer</strong> orders from the Factory. An order takes a turn to arrive, so what you order now lands later. Meet customer demand at the lowest cost to maximise profit over 30 turns. <em>Hint: what if demand is lower than expected?</em>',
+        short: 'You plan the whole chain. Two locations, low steady demand — match orders to demand.'
+    },
+    2: {
+        full: 'Still the <strong>single planner</strong> for the two-location chain: the <strong>Retailer</strong> orders from the <strong>Factory</strong>, which draws from an infinite reservoir. Costs and rules are unchanged, and orders still take a turn to arrive. But demand will not sit still. Keep every location’s EI healthy and profit climbing over 30 turns. <em>Hint: demand is likely to change — what do you do?</em>',
+        short: 'You plan the whole chain. A demand change is coming — plan ahead for the delay.'
+    },
+    3: {
+        full: 'A third location joins, and you plan all three: the <strong>Retailer</strong> orders from the <strong>Manufacturer</strong>, the Manufacturer from the <strong>Factory</strong>, the Factory from an infinite reservoir. Three sliders now, and demand swings more widely. With every extra location the delays stack up, so plan further ahead. <em>Hint: more locations means more interdependence — coordinate them as one chain.</em>',
+        short: 'You plan all three locations. More links, more delay — coordinate the whole chain.'
+    }
+};
+
+/* ===== DISCUSSION INSIGHTS (grounded in the lesson-plan debrief points) ===== */
+var INSIGHTS = [
+    // ---- Stage 1: meeting the supply chain ----
+    { stage: 1, label: 'Stage 1 — Turn 3',
+      q: 'Demand is only about 4–5 units, but you are ordering 12. Watch the Retailer’s EI climb — what is happening?',
+      a: 'You are ordering more than you sell, so stock piles up at <strong>$0.50/unit each turn</strong>. A supply chain is just organisations linked by flows of goods and orders, and the core job is <strong>keeping those flows balanced</strong> — order roughly what you sell.' },
+    { stage: 1, label: 'Stage 1 — Turn 10',
+      q: 'If you change the Factory’s order this turn, when does the Retailer feel it?',
+      a: 'Not right away — there is a <strong>delay</strong>, so a change <strong>propagates</strong> through over several turns. A supply chain cannot turn on a dime, which is why you have to <strong>plan ahead</strong> rather than react.' },
+    { stage: 1, label: 'Stage 1 — Turn 22',
+      q: 'What does a <em>negative</em> EI mean, and why avoid it?',
+      a: 'It is a <strong>backlog</strong> — demand you cannot meet, like the empty shelves many of us remember from 2020. Backlog costs <strong>$1.00/unit, double the holding cost</strong>, so running short hurts more than a small surplus.' },
+    // ---- Stage 2: responding to change ----
+    { stage: 2, label: 'Stage 2 — Turn 4',
+      q: 'Demand has been steady, but the hint says it will change. Should we wait until it rises to react?',
+      a: 'Orders take time to arrive — react late and you are stuck short while goods catch up. <strong>Building a buffer and watching for the change</strong> is far cheaper than recovering after it.' },
+    { stage: 2, label: 'Stage 2 — Turn 12',
+      q: 'Demand has jumped to roughly 15–19. What happened to your EI — and was a dip avoidable?',
+      a: 'Mostly not: you were set for about 8 and suddenly need about 17, and the extra units take time to arrive, so a short dip is hard to avoid. The lesson is to <strong>respond promptly and steadily</strong>, not panic.' },
+    { stage: 2, label: 'Stage 2 — Turn 15',
+      q: 'Tempted to max out every order to clear the backlog — what can possibly go wrong?',
+      a: 'Those big orders all land later at once and swamp you with excess stock. <strong>Big swings overshoot</strong> — order about the new demand with a small top-up instead.' },
+    // ---- Stage 3: coordinating the whole chain ----
+    { stage: 3, label: 'Stage 3 — Turn 3',
+      q: 'A Manufacturer now sits between the Factory and the Retailer. How does a demand change <em>propagate upstream</em> now?',
+      a: 'It adds another <strong>delay</strong>: the Factory — furthest <strong>upstream</strong> — is slowest to learn what the customer wants. The more links between you and the customer, the more <strong>delayed and blurred the demand signal</strong> becomes as it propagates up.' },
+    { stage: 3, label: 'Stage 3 — Turn 20',
+      q: 'You are now coordinating three locations under delay — what changes in your approach compared with two?',
+      a: 'The fundamentals are the same, applied with more care: <strong>coordinate every location to real demand, keep a buffer, and adjust smoothly</strong>. With more links the delays stack up, so plan further ahead and avoid big swings.' },
+    { stage: 3, label: 'Stage 3 — Turn 30',
+      q: 'You can see and set all three locations. What if you only controlled <em>one</em> — blind to the others’ decisions?',
+      a: 'That is the real world: each link guesses from only the orders on its own desk. Without the whole-chain view, small demand changes get amplified into bigger swings up the chain — the start of the <strong>bullwhip effect</strong>, which you will meet in later study.' }
+];
+
+var CHECKPOINT_SCHEDULE = [
+    { stage: 1, turn: 3,  insightIndex: 0 },
+    { stage: 1, turn: 10, insightIndex: 1 },
+    { stage: 1, turn: 22, insightIndex: 2 },
+    { stage: 2, turn: 4,  insightIndex: 3 },
+    { stage: 2, turn: 12, insightIndex: 4 },
+    { stage: 2, turn: 15, insightIndex: 5 },
+    { stage: 3, turn: 3,  insightIndex: 6 },
+    { stage: 3, turn: 20, insightIndex: 7 },
+    { stage: 3, turn: 30, insightIndex: 8 }
+];
+
+/* ===== DEMAND GENERATORS (verbatim distributions from the three originals) ===== */
+function generateDemand(stage, t) {
+    if (stage === 1) {
+        return Math.floor(Math.random() * 2) + 4;            // 4..5
+    } else if (stage === 2) {
+        if (t < 5) return Math.floor(Math.random() * 2) + 7; // 7..8
+        return Math.floor(Math.random() * 5) + 15;           // 15..19
+    } else {
+        return Math.floor(Math.random() * 27);               // 0..26
+    }
+}
+
+/* ===== CORE ENGINE =====
+ * processEchelon() is proven byte-identical to the original updateValues logic
+ * (40,000 randomised trials, 2- and 3-echelon). Do not alter the conditional
+ * ladder: it reproduces the exact backlog/EI behaviour of the original sims.
+ */
+function processEchelon(prevI, prevR, prevB, D) {
+    var shipment, B, I;
+    if ((prevI + prevR) <= 0) {
+        if (prevR == 0) {
+            shipment = 0; B = prevB + D; I = -1 * B;
         }
+        if (prevR > 0 && (prevR < D)) {
+            shipment = prevR; B = prevB + (D - prevR); I = -1 * B;
+        }
+        if (prevR >= D) {
+            if (prevR >= (D + prevB)) {
+                shipment = prevB + D; B = 0; I = prevR - shipment;
+            } else {
+                shipment = prevR; B = (D + prevB) - prevR; I = -1 * B;
+            }
+        }
+    }
+    if ((prevI + prevR) > 0) {
+        if ((prevI + prevR) < D) {
+            if (prevB == 0) {
+                shipment = prevI + prevR; B = D - shipment; I = -1 * B;
+            } else {
+                shipment = prevR; B = prevB + (D - prevR); I = -1 * B;
+            }
+        }
+        if (((prevI + prevR) >= D) && (prevB == 0)) {
+            shipment = D; B = 0; I = (prevI + prevR) - D;
+        }
+        if (((prevI + prevR) >= D) && (prevB > 0)) {
+            if (prevR >= (prevB + D)) {
+                shipment = prevB + D; B = 0; I = prevR - shipment;
+            } else {
+                shipment = prevR; B = (prevB + D) - prevR; I = -1 * B;
+            }
+        }
+    }
+    return { shipment: shipment, B: B, I: I };
+}
+
+/* ===== STATE ===== */
+var STORAGE_KEY = 'ops802_supplychain_v1';
+var state = {};
+
+function freshEchelonData() { return { I: [START], R: [START], B: [0], Q: [START] }; }
+
+function freshStageState(stage) {
+    state.currentStage = stage;
+    state.turn = 0;
+    state.totalProfit = 0;
+    state.lastDelta = null;
+    state.data = {
+        factory: freshEchelonData(),
+        manufacturer: freshEchelonData(),
+        retailer: freshEchelonData(),
+        sales: [0],
+        demand: [0]
+    };
+    state.history = [];
+    state.lastDecision = { factory: 12, manufacturer: 12, retailer: 12 };
+}
+
+function initState() {
+    freshStageState(1);
+    state.questionsShown = 0;
+    state.insightsRevealed = 0;
+    state.instructionExpanded = true;
+    state.historyExpanded = true;
+}
+
+/* ===== DOM CACHE ===== */
+var DOM = {};
+function cacheDom() {
+    DOM.root = document.getElementById('ops802-supplychain-sim-v1');
+    DOM.stageIndicators = document.getElementById('stageIndicators');
+    DOM.instrTitle = document.getElementById('instrTitle');
+    DOM.instrFull = document.getElementById('instrFull');
+    DOM.instrShort = document.getElementById('instrShort');
+    DOM.instrToggle = document.getElementById('instrToggle');
+    DOM.turnLabel = document.getElementById('turnLabel');
+    DOM.sliders = {
+        factory: document.getElementById('factorySlider'),
+        manufacturer: document.getElementById('manufacturerSlider'),
+        retailer: document.getElementById('retailerSlider')
+    };
+    DOM.sliderValues = {
+        factory: document.getElementById('factoryValue'),
+        manufacturer: document.getElementById('manufacturerValue'),
+        retailer: document.getElementById('retailerValue')
+    };
+    DOM.controls = {
+        manufacturer: DOM.root.querySelector('[data-echelon-control="manufacturer"]')
+    };
+    DOM.btnNextTurn = document.getElementById('btnNextTurn');
+    DOM.btnResetStage = document.getElementById('btnResetStage');
+    DOM.flowDiagram = document.getElementById('flowDiagram');
+    DOM.historyHeadRow = document.getElementById('historyHeadRow');
+    DOM.historyBody = document.getElementById('historyBody');
+    DOM.historyToggle = document.getElementById('historyToggle');
+    DOM.historyWrap = document.getElementById('historyWrap');
+    DOM.insightsContainer = document.getElementById('insightsContainer');
+    DOM.insightsCounter = document.getElementById('insightsCounter');
+    DOM.stageAdvance = document.getElementById('stageAdvance');
+    DOM.stageAdvanceMsg = document.getElementById('stageAdvanceMsg');
+    DOM.btnStageAdvance = document.getElementById('btnStageAdvance');
+    DOM.skipReveal = document.getElementById('skipReveal');
+    DOM.skipStage2 = document.getElementById('skipStage2');
+    DOM.skipStage3 = document.getElementById('skipStage3');
+    DOM.fullReset = document.getElementById('fullReset');
+}
+
+/* ===== TURN PROCESSING (mirrors the original updateValues ordering exactly) ===== */
+function processTurn(decisions) {
+    var stage = state.currentStage;
+    var echelons = STAGE_CONFIG[stage].echelons;
+    var d = state.data;
+    var t = state.turn + 1;
+
+    var dem = generateDemand(stage, t);
+    d.demand[t] = dem;
+
+    // record this turn's orders
+    d.factory.Q[t] = decisions.factory;
+    d.retailer.Q[t] = decisions.retailer;
+    if (stage === 3) d.manufacturer.Q[t] = decisions.manufacturer;
+
+    // factory is replenished from the infinite reservoir = its own order last turn
+    d.factory.R[t] = d.factory.Q[t - 1];
+
+    // process each echelon upstream -> downstream
+    for (var i = 0; i < echelons.length; i++) {
+        var n = echelons[i];
+        var isLast = (i === echelons.length - 1);
+        var D = isLast ? dem : d[echelons[i + 1]].Q[t - 1];
+        var res = processEchelon(d[n].I[t - 1], d[n].R[t - 1], d[n].B[t - 1], D);
+        d[n].B[t] = res.B;
+        d[n].I[t] = res.I;
+        if (isLast) {
+            d.sales[t] = res.shipment;
+        } else {
+            d[echelons[i + 1]].R[t] = res.shipment;
+        }
+    }
+
+    // costs & profit (holding $0.50 on positive EI, backlog $1.00 on negative EI)
+    var totalcost = 0;
+    for (var j = 0; j < echelons.length; j++) {
+        var ei = d[echelons[j]].I[t];
+        totalcost += ei > 0 ? ei * COST_HOLD : -1 * ei * COST_BACKLOG;
+    }
+    var revenue = d.sales[t] * SALE_PRICE;
+    var delta = revenue - totalcost;
+    state.totalProfit += delta;
+    state.lastDelta = delta;
+    state.turn = t;
+    state.lastDecision = {
+        factory: decisions.factory,
+        manufacturer: stage === 3 ? decisions.manufacturer : 12,
+        retailer: decisions.retailer
     };
 
-    /* ====================================================================== STATE ====================================================================== */
-    function defaultState() {
-        return {
-            currentPhase: 1, turnNumber: 0, totalProfit: 0, lastDemand: 0, lastRevenue: 0, lastCost: 0, lastSales: 0,
-            questionsShown: 0, insightsRevealed: 0,
-            factoryQ:[], retailerQ:[], manufacturerQ:[],
-            factoryI:[INIT_EI], retailerI:[INIT_EI], manufacturerI:[INIT_EI],
-            factoryR:[INIT_R], retailerR:[INIT_R], manufacturerR:[INIT_R],
-            factoryB:[0], retailerB:[0], manufacturerB:[0],
-            retailerSales:[0],
-            factoryIData:[], retailerIData:[], manufacturerIData:[],
-            factoryQData:[], retailerQData:[], manufacturerQData:[],
-            history:[], instructionExpanded:true, historyVisible:true,
-            bullwhipRevealed:false, gameOver:false
-        };
+    // build a history record
+    var rec = { t: t, demand: dem, sales: d.sales[t], delta: delta, profit: state.totalProfit, echelons: {} };
+    echelons.forEach(function(n2) {
+        rec.echelons[n2] = { Q: d[n2].Q[t], R: d[n2].R[t], I: d[n2].I[t], B: d[n2].B[t] };
+    });
+    state.history.push(rec);
+    return rec;
+}
+
+/* ===== FLOW DIAGRAM =====
+ * Equal-height EI boxes with a compact, vertically-centred connector between each pair:
+ * Order (Q) tight above the dashed UPSTREAM order arrow, Incoming (R) tight below the
+ * solid DOWNSTREAM goods arrow, and the two arrows only a few px apart. The dashed=order /
+ * solid=goods key lives in the scenario panel.
+ */
+function echelonNode(name) {
+    var t = state.turn;
+    var ei = (state.data[name].I[t] !== undefined) ? state.data[name].I[t] : START;
+    var col = COLORS[name];
+    var eiColor = ei < 0 ? '#ED0A00' : '#001641';
+    var eiBg = ei < 0 ? 'rgba(237,10,0,0.06)' : 'rgba(0,22,65,0.03)';
+    return '<div style="flex:0 0 auto;min-width:150px;align-self:stretch;display:flex;flex-direction:column;">' +
+        '<div style="flex:1;display:flex;flex-direction:column;border:1px solid #e2e8f0;border-top:4px solid ' + col + ';border-radius:10px;overflow:hidden;background:#fff;">' +
+            '<div style="background:' + col + ';color:#fff;font-weight:700;font-size:0.76rem;text-align:center;padding:5px 6px;letter-spacing:0.3px;">' + ECHELON_LABEL[name] + '</div>' +
+            '<div style="flex:1;text-align:center;padding:8px 6px;background:' + eiBg + ';border-top:1px solid ' + (ei < 0 ? 'rgba(237,10,0,0.18)' : '#eef1f4') + ';display:flex;flex-direction:column;justify-content:center;">' +
+                '<div style="font-size:0.55rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Effective Inventory</div>' +
+                '<div style="font-size:1.6rem;font-weight:700;color:' + eiColor + ';line-height:1.05;">' + ei + '</div>' +
+                (ei < 0 ? '<div style="font-size:0.58rem;color:#ED0A00;font-weight:600;">backlog of ' + (-ei) + '</div>' : '<div style="font-size:0.58rem;color:#5C657B;">units in stock</div>') +
+            '</div>' +
+        '</div>' +
+    '</div>';
+}
+
+function connector(topLabel, topVal, botLabel, botVal) {
+    return '<div style="flex:1 1 0;min-width:90px;align-self:stretch;display:flex;flex-direction:column;justify-content:center;padding:0 3px;">' +
+        '<div style="text-align:center;line-height:1.0;margin-bottom:3px;">' +
+            '<div style="font-size:0.5rem;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:#5C657B;">' + topLabel + '</div>' +
+            '<div style="font-size:0.98rem;font-weight:700;color:#001641;">' + topVal + '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;">' +
+            '<span style="color:#001641;font-size:1rem;line-height:0;margin-right:-1px;">&#9664;</span>' +
+            '<span style="flex:1;border-top:2px dashed #001641;"></span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;margin-top:7px;">' +
+            '<span style="flex:1;border-top:3px solid #2E7D32;"></span>' +
+            '<span style="color:#2E7D32;font-size:1rem;line-height:0;margin-left:-1px;">&#9654;</span>' +
+        '</div>' +
+        '<div style="text-align:center;line-height:1.0;margin-top:3px;">' +
+            '<div style="font-size:0.98rem;font-weight:700;color:#2E7D32;">' + botVal + '</div>' +
+            '<div style="font-size:0.5rem;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:#5C657B;">' + botLabel + '</div>' +
+        '</div>' +
+    '</div>';
+}
+
+function sourceNode() {
+    return '<div style="flex:0 0 auto;min-width:86px;align-self:stretch;display:flex;">' +
+        '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px dashed #cbd5e1;border-radius:10px;background:#F0F2F5;padding:10px 8px;text-align:center;">' +
+            '<div style="font-size:1.5rem;color:#5C657B;font-weight:700;line-height:1;">&#8734;</div>' +
+            '<div style="font-size:0.62rem;font-weight:600;color:#5C657B;">Infinite</div>' +
+            '<div style="font-size:0.62rem;font-weight:600;color:#5C657B;">Supplier</div>' +
+        '</div>' +
+    '</div>';
+}
+
+function customerNode() {
+    return '<div style="flex:0 0 auto;min-width:104px;align-self:stretch;display:flex;flex-direction:column;">' +
+        '<div style="flex:1;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid #e2e8f0;border-top:4px solid #001641;border-radius:10px;background:#fff;padding:8px 6px;">' +
+            '<div style="font-weight:700;font-size:0.84rem;color:#001641;">Customer</div>' +
+        '</div>' +
+    '</div>';
+}
+
+function renderDiagram() {
+    var echelons = STAGE_CONFIG[state.currentStage].echelons;
+    var t = state.turn;
+    var d = state.data;
+    var html = sourceNode();
+    for (var i = 0; i < echelons.length; i++) {
+        var n = echelons[i];
+        var q = (d[n].Q[t] !== undefined) ? d[n].Q[t] : START;
+        var r = (d[n].R[t] !== undefined) ? d[n].R[t] : START;
+        html += connector('Order (Q)', q, 'Incoming (R)', r);
+        html += echelonNode(n);
     }
-    var state = defaultState();
+    var dem = (t > 0 && d.demand[t] !== undefined) ? d.demand[t] : '—';
+    var sales = (t > 0 && d.sales[t] !== undefined) ? d.sales[t] : '—';
+    html += connector('Demand', dem, 'Sales', sales);
+    html += customerNode();
+    DOM.flowDiagram.innerHTML = html;
+}
 
-    /* ====================================================================== DOM ====================================================================== */
-    var el = {};
-    function cacheDom() {
-        var r = document.getElementById('supply-chain-sim-v1');
-        if (!r) return;
-        el.phaseLabel1=r.querySelector('#phaseLabel1'); el.phaseLabel2=r.querySelector('#phaseLabel2'); el.phaseLabel3=r.querySelector('#phaseLabel3');
-        el.instructionContent=r.querySelector('#instructionContent'); el.toggleInstructions=r.querySelector('#toggleInstructions');
-        el.factorySlider=r.querySelector('#factorySlider'); el.manufacturerSlider=r.querySelector('#manufacturerSlider'); el.retailerSlider=r.querySelector('#retailerSlider');
-        el.factoryValueDisplay=r.querySelector('#factoryValueDisplay'); el.manufacturerValueDisplay=r.querySelector('#manufacturerValueDisplay'); el.retailerValueDisplay=r.querySelector('#retailerValueDisplay');
-        el.manufacturerSliderGroup=r.querySelector('#manufacturerSliderGroup');
-        el.nextTurnBtn=r.querySelector('#nextTurnBtn'); el.statusMessage=r.querySelector('#statusMessage');
-        el.turnCounter=r.querySelector('#turnCounter'); el.metricDemand=r.querySelector('#metricDemand');
-        el.metricProfit=r.querySelector('#metricProfit'); el.metricRevenue=r.querySelector('#metricRevenue'); el.metricCost=r.querySelector('#metricCost'); el.metricSales=r.querySelector('#metricSales');
-        el.bullwhipCard=r.querySelector('#bullwhipCard'); el.bullwhipPrompt=r.querySelector('#bullwhipPrompt'); el.bullwhipRevealed=r.querySelector('#bullwhipRevealed'); el.bullwhipValue=r.querySelector('#bullwhipValue');
-        el.diagFactoryEI=r.querySelector('#diagFactoryEI'); el.diagFactoryQ=r.querySelector('#diagFactoryQ'); el.diagFactoryR=r.querySelector('#diagFactoryR');
-        el.diagManufacturerNode=r.querySelector('#diagManufacturerNode'); el.diagManufacturerArrow=r.querySelector('#diagManufacturerArrow');
-        el.diagManufacturerEI=r.querySelector('#diagManufacturerEI'); el.diagManufacturerQ=r.querySelector('#diagManufacturerQ'); el.diagManufacturerR=r.querySelector('#diagManufacturerR');
-        el.diagRetailerEI=r.querySelector('#diagRetailerEI'); el.diagRetailerQ=r.querySelector('#diagRetailerQ'); el.diagRetailerR=r.querySelector('#diagRetailerR');
-        el.diagDemand=r.querySelector('#diagDemand'); el.diagSales=r.querySelector('#diagSales');
-        el.eiChart=r.querySelector('#eiChart'); el.qChart=r.querySelector('#qChart');
-        el.toggleHistory=r.querySelector('#toggleHistory'); el.historyContainer=r.querySelector('#historyContainer');
-        el.historyHeader=r.querySelector('#historyHeader'); el.historyBody=r.querySelector('#historyBody');
-        el.insightsCounter=r.querySelector('#insightsCounter'); el.insightsList=r.querySelector('#insightsList');
-        el.phaseAdvanceArea=r.querySelector('#phaseAdvanceArea'); el.overrideControls=r.querySelector('#overrideControls');
+/* ===== METRICS ===== */
+function setMetric(id, value, colorClass) {
+    var card = document.getElementById(id);
+    if (!card) return;
+    var valEl = card.children[1];
+    valEl.textContent = value;
+    valEl.style.color = colorClass === 'positive' ? '#2E7D32' : colorClass === 'negative' ? '#ED0A00' : '#001641';
+}
+function fmt(n) { return '$' + n.toFixed(2); }
+
+function updateMetrics() {
+    var t = state.turn;
+    setMetric('metricTurn', t + ' / 30', '');
+    setMetric('metricProfit', fmt(state.totalProfit), state.totalProfit >= 0 ? 'positive' : 'negative');
+    if (state.lastDelta === null) {
+        setMetric('metricDelta', '—', '');
+        setMetric('metricDemand', '—', '');
+        setMetric('metricSales', '—', '');
+    } else {
+        setMetric('metricDelta', fmt(state.lastDelta), state.lastDelta >= 0 ? 'positive' : 'negative');
+        setMetric('metricDemand', String(state.data.demand[t]), '');
+        setMetric('metricSales', String(state.data.sales[t]), '');
     }
+    DOM.turnLabel.textContent = t;
+}
 
-    /* ====================================================================== CHARTS ====================================================================== */
-    var eiChartObj=null, qChartObj=null;
+/* ===== HISTORY TABLE ===== */
+function renderHistoryHead() {
+    var echelons = STAGE_CONFIG[state.currentStage].echelons;
+    var th = 'background:#001641;color:#fff;padding:6px 8px;font-weight:600;text-align:center;white-space:nowrap;';
+    var html = '<th style="' + th + '">Turn</th><th style="' + th + '">Demand</th>';
+    echelons.forEach(function(n) {
+        var lbl = ECHELON_LABEL[n];
+        html += '<th style="' + th + 'border-left:2px solid ' + COLORS[n] + ';">' + lbl + ' Q</th>';
+        html += '<th style="' + th + '">' + lbl + ' R</th>';
+        html += '<th style="' + th + '">' + lbl + ' EI</th>';
+    });
+    html += '<th style="' + th + 'border-left:2px solid #2E7D32;">Sales</th>';
+    html += '<th style="' + th + '">Turn $</th>';
+    html += '<th style="' + th + '">Total $</th>';
+    DOM.historyHeadRow.innerHTML = html;
+}
 
-    function initCharts() {
-        if (eiChartObj) eiChartObj.destroy();
-        if (qChartObj) qChartObj.destroy();
-        var is3 = state.currentPhase === 3;
-        var eiDatasets = [
-            { label:'Factory EI', data:state.factoryIData.slice(), borderColor:'rgb(0,22,65)', backgroundColor:'rgba(0,22,65,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(0,22,65)' },
-            { label:'Retailer EI', data:state.retailerIData.slice(), borderColor:'rgb(0,51,255)', backgroundColor:'rgba(0,51,255,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(0,51,255)' }
-        ];
-        var qDatasets = [
-            { label:'Factory Q', data:state.factoryQData.slice(), borderColor:'rgb(0,22,65)', backgroundColor:'rgba(0,22,65,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(0,22,65)' },
-            { label:'Retailer Q', data:state.retailerQData.slice(), borderColor:'rgb(0,51,255)', backgroundColor:'rgba(0,51,255,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(0,51,255)' }
-        ];
-        if (is3) {
-            eiDatasets.splice(1,0,{ label:'Manufacturer EI', data:state.manufacturerIData.slice(), borderColor:'rgb(161,90,53)', backgroundColor:'rgba(161,90,53,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(161,90,53)' });
-            qDatasets.splice(1,0,{ label:'Manufacturer Q', data:state.manufacturerQData.slice(), borderColor:'rgb(161,90,53)', backgroundColor:'rgba(161,90,53,0.12)', borderWidth:2, pointRadius:3, pointBackgroundColor:'rgb(161,90,53)' });
-        }
-        var labels = [];
-        for (var i = 0; i <= state.turnNumber; i++) labels.push(i);
-        var commonOpts = { responsive:true, maintainAspectRatio:false, animation:{duration:400}, scales:{ x:{title:{display:true,text:'Turn',font:{weight:'bold'}}}, y:{beginAtZero:true} }, plugins:{legend:{display:true,position:'top'}} };
-        eiChartObj = new Chart(el.eiChart.getContext('2d'), { type:'line', data:{labels:labels, datasets:eiDatasets}, options:Object.assign({},commonOpts,{scales:{x:commonOpts.scales.x, y:{beginAtZero:false, title:{display:true,text:'Effective Inventory',font:{weight:'bold'}}}}}) });
-        qChartObj = new Chart(el.qChart.getContext('2d'), { type:'line', data:{labels:labels, datasets:qDatasets}, options:Object.assign({},commonOpts,{scales:{x:commonOpts.scales.x, y:{beginAtZero:true, title:{display:true,text:'Order Quantity',font:{weight:'bold'}}}}}) });
-    }
+function addHistoryRow(rec) {
+    var echelons = STAGE_CONFIG[state.currentStage].echelons;
+    var td = 'padding:5px 8px;text-align:center;border-bottom:1px solid #e8e8e8;';
+    var html = '<td style="' + td + 'font-weight:600;">' + rec.t + '</td><td style="' + td + '">' + rec.demand + '</td>';
+    echelons.forEach(function(n) {
+        var e = rec.echelons[n];
+        var eiCol = e.I < 0 ? 'color:#ED0A00;font-weight:600;' : '';
+        html += '<td style="' + td + 'border-left:2px solid ' + COLORS[n] + '33;">' + e.Q + '</td>';
+        html += '<td style="' + td + '">' + e.R + '</td>';
+        html += '<td style="' + td + eiCol + '">' + e.I + '</td>';
+    });
+    html += '<td style="' + td + 'border-left:2px solid #2E7D3233;">' + rec.sales + '</td>';
+    html += '<td style="' + td + (rec.delta >= 0 ? 'color:#2E7D32;' : 'color:#ED0A00;') + '">' + fmt(rec.delta) + '</td>';
+    html += '<td style="' + td + 'font-weight:700;color:' + (rec.profit >= 0 ? '#2E7D32' : '#ED0A00') + ';">' + fmt(rec.profit) + '</td>';
+    var tr = document.createElement('tr');
+    tr.innerHTML = html;
+    DOM.historyBody.appendChild(tr);
+}
 
-    function updateCharts() {
-        if (!eiChartObj || !qChartObj) return;
-        var labels = [];
-        for (var i = 0; i <= state.turnNumber; i++) labels.push(i);
-        var is3 = state.currentPhase === 3;
-        eiChartObj.data.labels = labels;
-        eiChartObj.data.datasets[0].data = state.factoryIData.slice();
-        if (is3) {
-            eiChartObj.data.datasets[1].data = state.manufacturerIData.slice();
-            eiChartObj.data.datasets[2].data = state.retailerIData.slice();
-        } else {
-            eiChartObj.data.datasets[1].data = state.retailerIData.slice();
-        }
-        eiChartObj.update();
-        qChartObj.data.labels = labels;
-        qChartObj.data.datasets[0].data = state.factoryQData.slice();
-        if (is3) {
-            qChartObj.data.datasets[1].data = state.manufacturerQData.slice();
-            qChartObj.data.datasets[2].data = state.retailerQData.slice();
-        } else {
-            qChartObj.data.datasets[1].data = state.retailerQData.slice();
-        }
-        qChartObj.update();
-    }
+function rebuildHistory() {
+    renderHistoryHead();
+    DOM.historyBody.innerHTML = '';
+    state.history.forEach(addHistoryRow);
+}
 
-    /* ====================================================================== CORE LOGIC (PRESERVED) ====================================================================== */
-    function generateDemand() {
-        if (state.currentPhase === 1) return Math.floor(Math.random() * 2) + 4;
-        if (state.currentPhase === 2) {
-            if (state.turnNumber < 5) return Math.floor(Math.random() * 2) + 7;
-            return Math.floor(Math.random() * 5) + 15;
-        }
-        return Math.floor(Math.random() * 27);
-    }
+/* ===== CHARTS ===== */
+var eiChart = null, qChart = null;
 
-    // Generic echelon fulfillment - exact same conditional tree as original
-    function processEchelonFulfill(t, eI, eR, eB, downOrder, downR) {
-        if ((eI[t-1] + eR[t-1]) <= 0) {
-            if (eR[t-1] == 0) {
-                downR[t] = 0;
-                eB[t] = eB[t-1] + downOrder;
-                eI[t] = -1 * eB[t];
+function baseChartOptions(yTitle) {
+    return {
+        animation: { duration: 600, easing: 'easeOutQuart' },
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                title: { display: true, text: 'Turn', font: { size: 14, weight: 'bold' } },
+                grid: { display: true, color: '#e5e5e5', lineWidth: 0.5 },
+                border: { width: 1.5, color: '#333' },
+                ticks: { font: { size: 12 } }
+            },
+            y: {
+                title: { display: true, text: yTitle, font: { size: 14, weight: 'bold' } },
+                grid: { color: '#e5e5e5', lineWidth: 0.5 },
+                border: { width: 1.5, color: '#333' },
+                ticks: { font: { size: 12 } }
             }
-            if (eR[t-1] > 0 && (eR[t-1] < downOrder)) {
-                downR[t] = eR[t-1];
-                eB[t] = eB[t-1] + (downOrder - eR[t-1]);
-                eI[t] = -1 * eB[t];
-            }
-            if (eR[t-1] >= downOrder) {
-                if (eR[t-1] >= (downOrder + eB[t-1])) {
-                    downR[t] = eB[t-1] + downOrder;
-                    eB[t] = 0;
-                    eI[t] = eR[t-1] - downR[t];
-                } else {
-                    downR[t] = eR[t-1];
-                    eB[t] = (downOrder + eB[t-1]) - eR[t-1];
-                    eI[t] = -1 * eB[t];
-                }
-            }
-        }
-        if ((eI[t-1] + eR[t-1]) > 0) {
-            if ((eI[t-1] + eR[t-1]) < downOrder) {
-                if (eB[t-1] == 0) {
-                    downR[t] = eI[t-1] + eR[t-1];
-                    eB[t] = downOrder - downR[t];
-                    eI[t] = -1 * eB[t];
-                } else {
-                    downR[t] = eR[t-1];
-                    eB[t] = eB[t-1] + (downOrder - eR[t-1]);
-                    eI[t] = -1 * eB[t];
-                }
-            }
-            if (((eI[t-1] + eR[t-1]) >= downOrder) && (eB[t-1] == 0)) {
-                downR[t] = downOrder;
-                eB[t] = 0;
-                eI[t] = (eI[t-1] + eR[t-1]) - downOrder;
-            }
-            if (((eI[t-1] + eR[t-1]) >= downOrder) && (eB[t-1] > 0)) {
-                if (eR[t-1] >= (eB[t-1] + downOrder)) {
-                    downR[t] = eB[t-1] + downOrder;
-                    eB[t] = 0;
-                    eI[t] = eR[t-1] - downR[t];
-                } else {
-                    downR[t] = eR[t-1];
-                    eB[t] = (eB[t-1] + downOrder) - eR[t-1];
-                    eI[t] = -1 * eB[t];
-                }
-            }
-        }
-    }
-
-    function echelonCost(ei) { return ei > 0 ? ei * COST_I : -1 * ei * COST_B; }
-
-    function advanceTurn() {
-        if (state.gameOver || state.turnNumber >= MAX_TURNS) return;
-        state.turnNumber++;
-        var t = state.turnNumber;
-        var demand = generateDemand();
-        state.lastDemand = demand;
-        var is3 = state.currentPhase === 3;
-
-        state.factoryQ[t] = parseInt(el.factorySlider.value);
-        state.retailerQ[t] = parseInt(el.retailerSlider.value);
-        if (is3) state.manufacturerQ[t] = parseInt(el.manufacturerSlider.value);
-
-        if (t > 0) {
-            state.factoryR[t] = state.factoryQ[t-1];
-            if (is3) {
-                // Factory fulfils manufacturer orders
-                processEchelonFulfill(t, state.factoryI, state.factoryR, state.factoryB, state.manufacturerQ[t-1], state.manufacturerR);
-                // Manufacturer fulfils retailer orders
-                processEchelonFulfill(t, state.manufacturerI, state.manufacturerR, state.manufacturerB, state.retailerQ[t-1], state.retailerR);
-            } else {
-                // Factory fulfils retailer orders directly
-                processEchelonFulfill(t, state.factoryI, state.factoryR, state.factoryB, state.retailerQ[t-1], state.retailerR);
-            }
-            // Retailer fulfils customer demand
-            processEchelonFulfill(t, state.retailerI, state.retailerR, state.retailerB, demand, state.retailerSales);
-
-            var totalcost = echelonCost(state.factoryI[t]) + echelonCost(state.retailerI[t]);
-            if (is3) totalcost += echelonCost(state.manufacturerI[t]);
-            var revenue = state.retailerSales[t] * SALE_PRICE;
-            state.totalProfit += revenue - totalcost;
-            state.lastRevenue = revenue;
-            state.lastCost = totalcost;
-            state.lastSales = state.retailerSales[t];
-
-            // Chart data
-            state.factoryIData.push(state.factoryI[t]);
-            state.retailerIData.push(state.retailerI[t]);
-            state.factoryQData.push(state.factoryQ[t]);
-            state.retailerQData.push(state.retailerQ[t]);
-            if (is3) {
-                state.manufacturerIData.push(state.manufacturerI[t]);
-                state.manufacturerQData.push(state.manufacturerQ[t]);
-            }
-
-            // History
-            var row = { turn:t, demand:demand, factoryQ:state.factoryQ[t], factoryEI:state.factoryI[t], retailerQ:state.retailerQ[t], retailerEI:state.retailerI[t], sales:state.retailerSales[t], cost:totalcost, revenue:revenue, profit:revenue-totalcost, cumProfit:state.totalProfit };
-            if (is3) { row.manufacturerQ = state.manufacturerQ[t]; row.manufacturerEI = state.manufacturerI[t]; }
-            state.history.push(row);
-        }
-
-        updateDisplay();
-        updateCharts();
-        addHistoryRow(state.history[state.history.length - 1]);
-
-        if (state.turnNumber >= MAX_TURNS) {
-            showStatus('Phase ' + state.currentPhase + ' complete! All 30 turns finished.', false);
-            state.gameOver = true;
-            el.nextTurnBtn.disabled = true;
-            el.nextTurnBtn.style.opacity = '0.5';
-        }
-        checkForNewQuestion();
-        renderOverrides();
-        if (state.bullwhipRevealed) updateBullwhipDisplay();
-        saveState();
-    }
-
-    /* ====================================================================== DISPLAY ====================================================================== */
-    function fmt(n) { return '$' + n.toFixed(2); }
-
-    function updateDisplay() {
-        el.turnCounter.textContent = state.turnNumber;
-        el.metricDemand.textContent = state.turnNumber > 0 ? state.lastDemand : '\u2014';
-        el.metricProfit.textContent = fmt(state.totalProfit);
-        el.metricProfit.style.color = state.totalProfit >= 0 ? '#001641' : '#ED0A00';
-        if (state.turnNumber > 0) {
-            el.metricRevenue.textContent = fmt(state.lastRevenue);
-            el.metricCost.textContent = fmt(state.lastCost);
-            el.metricSales.textContent = state.lastSales;
-        }
-        // Diagram
-        var t = state.turnNumber;
-        if (t > 0) {
-            var eiColor = function(v) { return v >= 0 ? '#001641' : '#ED0A00'; };
-            el.diagFactoryEI.textContent = 'EI: ' + state.factoryI[t];
-            el.diagFactoryEI.style.color = eiColor(state.factoryI[t]);
-            el.diagFactoryQ.textContent = state.factoryQ[t];
-            el.diagFactoryR.textContent = state.factoryR[t];
-            el.diagRetailerEI.textContent = 'EI: ' + state.retailerI[t];
-            el.diagRetailerEI.style.color = eiColor(state.retailerI[t]);
-            el.diagRetailerQ.textContent = state.retailerQ[t];
-            el.diagRetailerR.textContent = state.retailerR[t];
-            el.diagDemand.textContent = state.lastDemand;
-            el.diagSales.textContent = state.retailerSales[t];
-            if (state.currentPhase === 3) {
-                el.diagManufacturerEI.textContent = 'EI: ' + state.manufacturerI[t];
-                el.diagManufacturerEI.style.color = eiColor(state.manufacturerI[t]);
-                el.diagManufacturerQ.textContent = state.manufacturerQ[t];
-                el.diagManufacturerR.textContent = state.manufacturerR[t];
+        },
+        plugins: {
+            legend: {
+                display: true, position: 'top',
+                labels: { usePointStyle: true, pointStyle: 'rect', font: { size: 13 } }
             }
         }
-    }
+    };
+}
 
-    function renderHistoryHeader() {
-        el.historyHeader.innerHTML = '';
-        var thStyle = 'padding:6px 8px !important; text-align:center !important; border-bottom:2px solid #e2e8f0 !important; color:#475569 !important; font-weight:600 !important; white-space:nowrap !important;';
-        var cols = ['Turn','Demand','Fac Q','Fac EI'];
-        if (state.currentPhase === 3) cols.push('Mfr Q','Mfr EI');
-        cols.push('Ret Q','Ret EI','Sales','Cost','Revenue','Cum. Profit');
-        for (var i = 0; i < cols.length; i++) {
-            var th = document.createElement('th');
-            th.style.cssText = thStyle;
-            th.textContent = cols[i];
-            el.historyHeader.appendChild(th);
-        }
-    }
+function datasetFor(name, label) {
+    var col = COLORS[name];
+    return {
+        label: label,
+        data: [],
+        borderColor: col,
+        backgroundColor: col.replace('rgb', 'rgba'),
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: col,
+        pointHoverRadius: 6,
+        tension: 0,
+        fill: false
+    };
+}
 
-    function addHistoryRow(h) {
-        if (!h) return;
-        var row = document.createElement('tr');
-        row.style.borderBottom = '1px solid #f1f5f9';
-        var cells = [h.turn, h.demand, h.factoryQ, h.factoryEI];
-        if (state.currentPhase === 3) cells.push(h.manufacturerQ, h.manufacturerEI);
-        cells.push(h.retailerQ, h.retailerEI, h.sales, fmt(h.cost), fmt(h.revenue), fmt(h.cumProfit));
-        for (var i = 0; i < cells.length; i++) {
-            var td = document.createElement('td');
-            td.style.cssText = 'padding:5px 8px !important; text-align:center !important;';
-            td.textContent = cells[i];
-            row.appendChild(td);
-        }
-        el.historyBody.insertBefore(row, el.historyBody.firstChild);
-    }
+function buildCharts() {
+    if (eiChart) { eiChart.destroy(); eiChart = null; }
+    if (qChart) { qChart.destroy(); qChart = null; }
+    var echelons = STAGE_CONFIG[state.currentStage].echelons;
+    var labels = [];
+    for (var i = 0; i <= MAX_TURNS; i++) labels.push(i);
 
-    function rerenderHistory() {
-        el.historyBody.innerHTML = '';
-        for (var i = state.history.length - 1; i >= 0; i--) addHistoryRow(state.history[i]);
-    }
+    var eiDatasets = echelons.map(function(n) { return datasetFor(n, ECHELON_LABEL[n] + ' EI'); });
+    var qDatasets = echelons.map(function(n) { return datasetFor(n, ECHELON_LABEL[n] + ' Q'); });
 
-    function showStatus(msg, isError) {
-        el.statusMessage.style.display = 'block';
-        el.statusMessage.textContent = msg;
-        el.statusMessage.style.background = isError ? '#FBEDED' : '#f0fdf4';
-        el.statusMessage.style.color = isError ? '#ED0A00' : '#16a34a';
-        el.statusMessage.style.border = '1px solid ' + (isError ? '#FBEDED' : '#BBF7D0');
-    }
+    eiChart = new Chart(document.getElementById('eiChart').getContext('2d'), {
+        type: 'line', data: { labels: labels, datasets: eiDatasets }, options: baseChartOptions('Effective Inventory')
+    });
+    qChart = new Chart(document.getElementById('qChart').getContext('2d'), {
+        type: 'line', data: { labels: labels, datasets: qDatasets }, options: baseChartOptions('Order Quantity')
+    });
+}
 
-    function updateBullwhipDisplay() {
-        if (!state.bullwhipRevealed || state.retailerQData.length < 3) return;
-        // Calculate variance of retailer orders vs variance of demands
-        var demands = []; var orders = [];
-        for (var i = 0; i < state.history.length; i++) { demands.push(state.history[i].demand); orders.push(state.history[i].retailerQ); }
-        function variance(arr) { if (arr.length < 2) return 0; var m = 0; for (var j = 0; j < arr.length; j++) m += arr[j]; m /= arr.length; var s = 0; for (var k = 0; k < arr.length; k++) s += (arr[k]-m)*(arr[k]-m); return s/(arr.length-1); }
-        var vD = variance(demands); var vQ = variance(orders);
-        var ratio = vD > 0 ? (vQ / vD).toFixed(2) : '\u2014';
-        el.bullwhipValue.textContent = ratio;
-        el.bullwhipPrompt.style.display = 'none';
-        el.bullwhipRevealed.style.display = 'block';
-        el.bullwhipCard.style.borderStyle = 'solid';
-        el.bullwhipCard.style.borderColor = '#0033FF';
-    }
+function refreshCharts() {
+    var echelons = STAGE_CONFIG[state.currentStage].echelons;
+    echelons.forEach(function(n, idx) {
+        eiChart.data.datasets[idx].data = state.data[n].I.slice(0, state.turn + 1);
+        qChart.data.datasets[idx].data = state.data[n].Q.slice(0, state.turn + 1);
+    });
+    eiChart.update();
+    qChart.update();
+}
 
-    /* ====================================================================== INSTRUCTIONS ====================================================================== */
-    function renderInstructions() {
-        var p = state.currentPhase;
-        el.instructionContent.innerHTML = state.instructionExpanded ? INSTRUCTIONS[p].full : INSTRUCTIONS[p].short;
-        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
-    }
+/* ===== INSIGHTS (reveal-on-click, ported from the established sims) ===== */
+function renderInsights() {
+    // Canonical VM rendering: prior stages grouped + dimmed (green tick), current stage active.
+    var circleBase = 'min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;';
+    var html = '';
+    var stages = {};
+    INSIGHTS.forEach(function(ins, i) {
+        if (!stages[ins.stage]) stages[ins.stage] = [];
+        stages[ins.stage].push({ ins: ins, idx: i });
+    });
+    var currentItems = stages[state.currentStage] || [];
+    var currentStart = currentItems.length > 0 ? currentItems[0].idx : 0;
+    var currentRevealed = Math.max(0, state.insightsRevealed - currentStart);
+    DOM.insightsCounter.textContent = '(' + Math.min(currentRevealed, currentItems.length) + ' of ' + currentItems.length + ')';
 
-    /* ====================================================================== PHASE MANAGEMENT ====================================================================== */
-    function setPhase(phase) {
-        state.currentPhase = phase;
-        var labels = [el.phaseLabel1, el.phaseLabel2, el.phaseLabel3];
-        for (var i = 0; i < 3; i++) {
-            if (i + 1 < phase) { labels[i].style.background = '#16a34a'; labels[i].style.color = '#fff'; }
-            else if (i + 1 === phase) { labels[i].style.background = '#0033FF'; labels[i].style.color = '#fff'; }
-            else { labels[i].style.background = '#e5e7eb'; labels[i].style.color = '#94a3b8'; }
-        }
-        // Show/hide manufacturer
-        var show3 = phase === 3;
-        el.manufacturerSliderGroup.style.display = show3 ? 'block' : 'none';
-        el.diagManufacturerNode.style.display = show3 ? 'block' : 'none';
-        el.diagManufacturerArrow.style.display = show3 ? 'block' : 'none';
-        resetPhaseData();
-        renderInstructions();
-        renderHistoryHeader();
-        initCharts();
-        renderInsights();
-        renderOverrides();
-        if (state.bullwhipRevealed) updateBullwhipDisplay();
-        saveState();
-    }
-
-    function resetPhaseData() {
-        state.turnNumber = 0; state.totalProfit = 0; state.lastDemand = 0; state.lastRevenue = 0; state.lastCost = 0; state.lastSales = 0; state.gameOver = false;
-        state.factoryQ=[]; state.retailerQ=[]; state.manufacturerQ=[];
-        state.factoryI=[INIT_EI]; state.retailerI=[INIT_EI]; state.manufacturerI=[INIT_EI];
-        state.factoryR=[INIT_R]; state.retailerR=[INIT_R]; state.manufacturerR=[INIT_R];
-        state.factoryB=[0]; state.retailerB=[0]; state.manufacturerB=[0];
-        state.retailerSales=[0];
-        state.factoryIData=[INIT_EI]; state.retailerIData=[INIT_EI]; state.manufacturerIData=[INIT_EI];
-        state.factoryQData=[]; state.retailerQData=[]; state.manufacturerQData=[];
-        state.history = [];
-        // Push initial Q values
-        var initQ = parseInt(el.factorySlider.value);
-        state.factoryQ[0] = initQ; state.retailerQ[0] = parseInt(el.retailerSlider.value);
-        if (state.currentPhase === 3) state.manufacturerQ[0] = parseInt(el.manufacturerSlider.value);
-        state.factoryQData.push(state.factoryQ[0]); state.retailerQData.push(state.retailerQ[0]);
-        if (state.currentPhase === 3) state.manufacturerQData.push(state.manufacturerQ[0]);
-        // Reset UI
-        el.nextTurnBtn.disabled = false; el.nextTurnBtn.style.opacity = '1';
-        el.turnCounter.textContent = '0';
-        el.metricProfit.textContent = '$0.00'; el.metricProfit.style.color = '#001641';
-        el.metricRevenue.textContent = '\u2014'; el.metricCost.textContent = '\u2014'; el.metricSales.textContent = '\u2014'; el.metricDemand.textContent = '\u2014';
-        el.diagFactoryEI.textContent = 'EI: 12'; el.diagFactoryEI.style.color = '#001641';
-        el.diagRetailerEI.textContent = 'EI: 12'; el.diagRetailerEI.style.color = '#001641';
-        el.diagManufacturerEI.textContent = 'EI: 12'; el.diagManufacturerEI.style.color = '#001641';
-        el.diagFactoryQ.textContent = '12'; el.diagFactoryR.textContent = '12';
-        el.diagRetailerQ.textContent = '12'; el.diagRetailerR.textContent = '12';
-        el.diagManufacturerQ.textContent = '12'; el.diagManufacturerR.textContent = '12';
-        el.diagDemand.textContent = '\u2014'; el.diagSales.textContent = '0';
-        el.historyBody.innerHTML = '';
-        el.statusMessage.style.display = 'none';
-    }
-
-    function advancePhase() {
-        if (state.currentPhase >= TOTAL_PHASES) return;
-        setPhase(state.currentPhase + 1);
-    }
-
-    function skipToPhase(target) {
-        if (target === state.currentPhase) return;
-        var maxIns = 0;
-        for (var i = 0; i < TOTAL_INSIGHTS; i++) { if (INSIGHTS[i].phase < target) maxIns = i + 1; }
-        state.questionsShown = Math.max(state.questionsShown, maxIns);
-        state.insightsRevealed = Math.max(state.insightsRevealed, maxIns);
-        for (var j = 0; j < maxIns; j++) applyInsightAction(j);
-        setPhase(target);
-    }
-
-    /* ====================================================================== INSIGHTS ====================================================================== */
-    function checkForNewQuestion() {
-        for (var i = 0; i < CHECKPOINT_SCHEDULE.length; i++) {
-            var cp = CHECKPOINT_SCHEDULE[i];
-            if (cp.phase === state.currentPhase && state.turnNumber >= cp.turn && state.questionsShown <= cp.insightIndex) {
-                state.questionsShown = cp.insightIndex + 1;
-            }
-        }
-        renderInsights(); saveState();
-    }
-
-    function applyInsightAction(index) {
-        var action = INSIGHTS[index].action;
-        if (!action) return;
-        if (action === 'revealBullwhip' || action === 'updateBullwhip') {
-            state.bullwhipRevealed = true;
-            updateBullwhipDisplay();
-        }
-    }
-
-    function revealInsightAnswer(index) {
-        if (index !== state.insightsRevealed) return;
-        state.insightsRevealed = index + 1;
-        applyInsightAction(index);
-        renderInsights(); renderPhaseAdvance(); saveState();
-    }
-
-    function renderInsights() {
-        el.insightsCounter.textContent = state.insightsRevealed + ' of ' + TOTAL_INSIGHTS;
-        el.insightsList.innerHTML = '';
-        for (var i = 0; i < state.questionsShown; i++) {
-            var ins = INSIGHTS[i];
-            var div = document.createElement('div');
-            div.style.cssText = 'padding:10px 12px !important; border-left:3px solid ' + (i < state.insightsRevealed ? '#16a34a' : '#A15A35') + ' !important; margin-bottom:8px !important; background:' + (i < state.insightsRevealed ? '#f0fdf4' : '#F0E5D0') + ' !important; border-radius:0 6px 6px 0 !important;';
-            var label = document.createElement('div');
-            label.style.cssText = 'font-size:0.75em !important; font-weight:600 !important; text-transform:uppercase !important; letter-spacing:0.5px !important; color:' + (i < state.insightsRevealed ? '#16a34a' : '#A15A35') + ' !important; margin-bottom:4px !important;';
-            label.textContent = (i < state.insightsRevealed ? '\u2713 ' : '') + 'Insight ' + (i+1) + ' (Phase ' + ins.phase + ')';
-            div.appendChild(label);
-            var q = document.createElement('div');
-            q.style.cssText = 'font-weight:600 !important; color:#001641 !important; margin-bottom:6px !important;';
-            q.textContent = ins.question;
-            div.appendChild(q);
+    for (var ph = 1; ph < state.currentStage; ph++) {
+        var prevItems = stages[ph];
+        if (!prevItems) continue;
+        var anyRevealed = false;
+        prevItems.forEach(function(item) { if (item.idx < state.insightsRevealed) anyRevealed = true; });
+        if (!anyRevealed) continue;
+        html += '<div style="font-size:0.75rem;font-weight:700;color:#5C657B;text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px 0;border-bottom:1px solid #e2e8f0;padding-bottom:4px;">Stage ' + ph + ' Insights</div>';
+        prevItems.forEach(function(item, localIdx) {
+            var i = item.idx, ins = item.ins, num = localIdx + 1;
             if (i < state.insightsRevealed) {
-                var a = document.createElement('div');
-                a.style.cssText = 'color:#475569 !important; font-size:0.92em !important; padding:8px 10px !important; background:#fff !important; border-radius:4px !important; border:1px solid #e2e8f0 !important;';
-                a.textContent = ins.answer;
-                div.appendChild(a);
-            } else if (i === state.insightsRevealed) {
-                var btn = document.createElement('button');
-                btn.style.cssText = 'padding:6px 14px !important; background:#A15A35 !important; color:#fff !important; border:none !important; border-radius:4px !important; font-size:0.85em !important; font-weight:600 !important; cursor:pointer !important;';
-                btn.textContent = 'Reveal Answer';
-                btn.onclick = (function(idx){return function(){revealInsightAnswer(idx);};})(i);
-                div.appendChild(btn);
+                html += '<div style="padding:8px 12px;margin-bottom:2px;border-radius:6px;background:#f8fafb;border:1px solid #e2e8f0;opacity:0.85;">';
+                html += '<div style="display:flex;gap:10px;align-items:start;">';
+                html += '<div style="' + circleBase + 'background:#2E7D32;color:#fff;">&#10003;</div>';
+                html += '<div style="flex:1;">';
+                html += '<div style="font-size:0.82em;color:#5C657B;margin-bottom:4px;">' + ins.q + '</div>';
+                html += '<div style="font-size:0.82em;color:#001641;font-weight:500;padding:4px 8px;background:#f0fdf4;border-left:3px solid #16A34A;border-radius:0 4px 4px 0;">' + ins.a + '</div>';
+                html += '</div></div></div>';
+            } else if (i < state.questionsShown) {
+                var clk = (i === state.insightsRevealed);
+                html += '<div data-index="' + i + '" style="padding:8px 12px;margin-bottom:2px;border-radius:6px;background:#F0E5D0;border:1px solid #A15A35;' + (clk ? 'cursor:pointer;' : '') + '">';
+                html += '<div style="display:flex;gap:10px;align-items:start;">';
+                html += '<div style="' + circleBase + 'background:#A15A35;color:#fff;">' + num + '</div>';
+                html += '<div style="flex:1;">';
+                html += '<div style="font-size:0.82em;color:#001641;margin-bottom:4px;">' + ins.q + '</div>';
+                html += clk ? '<div style="font-size:0.8em;color:#A15A35;font-weight:600;padding:4px 10px;background:#F0E5D0;border-radius:4px;display:inline-block;">Click to reveal answer</div>' : '<div style="font-size:0.8em;color:#94a3b8;font-style:italic;">(answer the previous question first)</div>';
+                html += '</div></div></div>';
             }
-            el.insightsList.appendChild(div);
-        }
-        renderPhaseAdvance();
+        });
     }
 
-    function renderPhaseAdvance() {
-        var pIns = PHASE_INSIGHTS[state.currentPhase];
-        var allDone = true;
-        for (var i = 0; i < pIns.length; i++) { if (pIns[i] >= state.insightsRevealed) { allDone = false; break; } }
-        if (allDone && state.currentPhase < TOTAL_PHASES) {
-            el.phaseAdvanceArea.style.display = 'block';
-            el.phaseAdvanceArea.innerHTML = '<strong>All Phase ' + state.currentPhase + ' insights revealed!</strong><br><button onclick="void(0)" id="advPhaseBtn" style="margin-top:8px !important; padding:8px 20px !important; background:#0033FF !important; color:#fff !important; border:none !important; border-radius:6px !important; font-weight:600 !important; cursor:pointer !important;">Advance to Phase ' + (state.currentPhase+1) + '</button>';
-            document.getElementById('advPhaseBtn').addEventListener('click', function(){ advancePhase(); });
-        } else if (allDone && state.currentPhase === TOTAL_PHASES) {
-            el.phaseAdvanceArea.style.display = 'block';
-            el.phaseAdvanceArea.innerHTML = '<strong style="color:#16a34a !important;">All insights revealed! Simulation complete.</strong>';
-        } else { el.phaseAdvanceArea.style.display = 'none'; }
+    if (state.currentStage > 1 && currentItems.length > 0) {
+        html += '<div style="font-size:0.75rem;font-weight:700;color:#001641;text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px 0;border-bottom:2px solid #001641;padding-bottom:4px;">Stage ' + state.currentStage + ' Insights</div>';
     }
-
-    function renderOverrides() {
-        el.overrideControls.innerHTML = '';
-        var style = 'font-size:0.78em !important; color:#94a3b8 !important; cursor:pointer !important; text-decoration:underline !important; background:none !important; border:none !important; padding:2px 4px !important;';
-        for (var p = state.currentPhase + 1; p <= TOTAL_PHASES; p++) {
-            (function(target) {
-                var b = document.createElement('button'); b.style.cssText = style;
-                b.textContent = 'Skip to Phase ' + target;
-                b.onclick = function(){ skipToPhase(target); };
-                el.overrideControls.appendChild(b);
-            })(p);
+    currentItems.forEach(function(item, localIdx) {
+        var i = item.idx, ins = item.ins, num = localIdx + 1;
+        if (i < state.insightsRevealed) {
+            html += '<div style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#fff;border:1px solid #e2e8f0;">';
+            html += '<div style="display:flex;gap:10px;align-items:start;">';
+            html += '<div style="' + circleBase + 'background:#001641;color:#fff;">' + num + '</div>';
+            html += '<div style="flex:1;">';
+            html += '<div style="font-size:0.85em;color:#001641;margin-bottom:6px;">' + ins.q + '</div>';
+            html += '<div style="font-size:0.9em;color:#001641;font-weight:500;padding:6px 10px;background:#f0fdf4;border-left:3px solid #16A34A;border-radius:0 4px 4px 0;">' + ins.a + '</div>';
+            html += '</div></div></div>';
+        } else if (i < state.questionsShown) {
+            var clk2 = (i === state.insightsRevealed);
+            html += '<div data-index="' + i + '" style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#F0E5D0;border:1px solid #A15A35;' + (clk2 ? 'cursor:pointer;' : '') + '">';
+            html += '<div style="display:flex;gap:10px;align-items:start;">';
+            html += '<div style="' + circleBase + 'background:#A15A35;color:#fff;">' + num + '</div>';
+            html += '<div style="flex:1;">';
+            html += '<div style="font-size:0.85em;color:#001641;margin-bottom:6px;">' + ins.q + '</div>';
+            html += clk2 ? '<div style="font-size:0.8em;color:#A15A35;font-weight:600;padding:4px 10px;background:#F0E5D0;border-radius:4px;display:inline-block;">Click to reveal answer</div>' : '<div style="font-size:0.8em;color:#94a3b8;font-style:italic;">(answer the previous question first)</div>';
+            html += '</div></div></div>';
+        } else {
+            html += '<div style="padding:6px 12px;margin-bottom:2px;">';
+            html += '<div style="display:flex;gap:10px;align-items:center;">';
+            html += '<div style="' + circleBase + 'background:#e5e7eb;color:#94a3b8;">' + num + '</div>';
+            html += '<div style="font-size:0.82em;color:#cbd5e1;font-style:italic;">(not yet revealed)</div>';
+            html += '</div></div>';
         }
+    });
+    DOM.insightsContainer.innerHTML = html;
+}
+
+function checkInsightUnlock() {
+    CHECKPOINT_SCHEDULE.forEach(function(cp) {
+        if (cp.stage === state.currentStage && state.turn >= cp.turn
+            && state.questionsShown <= cp.insightIndex
+            && state.insightsRevealed >= cp.insightIndex) {
+            state.questionsShown = cp.insightIndex + 1;
+        }
+    });
+    renderInsights();
+}
+
+function revealInsight(index) {
+    if (index >= state.questionsShown || index !== state.insightsRevealed) return;
+    state.insightsRevealed = index + 1;
+    checkInsightUnlock();
+    saveState();
+}
+
+function checkStageComplete() {
+    // The natural advance appears only after the student has played all 30 turns.
+    // (Tutors keep the discreet 'Skip to Stage' override links for flexibility.)
+    if (state.turn >= MAX_TURNS) {
+        var next = state.currentStage + 1;
+        if (next <= 3) {
+            DOM.stageAdvanceMsg.textContent = 'Stage ' + state.currentStage + ' complete — all 30 turns played.';
+            DOM.btnStageAdvance.style.display = '';
+            DOM.btnStageAdvance.innerHTML = 'Continue to Stage ' + next + ' &#9654;';
+            DOM.stageAdvance.style.display = 'block';
+        } else {
+            DOM.stageAdvanceMsg.textContent = 'You have completed all three stages of the Supply Chain Game!';
+            DOM.btnStageAdvance.style.display = 'none';
+            DOM.stageAdvance.style.display = 'block';
+        }
+    } else {
+        DOM.stageAdvance.style.display = 'none';
+    }
+}
+
+/* ===== STAGE / UI WIRING ===== */
+function updateStageIndicators() {
+    DOM.stageIndicators.querySelectorAll('[data-stage]').forEach(function(pill) {
+        var p = parseInt(pill.dataset.stage);
+        if (p === state.currentStage) { pill.style.background = '#001641'; pill.style.color = '#fff'; }
+        else if (p < state.currentStage) { pill.style.background = '#2E7D32'; pill.style.color = '#fff'; }
+        else { pill.style.background = '#F0F2F5'; pill.style.color = '#5C657B'; }
+    });
+}
+
+function updateInstructions() {
+    var instr = INSTRUCTIONS[state.currentStage];
+    DOM.instrTitle.textContent = 'Stage ' + state.currentStage + ': ' + STAGE_CONFIG[state.currentStage].name;
+    DOM.instrFull.innerHTML = instr.full;
+    DOM.instrShort.innerHTML = instr.short;
+    if (state.instructionExpanded) {
+        DOM.instrFull.style.display = ''; DOM.instrShort.style.display = 'none'; DOM.instrToggle.textContent = 'Show less';
+    } else {
+        DOM.instrFull.style.display = 'none'; DOM.instrShort.style.display = ''; DOM.instrToggle.textContent = 'Show more';
+    }
+}
+
+function updateControlsVisibility() {
+    var threeEch = state.currentStage === 3;
+    DOM.controls.manufacturer.style.display = threeEch ? '' : 'none';
+}
+
+function resetSliders() {
+    ['factory', 'manufacturer', 'retailer'].forEach(function(n) {
+        DOM.sliders[n].value = state.lastDecision[n];
+        DOM.sliderValues[n].textContent = state.lastDecision[n];
+    });
+}
+
+function setNextDisabled(disabled) {
+    DOM.btnNextTurn.disabled = disabled;
+    DOM.btnNextTurn.style.opacity = disabled ? '0.45' : '1';
+    DOM.btnNextTurn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+}
+
+function applyStage() {
+    updateStageIndicators();
+    updateInstructions();
+    updateControlsVisibility();
+    resetSliders();
+    buildCharts();
+    refreshCharts();
+    renderDiagram();
+    updateMetrics();
+    rebuildHistory();
+    renderInsights();
+    checkStageComplete();
+    setNextDisabled(state.turn >= MAX_TURNS);
+}
+
+function goToStage(stage) {
+    freshStageState(stage);
+    DOM.stageAdvance.style.display = 'none';
+    applyStage();
+    saveState();
+}
+
+/* ===== STATE PERSISTENCE ===== */
+function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function loadState() {
+    try {
+        var saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) { state = JSON.parse(saved); return true; }
+    } catch (e) {}
+    return false;
+}
+
+/* ===== EVENTS ===== */
+function readDecisions() {
+    return {
+        factory: parseInt(DOM.sliders.factory.value) || 0,
+        manufacturer: parseInt(DOM.sliders.manufacturer.value) || 0,
+        retailer: parseInt(DOM.sliders.retailer.value) || 0
+    };
+}
+
+function bindEvents() {
+    ['factory', 'manufacturer', 'retailer'].forEach(function(n) {
+        DOM.sliders[n].addEventListener('input', function() {
+            DOM.sliderValues[n].textContent = this.value;
+        });
+    });
+
+    DOM.btnNextTurn.addEventListener('click', function() {
+        if (state.turn >= MAX_TURNS) return;
+        var rec = processTurn(readDecisions());
+        renderDiagram();
+        updateMetrics();
+        refreshCharts();
+        addHistoryRow(rec);
+        checkInsightUnlock();
+        checkStageComplete();
+        if (state.turn >= MAX_TURNS) setNextDisabled(true);
+        saveState();
+    });
+
+    DOM.btnResetStage.addEventListener('click', function() {
+        if (!confirm('Reset Stage ' + state.currentStage + '? This stage’s progress will be lost.')) return;
+        goToStage(state.currentStage);
+    });
+
+    DOM.btnStageAdvance.addEventListener('click', function() {
+        var next = state.currentStage + 1;
+        if (next <= 3) goToStage(next);
+    });
+
+    DOM.instrToggle.addEventListener('click', function() {
+        state.instructionExpanded = !state.instructionExpanded;
+        updateInstructions();
+        saveState();
+    });
+
+    DOM.historyToggle.addEventListener('click', function() {
+        state.historyExpanded = !state.historyExpanded;
+        DOM.historyWrap.style.display = state.historyExpanded ? '' : 'none';
+        DOM.historyToggle.innerHTML = 'Turn History ' + (state.historyExpanded ? '&#9660;' : '&#9654;');
+        saveState();
+    });
+
+    DOM.insightsContainer.addEventListener('click', function(e) {
+        var card = e.target.closest('[data-index]');
+        if (!card) return;
+        revealInsight(parseInt(card.dataset.index));
+    });
+
+    DOM.skipReveal.addEventListener('click', function() {
         if (state.questionsShown > state.insightsRevealed) {
-            var rb = document.createElement('button'); rb.style.cssText = style; rb.textContent = 'Reveal Next Insight';
-            rb.onclick = function(){ revealInsightAnswer(state.insightsRevealed); };
-            el.overrideControls.appendChild(rb);
+            revealInsight(state.insightsRevealed);
+        } else if (state.questionsShown < INSIGHTS.length) {
+            state.questionsShown++;
+            renderInsights();
+            saveState();
         }
-        var resetBtn = document.createElement('button'); resetBtn.style.cssText = style; resetBtn.textContent = 'Full Reset';
-        resetBtn.onclick = function(){ resetSim(); };
-        el.overrideControls.appendChild(resetBtn);
-    }
+    });
 
-    /* ====================================================================== RESET ====================================================================== */
-    function resetSim() {
-        localStorage.removeItem(STORAGE_KEY);
-        state = defaultState();
-        el.manufacturerSliderGroup.style.display = 'none';
-        el.diagManufacturerNode.style.display = 'none';
-        el.diagManufacturerArrow.style.display = 'none';
-        el.bullwhipPrompt.style.display = 'block';
-        el.bullwhipRevealed.style.display = 'none';
-        el.bullwhipCard.style.borderStyle = 'dashed'; el.bullwhipCard.style.borderColor = '#0033FF';
-        el.historyContainer.style.display = 'block'; el.toggleHistory.textContent = 'Hide Table';
-        state.historyVisible = true; state.instructionExpanded = true;
-        setPhase(1);
-    }
-
-    /* ====================================================================== PERSISTENCE ====================================================================== */
-    function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){} }
-
-    function loadState() {
-        try {
-            var s = localStorage.getItem(STORAGE_KEY);
-            if (s) { var p = JSON.parse(s); var d = defaultState(); for (var k in d) { if (p.hasOwnProperty(k)) state[k] = p[k]; } return true; }
-        } catch(e){}
-        return false;
-    }
-
-    function restoreFromState() {
-        var labels = [el.phaseLabel1, el.phaseLabel2, el.phaseLabel3];
-        for (var i = 0; i < 3; i++) {
-            if (i+1 < state.currentPhase) { labels[i].style.background = '#16a34a'; labels[i].style.color = '#fff'; }
-            else if (i+1 === state.currentPhase) { labels[i].style.background = '#0033FF'; labels[i].style.color = '#fff'; }
-            else { labels[i].style.background = '#e5e7eb'; labels[i].style.color = '#94a3b8'; }
+    DOM.skipStage2.addEventListener('click', function() {
+        if (state.currentStage < 2) {
+            state.insightsRevealed = Math.max(state.insightsRevealed, 3);
+            state.questionsShown = Math.max(state.questionsShown, 3);
+            goToStage(2);
         }
-        var is3 = state.currentPhase === 3;
-        el.manufacturerSliderGroup.style.display = is3 ? 'block' : 'none';
-        el.diagManufacturerNode.style.display = is3 ? 'block' : 'none';
-        el.diagManufacturerArrow.style.display = is3 ? 'block' : 'none';
-        if (!state.instructionExpanded) el.toggleInstructions.textContent = 'Show More';
-        if (!state.historyVisible) { el.historyContainer.style.display = 'none'; el.toggleHistory.textContent = 'Show Table'; }
-        renderInstructions(); renderHistoryHeader(); updateDisplay();
-        initCharts(); updateCharts();
-        rerenderHistory();
-        if (state.gameOver || state.turnNumber >= MAX_TURNS) { el.nextTurnBtn.disabled = true; el.nextTurnBtn.style.opacity = '0.5'; }
-        if (state.bullwhipRevealed) updateBullwhipDisplay();
-        renderInsights(); renderOverrides();
-    }
+    });
+    DOM.skipStage3.addEventListener('click', function() {
+        if (state.currentStage < 3) {
+            state.insightsRevealed = Math.max(state.insightsRevealed, 6);
+            state.questionsShown = Math.max(state.questionsShown, 6);
+            goToStage(3);
+        }
+    });
+    DOM.fullReset.addEventListener('click', function() {
+        if (!confirm('Reset all progress across all stages? This cannot be undone.')) return;
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+        initState();
+        applyStage();
+        saveState();
+    });
+}
 
-    /* ====================================================================== EVENTS ====================================================================== */
-    function bindEvents() {
-        el.nextTurnBtn.addEventListener('click', advanceTurn);
-        el.factorySlider.addEventListener('input', function() { el.factoryValueDisplay.textContent = el.factorySlider.value; });
-        el.manufacturerSlider.addEventListener('input', function() { el.manufacturerValueDisplay.textContent = el.manufacturerSlider.value; });
-        el.retailerSlider.addEventListener('input', function() { el.retailerValueDisplay.textContent = el.retailerSlider.value; });
-        el.toggleInstructions.addEventListener('click', function() { state.instructionExpanded = !state.instructionExpanded; renderInstructions(); saveState(); });
-        el.toggleHistory.addEventListener('click', function() { state.historyVisible = !state.historyVisible; el.historyContainer.style.display = state.historyVisible ? 'block' : 'none'; el.toggleHistory.textContent = state.historyVisible ? 'Hide Table' : 'Show Table'; saveState(); });
+/* ===== INIT ===== */
+function init() {
+    cacheDom();
+    var restored = loadState();
+    if (!restored || !state.data) {
+        initState();
     }
+    // make sure history visibility matches the persisted flag
+    DOM.historyWrap.style.display = state.historyExpanded ? '' : 'none';
+    DOM.historyToggle.innerHTML = 'Turn History ' + (state.historyExpanded ? '&#9660;' : '&#9654;');
+    applyStage();
+    bindEvents();
+}
 
-    /* ====================================================================== INIT ====================================================================== */
-    function init() {
-        cacheDom();
-        if (!el.nextTurnBtn) return;
-        var hasState = loadState();
-        if (hasState) { restoreFromState(); }
-        else { setPhase(1); }
-        bindEvents();
-    }
+document.addEventListener('DOMContentLoaded', init);
 
-    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();
 </script>

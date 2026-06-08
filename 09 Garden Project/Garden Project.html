@@ -1,787 +1,1768 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
-<style data-uow-tokens>
-:root {
-  --uow-white:        #FFFFFF;
-  --uow-blue-dark:    #001641;
-  --uow-blue-bright:  #0033FF;
-  --uow-red:          #ED0A00;
-  --uow-grey-light:   #F2F2F2;
-  --uow-copper:       #A15A35;
-  --uow-copper-light: #C4744F;
-  --uow-cream:        #F0E5D0;
-  --uow-lavender:     #CDD6F8;
-  --uow-ice-blue:     #E3F1F9;
-  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  --chart-1: #001641;
-  --chart-2: #ED0A00;
-  --chart-3: #0033FF;
-  --chart-4: #A15A35;
-  --chart-5: #6B7280;
-}
-[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
-  font-family: var(--uow-font) !important;
-}
-</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
 
-<div id="garden-project-sim-v1" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #001641;">
+<div id="ops802-garden-sim-v1" style="max-width:1200px;margin:0 auto;padding:16px;font-family:'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#001641;line-height:1.5;">
 
-<!-- Title + Phase -->
-<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
-    <h2 style="margin: 0; font-size: 1.5em; color: #001641;">Garden Project Simulation</h2>
-    <div style="display: flex; gap: 4px; align-items: center;">
-        <span id="gpPhaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #0033FF; color: #fff;">Phase 1: Process</span>
-        <span style="color: #cbd5e1;">&#9654;</span>
-        <span id="gpPhaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Bottlenecks</span>
-        <span style="color: #cbd5e1;">&#9654;</span>
-        <span id="gpPhaseLabel3" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 3: Optimize</span>
+  <!-- Title -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+    <span style="font-size:1.6rem;">&#127875;</span>
+    <h2 style="font-size:1.4rem;font-weight:700;margin:0;color:#001641;">Community Garden Project Simulation</h2>
+  </div>
+
+  <!-- Phase indicator -->
+  <div id="gardenPhasePills" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+    <div data-phase="1" style="padding:6px 14px;border-radius:20px;font-size:0.74rem;font-weight:700;background:#001641;color:#fff;white-space:nowrap;">Phase 1: Beginner</div>
+    <span style="color:#5C657B;font-size:0.7rem;">&#9654;</span>
+    <div data-phase="2" style="padding:6px 14px;border-radius:20px;font-size:0.74rem;font-weight:700;background:#eef1f6;color:#5C657B;white-space:nowrap;">Phase 2: Intermediate</div>
+    <span style="color:#5C657B;font-size:0.7rem;">&#9654;</span>
+    <div data-phase="3" style="padding:6px 14px;border-radius:20px;font-size:0.74rem;font-weight:700;background:#eef1f6;color:#5C657B;white-space:nowrap;">Phase 3: Advanced</div>
+  </div>
+
+  <!-- Instructions -->
+  <div style="background:#E3F1F9;border-left:4px solid #001641;border-radius:0 8px 8px 0;padding:10px 16px;margin-bottom:12px;font-size:0.83rem;line-height:1.38;color:#001641;">
+    <div id="phaseGoal" style="font-weight:600;margin:0 0 7px 0;padding:7px 11px;background:#ffffff;border-radius:6px;color:#001641;font-size:0.82rem;line-height:1.3;"></div>
+    <p style="margin:0 0 5px 0;">You manage a community garden growing pumpkins for the annual <strong>Harvest Festival</strong>, now <strong>16 weeks (112 simulated days)</strong> away. Each plot moves through six sequential phases &mdash; <strong>planning &rarr; soil prep &rarr; planting &rarr; growing &rarr; inspection &rarr; harvest</strong>. Your job is to <strong style="color:#ED0A00;">allocate the right gardeners to the right activity at the right time</strong> so every plot is finished before the festival, on budget.</p>
+    <p style="margin:0 0 8px 0;">Task durations are <strong>not fixed</strong> &mdash; they depend on who does the work. Higher-skilled gardeners finish faster but cost more, and each gardener can only work one plot at a time. Pause any time to re-assign gardeners (even busy ones &mdash; their plot returns to the queue).</p>
+    <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;">
+      <div style="flex:1 1 230px;min-width:220px;">
+        <div style="font-weight:700;margin:0 0 3px 0;">Key rules</div>
+        <ul style="margin:0;padding:0 0 0 16px;">
+          <li>Volunteers cannot work without an Experienced or Master gardener supervising them.</li>
+          <li>Soil Prep needs an Experienced or Master gardener; Inspection needs a Master.</li>
+          <li>Growing takes a fixed 10 days &mdash; no staff required.</li>
+          <li>Watch the queue badges and the chart to spot bottlenecks, then re-allocate to clear them.</li>
+        </ul>
+      </div>
+      <div style="flex:1 1 360px;min-width:300px;display:flex;justify-content:flex-end;">
+        <div style="overflow-x:auto;max-width:100%;"><table style="border-collapse:collapse;"><thead><tr><th style="background:#001641;color:#fff;padding:4px 7px;font-weight:600;font-size:0.66rem;border:1px solid #001641;text-align:left;white-space:nowrap;">Activity</th><th style="background:#001641;color:#fff;padding:4px 7px;font-weight:600;font-size:0.66rem;border:1px solid #001641;text-align:left;white-space:nowrap;">Pred.</th><th style="background:#001641;color:#fff;padding:4px 7px;font-weight:600;font-size:0.66rem;border:1px solid #001641;text-align:center;white-space:nowrap;">Vol.<br><span style="font-weight:400;font-size:0.58rem;">$0/d</span></th><th style="background:#001641;color:#fff;padding:4px 7px;font-weight:600;font-size:0.66rem;border:1px solid #001641;text-align:center;white-space:nowrap;">Exp.<br><span style="font-weight:400;font-size:0.58rem;">$40/d</span></th><th style="background:#001641;color:#fff;padding:4px 7px;font-weight:600;font-size:0.66rem;border:1px solid #001641;text-align:center;white-space:nowrap;">Master<br><span style="font-weight:400;font-size:0.58rem;">$120/d</span></th><th style="background:#001641;color:#fff;padding:4px 7px;font-weight:600;font-size:0.66rem;border:1px solid #001641;text-align:center;white-space:nowrap;">Constraint</th></tr></thead><tbody><tr style="background:#ffffff;"><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;font-weight:600;text-align:left;font-size:0.7rem;white-space:nowrap;">Planning</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:left;font-size:0.7rem;white-space:nowrap;">None</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">6 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">4 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">2 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">Any level</td></tr><tr style="background:#f4f7fb;"><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;font-weight:600;text-align:left;font-size:0.7rem;white-space:nowrap;">Soil Prep</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:left;font-size:0.7rem;white-space:nowrap;">Planning</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#5C657B;text-align:center;font-size:0.7rem;white-space:nowrap;">N/A</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">4 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">3 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">Exp. / Master</td></tr><tr style="background:#ffffff;"><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;font-weight:600;text-align:left;font-size:0.7rem;white-space:nowrap;">Planting</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:left;font-size:0.7rem;white-space:nowrap;">Soil Prep</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">6 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">4 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">2 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">Any level</td></tr><tr style="background:#f4f7fb;"><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;font-weight:600;text-align:left;font-size:0.7rem;white-space:nowrap;">Growing</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:left;font-size:0.7rem;white-space:nowrap;">Planting</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">10 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">10 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">10 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">No staff</td></tr><tr style="background:#ffffff;"><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;font-weight:600;text-align:left;font-size:0.7rem;white-space:nowrap;">Inspection</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:left;font-size:0.7rem;white-space:nowrap;">Growing</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#5C657B;text-align:center;font-size:0.7rem;white-space:nowrap;">N/A</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#5C657B;text-align:center;font-size:0.7rem;white-space:nowrap;">N/A</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">2 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">Master only</td></tr><tr style="background:#f4f7fb;"><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;font-weight:600;text-align:left;font-size:0.7rem;white-space:nowrap;">Harvest</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:left;font-size:0.7rem;white-space:nowrap;">Inspect</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">6 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">4 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">2 days</td><td style="padding:3px 7px;border:1px solid #d4dbe6;color:#001641;text-align:center;font-size:0.7rem;white-space:nowrap;">Any level</td></tr></tbody></table></div>
+      </div>
     </div>
+  </div>
+
+  <!-- Control bar -->
+  <div style="background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:16px;">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;">
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Day</span>
+        <span style="font-size:1.5rem;font-weight:700;color:#001641;"><span id="simulationTime">0</span></span>
+        <span style="font-size:0.72rem;color:#5C657B;">/ 112</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
+        <button id="simulationControlButton" style="padding:9px 16px;border:none;border-radius:8px;background:#001641;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">Start</button>
+        <button id="resetButton" style="padding:9px 16px;border:none;border-radius:8px;background:#5C657B;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">Reset Phase</button>
+        <span style="font-size:0.74rem;color:#5C657B;">Speed</span>
+        <select id="simulationSpeed" style="font-family:'Montserrat',sans-serif;border:1px solid #cfd4dd;border-radius:6px;padding:6px 8px;color:#001641;background:#fff;font-size:0.8rem;">
+          <option value="0.5">0.5&times;</option>
+          <option value="1" selected="">1&times;</option>
+          <option value="2">2&times;</option>
+          <option value="4">4&times;</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Triple-constraint metric cards -->
+  <div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:16px;">
+    <div style="flex:1;min-width:230px;background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-top:3px solid #0033FF;">
+      <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">&#9201; Time</h3>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eef1f6;"><span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Avg cycle time</span><span style="font-size:1.15rem;font-weight:700;color:#001641;"><span id="avgCycleTime">0</span> d</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eef1f6;"><span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">On-time completion</span><span style="font-size:1.15rem;font-weight:700;color:#001641;"><span id="onTimeCompletion">0</span> %</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eef1f6;"><span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Total queue length</span><span style="font-size:1.15rem;font-weight:700;color:#001641;"><span id="totalQueueLength">0</span> plots</span></div>
+    </div>
+    <div style="flex:1;min-width:230px;background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-top:3px solid #ED0A00;">
+      <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">&#128176; Cost</h3>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eef1f6;"><span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Total spending</span><span style="font-size:1.15rem;font-weight:700;color:#001641;">$<span id="totalCosts">0</span></span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eef1f6;"><span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Remaining budget</span><span style="font-size:1.15rem;font-weight:700;color:#001641;">$<span id="remainingBudget">0</span></span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eef1f6;"><span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Cost per plot</span><span style="font-size:1.15rem;font-weight:700;color:#001641;">$<span id="costPerTask">0</span></span></div>
+    </div>
+    <div style="flex:1;min-width:230px;background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border-top:3px solid #001641;">
+      <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">&#129509; Resources</h3>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eef1f6;"><span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Overall utilisation</span><span style="font-size:1.15rem;font-weight:700;color:#001641;"><span id="overallUtilization">0</span> %</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eef1f6;"><span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Plots in process</span><span style="font-size:1.15rem;font-weight:700;color:#001641;"><span id="tasksInProcess">0</span> plots</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #eef1f6;"><span style="font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Completed plots</span><span style="font-size:1.15rem;font-weight:700;color:#001641;"><span id="completedTasks">0</span> plots</span></div>
+    </div>
+  </div>
+
+  <!-- Resource allocation -->
+  <div style="background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:16px;">
+    <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">Resource allocation &mdash; drag gardeners onto an activity</h3>
+    <div style="margin-bottom:8px;"><span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;font-size:0.72rem;color:#001641;"><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#E3F1F9;border:1px solid #9cc3da;"></span>Volunteer ($0)</span><span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;font-size:0.72rem;color:#001641;"><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#0033FF;border:none;"></span>Experienced ($40)</span><span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px;font-size:0.72rem;color:#001641;"><span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#001641;border:none;"></span>Master ($120)</span></div>
+    <div id="staffPool" style="min-height:74px;border:1px dashed #b9c2d0;border-radius:8px;padding:10px;background:#f7f9fb;position:relative;margin-bottom:14px;">
+      <div id="poolLabel" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-style:italic;color:#5C657B;font-size:0.78rem;display:none;">All gardeners have been assigned</div>
+    </div>
+    <div style="display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;">
+      <div style="flex:1;min-width:150px;display:flex;flex-direction:column;"><div style="background:#001641;color:#fff;padding:7px 8px;border-radius:8px 8px 0 0;text-align:center;"><div style="font-weight:700;font-size:0.78rem;">Planning</div><div style="font-size:0.62rem;color:#cfe0ee;margin-top:2px;">Any level</div><div style="margin-top:4px;font-size:0.66rem;color:#cfe0ee;">WIP + Queue: <span id="planningQueueCount" style="display:inline-block;min-width:22px;padding:1px 7px;border-radius:11px;background:#E3F1F9;color:#001641;font-weight:700;font-size:0.72rem;">0</span></div></div><div id="planningOperation" data-operation="planning" style="min-height:120px;border:1px dashed #b9c2d0;border-radius:0 0 8px 8px;padding:10px;background:#f7f9fb;overflow-y:auto;"></div></div><div style="flex:1;min-width:150px;display:flex;flex-direction:column;"><div style="background:#001641;color:#fff;padding:7px 8px;border-radius:8px 8px 0 0;text-align:center;"><div style="font-weight:700;font-size:0.78rem;">Soil Prep</div><div style="font-size:0.62rem;color:#cfe0ee;margin-top:2px;">Exp. / Master only</div><div style="margin-top:4px;font-size:0.66rem;color:#cfe0ee;">WIP + Queue: <span id="soilprepQueueCount" style="display:inline-block;min-width:22px;padding:1px 7px;border-radius:11px;background:#E3F1F9;color:#001641;font-weight:700;font-size:0.72rem;">0</span></div></div><div id="soilprepOperation" data-operation="soilprep" style="min-height:120px;border:1px dashed #b9c2d0;border-radius:0 0 8px 8px;padding:10px;background:#f7f9fb;overflow-y:auto;"></div></div><div style="flex:1;min-width:150px;display:flex;flex-direction:column;"><div style="background:#001641;color:#fff;padding:7px 8px;border-radius:8px 8px 0 0;text-align:center;"><div style="font-weight:700;font-size:0.78rem;">Planting</div><div style="font-size:0.62rem;color:#cfe0ee;margin-top:2px;">Any level</div><div style="margin-top:4px;font-size:0.66rem;color:#cfe0ee;">WIP + Queue: <span id="plantingQueueCount" style="display:inline-block;min-width:22px;padding:1px 7px;border-radius:11px;background:#E3F1F9;color:#001641;font-weight:700;font-size:0.72rem;">0</span></div></div><div id="plantingOperation" data-operation="planting" style="min-height:120px;border:1px dashed #b9c2d0;border-radius:0 0 8px 8px;padding:10px;background:#f7f9fb;overflow-y:auto;"></div></div><div style="flex:1;min-width:150px;display:flex;flex-direction:column;"><div style="background:#001641;color:#fff;padding:7px 8px;border-radius:8px 8px 0 0;text-align:center;"><div style="font-weight:700;font-size:0.78rem;">Growing</div><div style="font-size:0.62rem;color:#cfe0ee;margin-top:2px;">No staff</div><div style="margin-top:4px;font-size:0.66rem;color:#cfe0ee;">WIP + Queue: <span id="growingQueueCount" style="display:inline-block;min-width:22px;padding:1px 7px;border-radius:11px;background:#E3F1F9;color:#001641;font-weight:700;font-size:0.72rem;">0</span></div></div><div style="min-height:120px;border:1px dashed #b9c2d0;border-radius:0 0 8px 8px;padding:10px;background:#eef1f6;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#5C657B;"><div style="font-size:1.3rem;">&#127807;</div><div style="font-size:0.7rem;font-weight:600;margin-top:4px;">No gardeners needed</div><div style="font-size:0.66rem;">Fixed 10 days</div></div></div><div style="flex:1;min-width:150px;display:flex;flex-direction:column;"><div style="background:#001641;color:#fff;padding:7px 8px;border-radius:8px 8px 0 0;text-align:center;"><div style="font-weight:700;font-size:0.78rem;">Inspection</div><div style="font-size:0.62rem;color:#cfe0ee;margin-top:2px;">Masters only</div><div style="margin-top:4px;font-size:0.66rem;color:#cfe0ee;">WIP + Queue: <span id="inspectionQueueCount" style="display:inline-block;min-width:22px;padding:1px 7px;border-radius:11px;background:#E3F1F9;color:#001641;font-weight:700;font-size:0.72rem;">0</span></div></div><div id="inspectionOperation" data-operation="inspection" style="min-height:120px;border:1px dashed #b9c2d0;border-radius:0 0 8px 8px;padding:10px;background:#f7f9fb;overflow-y:auto;"></div></div><div style="flex:1;min-width:150px;display:flex;flex-direction:column;"><div style="background:#001641;color:#fff;padding:7px 8px;border-radius:8px 8px 0 0;text-align:center;"><div style="font-weight:700;font-size:0.78rem;">Harvest</div><div style="font-size:0.62rem;color:#cfe0ee;margin-top:2px;">Any level</div><div style="margin-top:4px;font-size:0.66rem;color:#cfe0ee;">WIP + Queue: <span id="harvestingQueueCount" style="display:inline-block;min-width:22px;padding:1px 7px;border-radius:11px;background:#E3F1F9;color:#001641;font-weight:700;font-size:0.72rem;">0</span></div></div><div id="harvestingOperation" data-operation="harvesting" style="min-height:120px;border:1px dashed #b9c2d0;border-radius:0 0 8px 8px;padding:10px;background:#f7f9fb;overflow-y:auto;"></div></div>
+    </div>
+  </div>
+
+  <!-- Queue chart -->
+  <div style="background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:16px;">
+    <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">Queue length over time &mdash; where is work piling up?</h3>
+    <div style="position:relative;height:240px;width:100%;">
+      <canvas id="queueChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Discussion insights -->
+  <div style="background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:16px;">
+    <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 10px 0;color:#001641;">Discussion insights <span id="gardenInsightsCounter" style="font-weight:400;color:#94a3b8;font-size:0.85em;"></span></h3>
+    <div id="gardenInsights"></div>
+  </div>
+
+  <!-- Phase advance -->
+  <div id="gardenPhaseAdvance" style="text-align:center;padding:16px;margin:0 0 16px 0;background:#E3F1F9;border:1px solid #b9d4e6;border-radius:10px;display:none;">
+    <p id="gardenPhaseAdvanceMsg" style="font-size:0.84rem;color:#001641;margin:0 0 8px 0;"></p>
+    <button id="gardenAdvanceBtn" style="padding:10px 24px;border:none;border-radius:8px;background:#0033FF;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">Continue to Phase 2 &#9654;</button>
+  </div>
+
+  <!-- Tutor controls -->
+  <div style="text-align:center;margin-bottom:16px;font-size:0.72rem;color:#5C657B;">
+    <a id="gardenSkipReveal" style="cursor:pointer;margin:0 8px;text-decoration:underline;">Reveal next question</a>
+    <a id="gardenSkip2" style="cursor:pointer;margin:0 8px;text-decoration:underline;">Skip to Phase 2</a>
+    <a id="gardenSkip3" style="cursor:pointer;margin:0 8px;text-decoration:underline;">Skip to Phase 3</a>
+    <a id="gardenFullReset" style="cursor:pointer;margin:0 8px;text-decoration:underline;">Full reset</a>
+  </div>
+
+  <!-- Completed plots history -->
+  <div style="background:#fff;border-radius:10px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+    <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">Completed plots</h3>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.76rem;">
+        <thead><tr>
+          <th style="background:#001641;color:#fff;padding:7px 9px;font-weight:600;font-size:0.74rem;border:1px solid #001641;text-align:center;">Completion Day</th><th style="background:#001641;color:#fff;padding:7px 9px;font-weight:600;font-size:0.74rem;border:1px solid #001641;text-align:center;">Cycle Time</th><th style="background:#001641;color:#fff;padding:7px 9px;font-weight:600;font-size:0.74rem;border:1px solid #001641;text-align:center;">Cost ($)</th>
+          <th style="background:#001641;color:#fff;padding:7px 9px;font-weight:600;font-size:0.74rem;border:1px solid #001641;text-align:center;">Volunteer Hrs</th><th style="background:#001641;color:#fff;padding:7px 9px;font-weight:600;font-size:0.74rem;border:1px solid #001641;text-align:center;">Experienced Hrs</th><th style="background:#001641;color:#fff;padding:7px 9px;font-weight:600;font-size:0.74rem;border:1px solid #001641;text-align:center;">Master Hrs</th>
+        </tr></thead>
+        <tbody id="taskHistoryBody"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
-<!-- Instruction Panel -->
-<div style="background: #E3F1F9; border-left: 4px solid #0033FF; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
-    <div style="display: flex; justify-content: space-between; align-items: start;">
-        <div id="gpInstructionContent"></div>
-        <button id="gpToggleInstr" onclick="void(0)" style="background: none; border: none; color: #0033FF; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
-    </div>
-</div>
 
-<!-- Notification -->
-<div id="gpNotif" style="display: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9em; text-align: center;"></div>
-
-<!-- Controls Row -->
-<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
-    <span style="font-size: 0.9em; font-weight: 600; color: #334155;">Day: <span id="gpTime" style="color: #0033FF;">0</span> / 112</span>
-    <div style="width: 120px; height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-        <div id="gpTimeBar" style="height: 100%; width: 0%; background: #0033FF; transition: width 0.3s;"></div>
-    </div>
-    <button id="gpStartBtn" onclick="void(0)" style="padding: 6px 16px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; cursor: pointer;">Start</button>
-    <select id="gpSpeed" style="padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em;">
-        <option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option>
-    </select>
-    <button id="gpResetBtn" onclick="void(0)" style="padding: 6px 12px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em; cursor: pointer;">Reset</button>
-    <span style="margin-left: auto; font-size: 0.85em;">Difficulty:</span>
-    <select id="gpDifficulty" style="padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em;" disabled>
-        <option value="beginner" selected>Beginner (15 plots)</option>
-        <option value="intermediate">Intermediate (25 plots)</option>
-        <option value="advanced">Advanced (40 plots)</option>
-    </select>
-    <button id="gpApplyDiff" onclick="void(0)" style="padding: 6px 10px; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em; cursor: not-allowed;" disabled>Apply</button>
-</div>
-
-<!-- Metrics Row -->
-<div style="display: flex; flex-wrap: wrap; gap: 8px;">
-    <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #E3F1F9;">
-        <div style="font-size: 0.72em; color: #001641; text-transform: uppercase; font-weight: 600;">Time Performance</div>
-        <div style="font-size: 0.82em; margin-top: 4px;">Avg Cycle Time: <strong id="gpAvgCycle">0.0</strong> days</div>
-        <div style="font-size: 0.82em;">On-Time: <strong id="gpOnTime">0.0</strong>%</div>
-        <div style="font-size: 0.82em;">Queue Length: <strong id="gpTotalQueue">0</strong></div>
-    </div>
-    <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #E8F5E9;">
-        <div style="font-size: 0.72em; color: #1F8A2F; text-transform: uppercase; font-weight: 600;">Cost Performance</div>
-        <div style="font-size: 0.82em; margin-top: 4px;">Spending: $<strong id="gpTotalCost">0</strong></div>
-        <div style="font-size: 0.82em;">Budget Left: $<strong id="gpBudgetLeft">16000</strong></div>
-        <div id="gpCpcRow" style="font-size: 0.82em; display: none;">Cost/Plot: <strong id="gpCostPerPlot">0.00</strong></div>
-        <div id="gpCpcPrompt" style="font-size: 0.78em; color: #64748b; font-style: italic; display: none;">Calculate: Total Cost &divide; Plots Completed</div>
-    </div>
-    <div style="flex: 1; min-width: 180px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #FFF3E0;">
-        <div style="font-size: 0.72em; color: #A15A35; text-transform: uppercase; font-weight: 600;">Resource Performance</div>
-        <div style="font-size: 0.82em; margin-top: 4px;">Utilization: <strong id="gpOverallUtil">0.0</strong>%</div>
-        <div style="font-size: 0.82em;">In Process: <strong id="gpInProcess">0</strong></div>
-        <div style="font-size: 0.82em;">Completed: <strong id="gpCompleted">0</strong> / <span id="gpTotalPlots">15</span></div>
-    </div>
-</div>
-
-<!-- Staff Pool -->
-<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
-    <div style="font-weight: 700; font-size: 0.9em; color: #334155; margin-bottom: 8px;">Available Gardeners (drag to assign)</div>
-    <div id="gpStaffPool" style="min-height: 50px; border: 2px dashed #cbd5e1; padding: 8px; border-radius: 6px; background: #fff; position: relative;">
-        <div id="gpPoolLabel" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-style: italic; color: #94a3b8; display: none;">All gardeners assigned</div>
-    </div>
-</div>
-
-<!-- Workflow Operations -->
-<div style="display: flex; flex-wrap: nowrap; gap: 4px; overflow-x: auto;">
-    <div style="flex: 1; min-width: 100px;">
-        <div style="background: #CDD6F8; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #001641;">Planning<br><span style="font-weight: 400; font-size: 0.9em;" id="gpPlanQ">0</span></div>
-        <div id="gpPlanOp" data-operation="planning" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
-    </div>
-    <div style="flex: 1; min-width: 100px;">
-        <div style="background: #fce7f3; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #A15A35;">Soil Prep<br><span style="font-size: 0.75em; font-weight: 400;">(No Volunteers)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpSoilQ">0</span></div>
-        <div id="gpSoilOp" data-operation="soilprep" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
-    </div>
-    <div style="flex: 1; min-width: 100px;">
-        <div style="background: #F0FDF4; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #1F8A2F;">Planting<br><span style="font-weight: 400; font-size: 0.9em;" id="gpPlantQ">0</span></div>
-        <div id="gpPlantOp" data-operation="planting" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
-    </div>
-    <div style="flex: 1; min-width: 100px;">
-        <div style="background: #fef3c7; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #A15A35;">Growing<br><span style="font-size: 0.75em; font-weight: 400;">(10 days, auto)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpGrowQ">0</span></div>
-        <div style="min-height: 80px; border: 2px dashed #e5e7eb; padding: 6px; background: #f9fafb; display: flex; align-items: center; justify-content: center; font-style: italic; color: #94a3b8; font-size: 0.82em;">No staff needed</div>
-    </div>
-    <div style="flex: 1; min-width: 100px;">
-        <div style="background: #fee2e2; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #B00800;">Inspection<br><span style="font-size: 0.75em; font-weight: 400;">(Masters only)</span><br><span style="font-weight: 400; font-size: 0.9em;" id="gpInspQ">0</span></div>
-        <div id="gpInspOp" data-operation="inspection" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
-    </div>
-    <div style="flex: 1; min-width: 100px;">
-        <div style="background: #ede9fe; padding: 4px; border-radius: 6px 6px 0 0; text-align: center; font-size: 0.8em; font-weight: 600; color: #A15A35;">Harvesting<br><span style="font-weight: 400; font-size: 0.9em;" id="gpHarvQ">0</span></div>
-        <div id="gpHarvOp" data-operation="harvesting" style="min-height: 80px; border: 2px dashed #cbd5e1; padding: 6px; background: #fff; overflow-y: auto;"></div>
-    </div>
-</div>
-
-<!-- Queue Chart -->
-<div style="position: relative; height: 35vh; max-height: 300px;"><canvas id="gpQueueChart"></canvas></div>
-
-<!-- Task History -->
-<div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <h3 style="margin: 0; font-size: 1em; color: #001641;">Completed Plots</h3>
-        <button id="gpToggleHist" onclick="void(0)" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.82em; text-decoration: underline;">Hide</button>
-    </div>
-    <div id="gpHistWrap" style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.82em;">
-            <thead><tr style="background: #f8fafc;">
-                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Day</th>
-                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Cycle</th>
-                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Cost</th>
-                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Vol hrs</th>
-                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Exp hrs</th>
-                <th style="padding: 5px; border-bottom: 2px solid #e2e8f0; color: #475569;">Mst hrs</th>
-            </tr></thead>
-            <tbody id="gpHistBody"></tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Insights Panel -->
-<div id="gpInsightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div style="font-weight: 700; font-size: 1.05em; color: #001641;">Discussion Insights</div>
-        <div id="gpInsCount" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 9</div>
-    </div>
-    <div id="gpInsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
-    <div id="gpPhaseAdv" style="display: none; margin-top: 12px; padding: 10px 12px; background: #E3F1F9; border: 1px solid #0033FF; border-radius: 6px; text-align: center;"></div>
-    <div id="gpOverrides" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
-</div>
-</div>
 
 <script>
-(function() {
-'use strict';
-var STORAGE_KEY = 'ops802_garden_project_v1';
-var MAX_TIME = 112;
-var BUDGETS = { beginner: 16000, intermediate: 24000, advanced: 32000 };
-var PLOT_COUNTS = { beginner: 15, intermediate: 25, advanced: 40 };
-var COSTS_PER_DAY = [0, 0, 40, 120]; // index by skillLevel
-var OPS = ['planning','soilprep','planting','growing','inspection','harvesting'];
-var DURATIONS = {
-    planning:   [0, 6, 4, 2],
-    soilprep:   [0, 0, 4, 3],
-    planting:   [0, 6, 4, 2],
-    growing:    [0,10,10,10],
-    inspection: [0, 0, 0, 2],
-    harvesting: [0, 6, 4, 2]
-};
-var CHECKPOINT_SCHEDULE = [
-    {phase:1,turn:5,idx:0},{phase:1,turn:15,idx:1},{phase:1,turn:30,idx:2},
-    {phase:2,turn:10,idx:3},{phase:2,turn:25,idx:4},{phase:2,turn:45,idx:5},
-    {phase:3,turn:10,idx:6},{phase:3,turn:30,idx:7},{phase:3,turn:60,idx:8}
-];
-var PHASE_INSIGHTS = {1:[0,1,2],2:[3,4,5],3:[6,7,8]};
-var insights = [
-    {q:"Each plot passes through 6 operations in sequence. Which operations can volunteers perform, and which require higher-skilled gardeners? Why do these constraints exist?",
-     a:"Volunteers can do Planning, Planting, and Harvesting (with supervision from Experienced/Master). Soil Prep requires at least Experienced skill. Inspection requires Masters only. These constraints reflect that some tasks need specialised knowledge.",action:null},
-    {q:"Look at the task durations. A Volunteer takes 6 days for Planning while a Master takes only 2 days. What is the trade-off between using Masters for simple tasks vs reserving them for tasks only they can do?",
-     a:"Masters are 3\u00d7 faster but cost $120/day vs $0 for Volunteers. Using Masters on simple tasks is fast but expensive and leaves Inspection (Masters only) understaffed. The trade-off is speed vs cost and availability.",action:null},
-    {q:"After watching the simulation run, which operation tends to build up the largest queue? What causes this bottleneck?",
-     a:"Often Inspection becomes the bottleneck because only Masters can perform it (2 days each). With only 2 Masters, inspection throughput is limited. Alternatively, the first operation (Planning) can bottleneck if too few staff are assigned.",action:null},
-    {q:"Watch the queue chart. When one operation has a growing queue while the next has an empty queue, what does this tell you about your resource allocation?",
-     a:"A growing queue means that operation\u2019s throughput is lower than its input rate \u2014 it\u2019s a bottleneck. An empty downstream queue means resources there are underutilised. You should move staff from the idle operation to the bottleneck.",action:null},
-    {q:"Pause the simulation and try redistributing staff. What happens to the bottleneck queue when you add more gardeners? Is there a point where adding more staff doesn\u2019t help?",
-     a:"Adding staff to the bottleneck reduces the queue and increases throughput. But once that bottleneck is resolved, a new one may appear elsewhere. Adding staff beyond what\u2019s needed creates idle time \u2014 diminishing returns.",action:null},
-    {q:"Can you estimate what each completed plot costs? What formula would you use?",
-     a:"Cost per Plot = Total Spending \u00f7 Completed Plots. This depends on which gardeners you use and how long they work. Using more Volunteers reduces cost but increases cycle time. The optimal allocation balances cost and speed.",
-     action:function(){showCpcMetric();}},
-    {q:"With more plots (Intermediate/Advanced), does your Phase 1 strategy still work? What needs to change when scaling up?",
-     a:"More plots means more total work flowing through the same bottlenecks. You may need to shift more staff to constrained operations (Inspection, Soil Prep) and accept longer cycle times elsewhere. The bottleneck shifts as volume increases.",action:null},
-    {q:"Compare the budget per plot across difficulty levels: Beginner $1,067/plot, Intermediate $960/plot, Advanced $800/plot. What does this imply about your strategy?",
-     a:"Higher difficulty gives less budget per plot, requiring more efficient use of cheap labour (Volunteers) and less reliance on expensive Masters. You need to optimise the balance between speed and cost more carefully.",action:null},
-    {q:"What is the relationship between overall staff utilization and cost efficiency? Is 100% utilization always the goal?",
-     a:"Higher utilization means less idle time and better cost efficiency. But 100% utilization can mean no flexibility to handle queue buildups. Some slack (80\u201390% utilization) allows staff to absorb variability without creating bottlenecks.",action:null}
-];
-function makeDefaultState() {
-    var q = {}, ip = {};
-    for (var i = 0; i < OPS.length; i++) { q[OPS[i]] = []; ip[OPS[i]] = {}; }
-    return {
-        currentPhase:1, questionsShown:0, insightsRevealed:0, instructionExpanded:true, historyVisible:true,
-        difficulty:'beginner', totalBudget:16000, plotCount:15,
-        simulationTime:0, isComplete:false, simulationSpeed:1,
-        staffData:[], queues:q, inProcess:ip, completedTasks:[], taskArrivals:[],
-        chartLabels:[], chartData:{planning:[],soilprep:[],planting:[],growing:[],inspection:[],harvesting:[]},
-        cpcVisible:false
-    };
-}
-var state = makeDefaultState();
-var staff = [], isRunning = false, simInterval = null, currentDraggedStaff = null, notifTimeout = null, queueChart = null;
-var el = {};
-function cacheDom() {
-    el.time = document.getElementById('gpTime');
-    el.timeBar = document.getElementById('gpTimeBar');
-    el.startBtn = document.getElementById('gpStartBtn');
-    el.resetBtn = document.getElementById('gpResetBtn');
-    el.speed = document.getElementById('gpSpeed');
-    el.difficulty = document.getElementById('gpDifficulty');
-    el.applyDiff = document.getElementById('gpApplyDiff');
-    el.staffPool = document.getElementById('gpStaffPool');
-    el.poolLabel = document.getElementById('gpPoolLabel');
-    el.avgCycle = document.getElementById('gpAvgCycle');
-    el.onTime = document.getElementById('gpOnTime');
-    el.totalQueue = document.getElementById('gpTotalQueue');
-    el.totalCost = document.getElementById('gpTotalCost');
-    el.budgetLeft = document.getElementById('gpBudgetLeft');
-    el.costPerPlot = document.getElementById('gpCostPerPlot');
-    el.cpcRow = document.getElementById('gpCpcRow');
-    el.cpcPrompt = document.getElementById('gpCpcPrompt');
-    el.overallUtil = document.getElementById('gpOverallUtil');
-    el.inProcess = document.getElementById('gpInProcess');
-    el.completed = document.getElementById('gpCompleted');
-    el.totalPlots = document.getElementById('gpTotalPlots');
-    el.histBody = document.getElementById('gpHistBody');
-    el.histWrap = document.getElementById('gpHistWrap');
-    el.toggleHist = document.getElementById('gpToggleHist');
-    el.instrContent = document.getElementById('gpInstructionContent');
-    el.toggleInstr = document.getElementById('gpToggleInstr');
-    el.notif = document.getElementById('gpNotif');
-    el.insCount = document.getElementById('gpInsCount');
-    el.insList = document.getElementById('gpInsList');
-    el.phaseAdv = document.getElementById('gpPhaseAdv');
-    el.overrides = document.getElementById('gpOverrides');
-    el.qCounts = {planning:document.getElementById('gpPlanQ'),soilprep:document.getElementById('gpSoilQ'),
-        planting:document.getElementById('gpPlantQ'),growing:document.getElementById('gpGrowQ'),
-        inspection:document.getElementById('gpInspQ'),harvesting:document.getElementById('gpHarvQ')};
-    el.opContainers = {planning:document.getElementById('gpPlanOp'),soilprep:document.getElementById('gpSoilOp'),
-        planting:document.getElementById('gpPlantOp'),inspection:document.getElementById('gpInspOp'),
-        harvesting:document.getElementById('gpHarvOp')};
-}
-// Factory functions
-var plotIdCounter = 0;
-function createPlot(arrivalTime) {
-    plotIdCounter++;
-    return {id:'P'+plotIdCounter, arrivalTime:arrivalTime, deadline:arrivalTime+112,
-        planningStartTime:null,planningEndTime:null,soilprepStartTime:null,soilprepEndTime:null,
-        plantingStartTime:null,plantingEndTime:null,growingStartTime:null,growingEndTime:null,
-        inspectionStartTime:null,inspectionEndTime:null,harvestingStartTime:null,completionTime:null,
-        currentOperation:'planning', priority:112,
-        volunteerHours:0, experiencedHours:0, masterHours:0, totalCost:0};
-}
-var staffIdCounter = 0;
-function createStaffMember(skillLevel) {
-    staffIdCounter++;
-    return {id:'G'+staffIdCounter, skillLevel:skillLevel, busy:false, currentTask:null,
-        currentOperation:null, totalBusyTime:0, busyStartTime:null,
-        costPerDay:COSTS_PER_DAY[skillLevel], totalCost:0};
-}
-function staffLabel(s) { return s.skillLevel===1?'Volunteer':s.skillLevel===2?'Experienced':'Master'; }
-function staffCanPerform(s,op) {
-    if (op==='soilprep' && s.skillLevel===1) return false;
-    if (op==='inspection' && s.skillLevel!==3) return false;
-    return true;
-}
-function staffDuration(s,op) { return DURATIONS[op][s.skillLevel]; }
-function staffStartTask(s,task,time) { s.busy=true; s.currentTask=task; s.busyStartTime=time; }
-function staffCompleteTask(s,time) {
-    if (!s.busy) return false;
-    var t=time-s.busyStartTime; s.totalBusyTime+=t; s.totalCost+=t*s.costPerDay;
-    s.busy=false; s.currentTask=null; s.busyStartTime=null; return true;
-}
-function staffUtil(s,totalTime) {
-    if (totalTime===0) return 0;
-    var bt=s.totalBusyTime; if (s.busy) bt+=(totalTime-s.busyStartTime);
-    return (bt/totalTime)*100;
-}
-// Drag and drop
-function createStaffElement(s) {
-    var e=document.createElement('div');
-    var uText=state.simulationTime>0?staffUtil(s,state.simulationTime).toFixed(1)+'%':'0%';
-    e.textContent=staffLabel(s)+'\nUtil: '+uText;
-    e.style.cssText='display:inline-block;padding:5px;margin:3px;border:1px solid #333;border-radius:4px;cursor:move;user-select:none;white-space:pre;text-align:center;min-width:60px;font-size:0.85em;position:relative;';
-    e.style.backgroundColor=s.skillLevel===1?'#F0E5D0':s.skillLevel===2?'#c8e6c9':'#bbdefb';
-    e.draggable=!isRunning;
-    e.dataset.staffId=s.id;
-    if (s.busy) {
-        var dur=staffDuration(s,s.currentOperation)||1;
-        var elapsed=state.simulationTime-s.busyStartTime;
-        var pct=Math.min(100,Math.round((elapsed/dur)*100));
-        if (isRunning) { e.draggable=false; e.style.cursor='default'; e.style.border='1px solid #0033FF'; }
-        else { e.style.border='2px dashed #e53935'; }
-        e.title='Progress: '+pct+'%';
-        var pc=document.createElement('div');
-        pc.style.cssText='width:100%;height:6px;background:#e0e0e0;position:absolute;bottom:0;left:0;border-radius:0 0 4px 4px;';
-        var pb=document.createElement('div');
-        pb.style.cssText='width:'+pct+'%;height:100%;background:#16A34A;border-radius:0 0 '+(pct<100?'0':'4px')+' 4px;';
-        pc.appendChild(pb); e.appendChild(pc);
-    }
-    e.addEventListener('dragstart',function(ev){
-        if(isRunning){ev.preventDefault();return;}
-        currentDraggedStaff=s; ev.dataTransfer.setData('text/plain',s.id);
-        setTimeout(function(){e.style.display='none';},0);
+    // Run this after the page loads to fix the container heights
+    window.addEventListener('DOMContentLoaded', function() {
+        // Completely remove height constraints
+        const operationContainers = document.querySelectorAll('[data-operation]');
+        operationContainers.forEach(container => {
+            // Remove all height constraints - let it grow as needed
+            container.style.height = 'auto';
+            container.style.minHeight = '120px';
+            container.style.maxHeight = 'none'; // No maximum height at all
+
+            // Also remove overflow scrolling - important!
+            container.style.overflowY = 'visible';
+
+            // Watch for changes in the container
+            const observer = new MutationObserver(function() {
+                // Reapply these settings when content changes
+                container.style.height = 'auto';
+                container.style.maxHeight = 'none';
+                container.style.overflowY = 'visible';
+            });
+
+            observer.observe(container, {
+                childList: true,
+                subtree: true
+            });
+        });
+
+        // Adjust parent containers as well to ensure they don't restrict growth
+        const parentContainers = document.querySelectorAll('div[style*="flex: 1"]');
+        parentContainers.forEach(parent => {
+            parent.style.height = 'auto';
+            parent.style.minHeight = '120px';
+        });
+
+        // Also adjust the workflow row
+        const workflowRow = document.querySelector('div[style*="display: flex"][style*="flex-direction: row"]');
+        if (workflowRow) {
+            workflowRow.style.height = 'auto';
+        }
     });
-    e.addEventListener('dragend',function(){e.style.display='inline-block';currentDraggedStaff=null;});
-    return e;
-}
-function setupDropZone(elem,operation) {
-    elem.addEventListener('dragover',function(ev){ev.preventDefault();elem.style.opacity='0.8';});
-    elem.addEventListener('dragleave',function(){elem.style.opacity='1';});
-    elem.addEventListener('drop',function(ev){
-        ev.preventDefault(); elem.style.opacity='1';
-        var s=currentDraggedStaff; if(!s)return;
-        if(operation && !staffCanPerform(s,operation)){showNotif(staffLabel(s)+' cannot perform '+operation,true);return;}
-        if(s.busy){
-            var oldOp=s.currentOperation;
-            if(s.currentTask && oldOp && state.inProcess[oldOp][s.currentTask.id]){
-                var task=s.currentTask;
-                delete state.inProcess[oldOp][task.id];
-                task.priority=task.deadline-state.simulationTime;
-                state.queues[oldOp].push(task);
-                state.queues[oldOp].sort(function(a,b){return a.priority-b.priority;});
-                staffCompleteTask(s,state.simulationTime);
+</script>
+
+
+<script>
+    window.addEventListener('load', function() {
+        // Plot Class
+        class Plot {
+            constructor(id, arrivalTime) {
+                this.id = id;
+                this.arrivalTime = arrivalTime;
+                this.deadline = arrivalTime + 112; // 8 weeks (56 days)
+                this.planningStartTime = null;
+                this.planningEndTime = null;
+                this.soilprepStartTime = null;
+                this.soilprepEndTime = null;
+                this.plantingStartTime = null;
+                this.plantingEndTime = null;
+                this.growingStartTime = null;
+                this.growingEndTime = null;
+                this.inspectionStartTime = null;
+                this.inspectionEndTime = null;
+                this.harvestingStartTime = null;
+                this.completionTime = null;
+                this.currentOperation = 'planning';
+                this.priority = this.deadline - arrivalTime;
+                this.volunteerHours = 0;
+                this.experiencedHours = 0;
+                this.masterHours = 0;
+                this.totalCost = 0;
+            }
+
+            isOnTime() {
+                return this.completionTime <= this.deadline;
+            }
+
+            getCycleTime() {
+                return this.completionTime ? this.completionTime - this.arrivalTime : null;
+            }
+
+            updatePriority(currentTime) {
+                this.priority = this.deadline - currentTime;
+                return this.priority;
             }
         }
-        s.currentOperation=operation;
-        currentDraggedStaff=null;
-        renderStaffPool();
-        saveState();
-    });
-}
-function renderStaffPool() {
-    var pool=el.staffPool, label=el.poolLabel;
-    var children=pool.childNodes; var toRemove=[];
-    for(var i=0;i<children.length;i++) if(children[i]!==label) toRemove.push(children[i]);
-    for(var j=0;j<toRemove.length;j++) pool.removeChild(toRemove[j]);
-    var unassigned=staff.filter(function(s){return !s.currentOperation;});
-    for(var k=0;k<unassigned.length;k++) pool.appendChild(createStaffElement(unassigned[k]));
-    label.style.display=unassigned.length===0?'block':'none';
-    updateOperationStaff();
-}
-function updateOperationStaff() {
-    var ops=['planning','soilprep','planting','inspection','harvesting'];
-    for(var i=0;i<ops.length;i++){
-        var c=el.opContainers[ops[i]]; if(!c)continue;
-        c.innerHTML='';
-        var assigned=staff.filter(function(s){return s.currentOperation===ops[i];});
-        if(assigned.length===0){var em=document.createElement('em');em.textContent='No gardeners';em.style.color='#94a3b8';em.style.fontSize='0.82em';c.appendChild(em);continue;}
-        for(var j=0;j<assigned.length;j++) c.appendChild(createStaffElement(assigned[j]));
-    }
-}
-// Core simulation
-function generateAllPlots() {
-    plotIdCounter=0;
-    for(var i=0;i<state.plotCount;i++){
-        var p=createPlot(0);
-        state.queues.planning.push(p);
-        state.taskArrivals.push(p);
-    }
-}
-function calcTotalCost() { var t=0; for(var i=0;i<staff.length;i++) t+=staff[i].totalCost; return t; }
-function checkBudget() {
-    if(calcTotalCost()>=state.totalBudget){
-        pauseSim();
-        showNotif('Budget depleted! Total: $'+calcTotalCost().toFixed(2),true);
-        el.startBtn.disabled=true;
-        return false;
-    }
-    return true;
-}
-function processOperation(op) {
-    var q=state.queues[op]; var completions=[];
-    if(!checkBudget()) return;
-    var ipKeys=Object.keys(state.inProcess[op]);
-    for(var k=0;k<ipKeys.length;k++){
-        var pi=state.inProcess[op][ipKeys[k]];
-        if(state.simulationTime>=pi.completionTime){
-            completions.push(ipKeys[k]);
-            var s=null; for(var si=0;si<staff.length;si++){if(staff[si].id===pi.staffId){s=staff[si];break;}}
-            var task=pi.task; task[op+'EndTime']=state.simulationTime;
-            if(s){
-                var spent=state.simulationTime-s.busyStartTime;
-                if(s.skillLevel===1) task.volunteerHours+=spent;
-                else if(s.skillLevel===2){task.experiencedHours+=spent;task.totalCost+=spent*40;}
-                else{task.masterHours+=spent;task.totalCost+=spent*120;}
-                staffCompleteTask(s,state.simulationTime);
+
+        // Update StaffMember class cost per day
+        class StaffMember {
+            constructor(id, skillLevel) {
+                this.id = id;
+                this.skillLevel = skillLevel;
+                this.busy = false;
+                this.currentTask = null;
+                this.currentOperation = null;
+                this.totalBusyTime = 0;
+                this.busyStartTime = null;
+                this.costPerDay = this.skillLevel === 1 ? 0 : this.skillLevel === 2 ? 40 : 120; // Updated costs
+                this.totalCost = 0;
             }
-            var nextOps={planning:'soilprep',soilprep:'planting',planting:'growing',inspection:'harvesting'};
-            if(nextOps[op]){task.currentOperation=nextOps[op];state.queues[nextOps[op]].push(task);}
-            else if(op==='harvesting'){task.completionTime=state.simulationTime;state.completedTasks.push(task);addHistoryRow(task);}
+
+            getSkillLabel() {
+                return this.skillLevel === 1 ? "Volunteer" : this.skillLevel === 2 ? "Experienced" : "Master";
+            }
+
+            assignToOperation(operation) {
+                this.currentOperation = operation;
+            }
+
+            canPerformOperation(operation) {
+                if (operation === 'soilprep' && this.skillLevel === 1) {
+                    return false;
+                }
+                if (operation === 'inspection' && this.skillLevel !== 3) {
+                    return false;
+                }
+                return true;
+            }
+
+            getDuration(operation) {
+                switch (operation) {
+                    case 'planning':
+                        return this.skillLevel === 1 ? 6 : this.skillLevel === 2 ? 4 : 2;
+                    case 'soilprep':
+                        return this.skillLevel === 2 ? 4 : 3;
+                    case 'planting':
+                        return this.skillLevel === 1 ? 6 : this.skillLevel === 2 ? 4 : 2;
+                    case 'growing':
+                        return 10;
+                    case 'inspection':
+                        return 2;
+                    case 'harvesting':
+                        return this.skillLevel === 1 ? 6 : this.skillLevel === 2 ? 4 : 2;
+                    default:
+                        return 0;
+                }
+            }
+
+            startTask(task, currentTime) {
+                this.busy = true;
+                this.currentTask = task;
+                this.busyStartTime = currentTime;
+            }
+
+            completeTask(currentTime) {
+                if (this.busy) {
+                    const timeSpent = currentTime - this.busyStartTime;
+                    this.totalBusyTime += timeSpent;
+                    this.totalCost += timeSpent * this.costPerDay;
+                    this.busy = false;
+                    this.currentTask = null;
+                    this.busyStartTime = null;
+                    return true;
+                }
+                return false;
+            }
+
+            getUtilization(totalTime) {
+                if (totalTime === 0) return 0;
+                let busyTime = this.totalBusyTime;
+                if (this.busy) busyTime += (totalTime - this.busyStartTime);
+                return (busyTime / totalTime) * 100;
+            }
         }
-    }
-    for(var d=0;d<completions.length;d++) delete state.inProcess[op][completions[d]];
-    var avail=staff.filter(function(s){return s.currentOperation===op&&!s.busy&&staffCanPerform(s,op);});
-    if(q.length>0){for(var u=0;u<q.length;u++) q[u].priority=q[u].deadline-state.simulationTime; q.sort(function(a,b){return a.priority-b.priority;});}
-    while(q.length>0&&avail.length>0){
-        var st=avail.pop(),tk=q.shift();
-        var dur=staffDuration(st,op), ct=state.simulationTime+dur;
-        staffStartTask(st,tk,state.simulationTime);
-        tk[op+'StartTime']=state.simulationTime;
-        state.inProcess[op][tk.id]={task:tk,staffId:st.id,completionTime:ct};
-    }
-}
-function processGrowing() {
-    var q=state.queues.growing; var completions=[];
-    var ipKeys=Object.keys(state.inProcess.growing);
-    for(var k=0;k<ipKeys.length;k++){
-        var pi=state.inProcess.growing[ipKeys[k]];
-        if(state.simulationTime>=pi.completionTime){
-            completions.push(ipKeys[k]);
-            pi.task.growingEndTime=state.simulationTime;
-            pi.task.currentOperation='inspection';
-            state.queues.inspection.push(pi.task);
-        }
-    }
-    for(var d=0;d<completions.length;d++) delete state.inProcess.growing[completions[d]];
-    while(q.length>0){
-        var task=q.shift(); task.growingStartTime=state.simulationTime;
-        state.inProcess.growing[task.id]={task:task,completionTime:state.simulationTime+10};
-    }
-}
-function hasStaffAssigned(op) { return staff.some(function(s){return s.currentOperation===op&&staffCanPerform(s,op);}); }
-function hasNonVols(op) { return staff.some(function(s){return s.currentOperation===op&&s.skillLevel>1;}); }
-function hasWork(op) {
-    if(state.queues[op].length>0||Object.keys(state.inProcess[op]).length>0) return true;
-    var upstream={soilprep:'planning',planting:'soilprep',inspection:'growing',harvesting:'inspection'};
-    if(upstream[op]){var uKeys=Object.keys(state.inProcess[upstream[op]]);
-        for(var i=0;i<uKeys.length;i++){if(state.inProcess[upstream[op]][uKeys[i]].completionTime-state.simulationTime<=2)return true;}}
-    return false;
-}
-function checkConstraints() {
-    var checks=[{op:'planning',msg:'Assign gardeners to Planning!'},{op:'soilprep',msg:'Assign gardeners to Soil Prep!'},
-        {op:'planting',msg:'Assign gardeners to Planting!'},{op:'inspection',msg:'Assign a Master to Inspection!'},
-        {op:'harvesting',msg:'Assign gardeners to Harvesting!'}];
-    for(var i=0;i<checks.length;i++){
-        if(hasWork(checks[i].op)&&!hasStaffAssigned(checks[i].op)){showNotif(checks[i].msg,true);return false;}
-    }
-    var volChecks=['planning','planting','harvesting'];
-    for(var j=0;j<volChecks.length;j++){
-        if(staff.some(function(s){return s.currentOperation===volChecks[j];})&&!hasNonVols(volChecks[j])){
-            showNotif(volChecks[j].charAt(0).toUpperCase()+volChecks[j].slice(1)+' needs at least one Experienced/Master gardener!',true);return false;}
-    }
-    return true;
-}
-function startSim() {
-    if(isRunning||state.isComplete) return;
-    if(!checkConstraints()) return;
-    isRunning=true; el.startBtn.textContent='Pause';
-    simInterval=setInterval(simTick,2000/state.simulationSpeed);
-}
-function pauseSim() {
-    if(!isRunning) return;
-    isRunning=false; clearInterval(simInterval); simInterval=null;
-    el.startBtn.textContent='Resume';
-    renderStaffPool();
-}
-function simTick() {
-    state.simulationTime++;
-    if(state.simulationTime>=MAX_TIME){endSim();return;}
-    processOperation('planning'); processOperation('soilprep'); processOperation('planting');
-    processGrowing(); processOperation('inspection'); processOperation('harvesting');
-    updateChartData(); updateUI(); checkForNewQuestion(); saveState();
-}
-function endSim() {
-    isRunning=false; clearInterval(simInterval); simInterval=null; state.isComplete=true;
-    el.startBtn.textContent='Complete'; el.startBtn.disabled=true; el.startBtn.style.background='#e0e0e0'; el.startBtn.style.cursor='not-allowed';
-    updateUI(); saveState();
-    var pct=(state.completedTasks.length/state.taskArrivals.length*100).toFixed(1);
-    var tc=calcTotalCost(), bs=state.totalBudget-tc;
-    showNotif('Complete! '+state.completedTasks.length+'/'+state.taskArrivals.length+' plots ('+pct+'%). Budget '+(bs>=0?'under':'over')+' by $'+Math.abs(bs).toFixed(0),false,8000);
-}
-// UI Updates
-function updateUI() {
-    el.time.textContent=state.simulationTime;
-    el.timeBar.style.width=(state.simulationTime/MAX_TIME*100)+'%';
-    var tc=calcTotalCost();
-    el.totalCost.textContent=tc.toFixed(0);
-    el.budgetLeft.textContent=Math.max(0,state.totalBudget-tc).toFixed(0);
-    if(state.cpcVisible&&state.completedTasks.length>0) el.costPerPlot.textContent=(tc/state.completedTasks.length).toFixed(2);
-    el.completed.textContent=state.completedTasks.length;
-    el.totalPlots.textContent=state.taskArrivals.length;
-    // Avg cycle time
-    if(state.completedTasks.length>0){
-        var ctSum=0; for(var i=0;i<state.completedTasks.length;i++) ctSum+=(state.completedTasks[i].completionTime-state.completedTasks[i].arrivalTime);
-        el.avgCycle.textContent=(ctSum/state.completedTasks.length).toFixed(1);
-        var onTime=0; for(var j=0;j<state.completedTasks.length;j++) if(state.completedTasks[j].completionTime<=state.completedTasks[j].deadline) onTime++;
-        el.onTime.textContent=(onTime/state.completedTasks.length*100).toFixed(1);
-    }
-    // Queue lengths
-    var tq=0; for(var o=0;o<OPS.length;o++){
-        var ql=state.queues[OPS[o]].length, ipl=Object.keys(state.inProcess[OPS[o]]).length;
-        tq+=ql;
-        if(el.qCounts[OPS[o]]) el.qCounts[OPS[o]].textContent=ipl>0?(ql+'+'+ipl):ql;
-    }
-    el.totalQueue.textContent=tq;
-    // In process
-    var ip=0; for(var p=0;p<OPS.length;p++) ip+=Object.keys(state.inProcess[OPS[p]]).length;
-    el.inProcess.textContent=ip;
-    // Utilization
-    if(state.simulationTime>0){var uSum=0;for(var u=0;u<staff.length;u++) uSum+=staffUtil(staff[u],state.simulationTime);el.overallUtil.textContent=(uSum/staff.length).toFixed(1);}
-    updateOperationStaff();
-}
-function addHistoryRow(task) {
-    var row=document.createElement('tr');
-    var cs='padding:4px;text-align:center;border-bottom:1px solid #f1f5f9;font-size:0.85em;';
-    var ct=task.completionTime-task.arrivalTime;
-    var cells=[task.completionTime,ct,task.totalCost.toFixed(0),task.volunteerHours.toFixed(0),task.experiencedHours.toFixed(0),task.masterHours.toFixed(0)];
-    for(var i=0;i<cells.length;i++){var td=document.createElement('td');td.style.cssText=cs;td.textContent=cells[i];row.appendChild(td);}
-    el.histBody.insertBefore(row,el.histBody.firstChild);
-    if(el.histBody.children.length>20) el.histBody.removeChild(el.histBody.lastChild);
-}
-function showNotif(msg,isErr,dur) {
-    if(!dur) dur=3000;
-    el.notif.style.background=isErr?'rgba(220,53,69,0.9)':'rgba(40,167,69,0.9)';
-    el.notif.style.color='#fff'; el.notif.textContent=msg; el.notif.style.display='block';
-    if(notifTimeout) clearTimeout(notifTimeout);
-    notifTimeout=setTimeout(function(){el.notif.style.display='none';},dur);
-}
-function showCpcMetric() {
-    state.cpcVisible=true;
-    el.cpcRow.style.display='block'; el.cpcPrompt.style.display='none';
-}
-// Chart
-function initChart() {
-    var ctx=document.getElementById('gpQueueChart');
-    if(!ctx) return;
-    var colors=['rgb(0,22,65)','rgb(161,90,53)','rgb(161,90,53)','rgb(0,51,255)','rgb(237,10,0)','rgb(196,116,79)'];
-    var labels=['Planning','Soil Prep','Planting','Growing','Inspection','Harvesting'];
-    var datasets=[];
-    for(var i=0;i<6;i++) datasets.push({label:labels[i]+' Queue',data:state.chartData[OPS[i]],borderColor:colors[i],backgroundColor:colors[i].replace('rgb','rgba').replace(')',',0.15)'),tension:0.1,fill:true,borderWidth:1.5,pointRadius:0});
-    queueChart=new Chart(ctx.getContext('2d'),{type:'line',data:{labels:state.chartLabels,datasets:datasets},
-        options:{animation:false,responsive:true,maintainAspectRatio:false,
-            scales:{x:{title:{display:true,text:'Day'},grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:'Queue Length'}}},
-            plugins:{legend:{labels:{font:{size:11}}}}}});
-}
-function updateChartData() {
-    var ws=30, start=Math.max(0,state.simulationTime-ws+1);
-    state.chartLabels=[];
-    for(var i=0;i<Math.min(ws,state.simulationTime+1);i++) state.chartLabels.push(start+i);
-    for(var o=0;o<OPS.length;o++) state.chartData[OPS[o]].push(state.queues[OPS[o]].length);
-    for(var o2=0;o2<OPS.length;o2++) if(state.chartData[OPS[o2]].length>ws) state.chartData[OPS[o2]].shift();
-    if(queueChart){
-        queueChart.data.labels=state.chartLabels;
-        for(var d=0;d<6;d++) queueChart.data.datasets[d].data=state.chartData[OPS[d]];
-        queueChart.update();
-    }
-}
-// Phase management
-var instrText = {
-    1:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#001641;">Phase 1: Understanding the Process</div>'+
-        '<div style="margin-bottom:8px;">You manage a community garden with <strong>'+PLOT_COUNTS.beginner+' pumpkin plots</strong> for the Harvest Festival in <strong>16 weeks (112 days)</strong>. Each plot goes through 6 sequential operations.</div>'+
-        '<table style="width:100%;border-collapse:collapse;font-size:0.85em;margin-bottom:8px;"><tr style="background:#f1f5f9;"><th style="padding:4px;border:1px solid #e2e8f0;">Operation</th><th style="padding:4px;border:1px solid #e2e8f0;">Volunteer</th><th style="padding:4px;border:1px solid #e2e8f0;">Experienced ($40/d)</th><th style="padding:4px;border:1px solid #e2e8f0;">Master ($120/d)</th></tr>'+
-        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Planning</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">6d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr>'+
-        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Soil Prep</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;color:#94a3b8;">N/A</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">3d</td></tr>'+
-        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Planting</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">6d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr>'+
-        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Growing</td><td colspan="3" style="padding:4px;border:1px solid #e2e8f0;text-align:center;">10 days (automatic)</td></tr>'+
-        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Inspection</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;color:#94a3b8;">N/A</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;color:#94a3b8;">N/A</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr>'+
-        '<tr><td style="padding:4px;border:1px solid #e2e8f0;">Harvesting</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">6d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">4d</td><td style="padding:4px;border:1px solid #e2e8f0;text-align:center;">2d</td></tr></table>'+
-        '<div style="margin-bottom:6px;"><strong>Team:</strong> 4 Volunteers (free), 3 Experienced ($40/day), 2 Masters ($120/day). Budget: $16,000.</div>'+
-        '<div style="margin-bottom:6px;"><strong>Rules:</strong> Volunteers need Experienced/Master supervision. Pause to reassign staff (even busy ones).</div>'+
-        '<div style="color:#001641;font-weight:600;">Drag gardeners to operations and press Start. Watch how work flows through the system.</div>',
-      short:'<span style="font-weight:700;color:#001641;">Phase 1:</span> Assign gardeners to operations. Learn the workflow, constraints, and processing times.'},
-    2:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#A15A35;">Phase 2: Bottleneck Analysis</div>'+
-        '<div style="margin-bottom:8px;">Focus on <strong>identifying bottlenecks</strong>. Watch the queue chart to see where work accumulates. A bottleneck is any operation where input rate exceeds throughput.</div>'+
-        '<div style="margin-bottom:6px;">Key questions: Which queue grows fastest? Where are gardeners idle? Can you balance the flow by reallocating staff?</div>'+
-        '<div style="color:#A15A35;font-weight:600;">Pause the simulation, redistribute staff to address bottlenecks, then resume. Repeat until flow is balanced.</div>',
-      short:'<span style="font-weight:700;color:#A15A35;">Phase 2:</span> Watch the queue chart. Identify and resolve bottlenecks by reallocating staff.'},
-    3:{full:'<div style="font-weight:700;font-size:1em;margin-bottom:6px;color:#1F8A2F;">Phase 3: Cost-Time Optimization</div>'+
-        '<div style="margin-bottom:8px;">All difficulty levels are now available. Higher levels have more plots but proportionally less budget per plot.</div>'+
-        '<ul style="margin:0 0 8px 0;padding-left:20px;line-height:1.6;">'+
-        '<li>Beginner: 15 plots, $16,000 ($1,067/plot)</li>'+
-        '<li>Intermediate: 25 plots, $24,000 ($960/plot)</li>'+
-        '<li>Advanced: 40 plots, $32,000 ($800/plot)</li></ul>'+
-        '<div style="color:#1F8A2F;font-weight:600;">Can you complete all plots on time and under budget? Select a difficulty and press Apply to try.</div>',
-      short:'<span style="font-weight:700;color:#1F8A2F;">Phase 3:</span> Difficulty unlocked. Optimize for cost, time, and completion rate.'}
-};
-function renderInstructions() {
-    var inst=instrText[state.currentPhase];
-    document.getElementById('gpInstructionContent').innerHTML=state.instructionExpanded?inst.full:inst.short;
-    el.toggleInstr.textContent=state.instructionExpanded?'Show Less':'Show More';
-}
-function setPhase(phase) {
-    state.currentPhase=phase;
-    var colors={active:'#0033FF',completed:'#16a34a',upcoming:'#e5e7eb'};
-    var tc={active:'#fff',completed:'#fff',upcoming:'#94a3b8'};
-    [1,2,3].forEach(function(p){
-        var st=p===phase?'active':p<phase?'completed':'upcoming';
-        var lb=document.getElementById('gpPhaseLabel'+p);
-        lb.style.background=colors[st]; lb.style.color=tc[st];
+
+        // Project Simulation
+        var simulation = {
+            // Settings
+            totalBudget: 16000, // Changed from 10000
+            simulationTime: 0,
+            isRunning: false,
+            simulationInterval: null,
+            simulationSpeed: 1,
+            taskArrivalRate: 2, // Add plots less frequently (every 2 days)
+            maxSimulationTime: 112, // 8 weeks (56 days)
+            currentDraggedStaff: null,
+
+            // Data collections
+            staff: [],
+            queues: {
+                planning: [],
+                soilprep: [],
+                planting: [],
+                growing: [],
+                inspection: [],
+                harvesting: []
+            },
+            inProcess: {
+                planning: new Map(),
+                soilprep: new Map(),
+                planting: new Map(),
+                growing: new Map(),
+                inspection: new Map(),
+                harvesting: new Map()
+            },
+            completedTasks: [],
+            taskArrivals: [],
+            chartLabels: [],
+            chartData: {
+                planning: [],
+                soilprep: [],
+                planting: [],
+                growing: [],
+                inspection: [],
+                harvesting: []
+            },
+            queueChart: null,
+
+            // Calculate total task duration for a staff member
+            calculateTaskDuration: function(staff) {
+                if (!staff.busy || !staff.currentTask || !staff.currentOperation) {
+                    return 0;
+                }
+
+                return staff.getDuration(staff.currentOperation);
+            },
+
+            createStaffElement: function(staff) {
+                if (!staff) {
+                    console.error("Invalid staff member");
+                    return null;
+                }
+
+                const elem = document.createElement('div');
+
+                // Calculate utilization
+                let utilizationText = "0.0%";
+                if (this.simulationTime > 0) {
+                    const utilization = staff.getUtilization(this.simulationTime).toFixed(1);
+                    utilizationText = utilization + "%";
+                }
+
+                // Set text content - removing ID and showing only skill level and utilization
+                elem.textContent = staff.getSkillLabel() + '\nUtil: ' + utilizationText;
+                elem.style.position = 'relative'; // For positioning the progress bar
+
+                // Set style properties
+                var _tier = staff.skillLevel;
+                var _bg = _tier === 1 ? '#E3F1F9' : _tier === 2 ? '#0033FF' : '#001641';
+                var _fg = _tier === 1 ? '#001641' : '#ffffff';
+                var _bd = _tier === 1 ? '1px solid #9cc3da' : '1px solid rgba(0,0,0,0.10)';
+                elem.style.display = 'inline-block';
+                elem.style.padding = '6px 9px';
+                elem.style.margin = '3px';
+                elem.style.border = _bd;
+                elem.style.borderRadius = '8px';
+                elem.style.backgroundColor = _bg;
+                elem.style.color = _fg;
+                elem.style.fontFamily = "'Montserrat',sans-serif";
+                elem.style.fontWeight = '600';
+                elem.style.cursor = 'move';
+                elem.style.userSelect = 'none';
+                elem.style.whiteSpace = 'pre';
+                elem.style.textAlign = 'center';
+                elem.style.minWidth = '64px';
+                elem.style.fontSize = '0.72rem';
+                elem.style.boxShadow = '0 1px 2px rgba(0,0,0,0.10)';
+
+                // Set draggable property and staff ID - Modified to allow dragging when paused
+                elem.draggable = !this.isRunning || (staff.busy && !this.isRunning);
+                elem.dataset.staffId = staff.id;
+
+                // Add progress bar for busy staff
+                if (staff.busy) {
+                    // Calculate progress percentage
+                    const totalDuration = this.calculateTaskDuration(staff);
+                    const elapsedTime = this.simulationTime - staff.busyStartTime;
+                    const progressPercent = Math.min(100, Math.round((elapsedTime / totalDuration) * 100));
+
+                    // Only make non-draggable if simulation is running
+                    if (this.isRunning) {
+                        elem.draggable = false;
+                        elem.style.cursor = 'default';
+                        // Add a subtle border to the whole staff element to indicate it's busy
+                        elem.style.border = _tier === 1 ? '2px solid #0033FF' : '2px solid #ffffff'; // activity ring
+                    } else {
+                        // When paused, staff can be dragged even if busy
+                        elem.style.cursor = 'move';
+                        // Add visual cue that this staff is in the middle of a task
+                        elem.style.border = '2px dashed #ED0A00'; // brand-red dashed: mid-task, will requeue if moved
+                    }
+
+                    // Create progress bar container
+                    const progressContainer = document.createElement('div');
+                    progressContainer.style.width = '100%';
+                    progressContainer.style.height = '7px';
+                    progressContainer.style.backgroundColor = _tier === 1 ? 'rgba(0,22,65,0.15)' : 'rgba(255,255,255,0.30)';
+                    progressContainer.style.position = 'absolute';
+                    progressContainer.style.bottom = '0';
+                    progressContainer.style.left = '0';
+                    progressContainer.style.borderBottomLeftRadius = '3px';
+                    progressContainer.style.borderBottomRightRadius = '3px';
+                    progressContainer.style.border = '1px solid rgba(0,0,0,0.08)';
+
+                    // Create progress bar
+                    const progressBar = document.createElement('div');
+                    progressBar.style.width = progressPercent + '%';
+                    progressBar.style.height = '100%';
+                    progressBar.style.backgroundColor = _tier === 1 ? '#001641' : '#E3F1F9';
+                    progressBar.style.borderBottomLeftRadius = '3px';
+                    if (progressPercent === 100) {
+                        progressBar.style.borderBottomRightRadius = '3px';
+                    }
+
+                    // Add tooltip showing percentage
+                    elem.title = `Task progress: ${progressPercent}%`;
+
+                    // Append progress bar to container
+                    progressContainer.appendChild(progressBar);
+
+                    // Append container to staff element
+                    elem.appendChild(progressContainer);
+                }
+
+                // Always add drag handlers whether busy or not (this is the key change)
+                this.addDragHandlers(elem);
+
+                return elem;
+            },
+
+            addDragHandlers: function(elem) {
+                const self = this;
+
+                elem.addEventListener('dragstart', function(e) {
+                    const staffId = elem.dataset.staffId;
+                    const staff = self.staff.find(s => s.id === staffId);
+
+                    if (self.isRunning) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    // Store the staff reference directly in the simulation object
+                    self.currentDraggedStaff = staff;
+
+                    // Still set the data transfer for compatibility
+                    e.dataTransfer.setData('text/plain', staffId);
+
+                    setTimeout(() => {
+                        elem.style.display = 'none';
+                    }, 0);
+                });
+
+                elem.addEventListener('dragend', function() {
+                    elem.style.display = 'inline-block';
+                    // Clear the reference on drag end (whether successful or cancelled)
+                    self.currentDraggedStaff = null;
+                });
+            },
+
+            // Update operation staff display
+            updateOperationStaff: function() {
+                const operations = ['planning', 'soilprep', 'planting', 'inspection', 'harvesting'];
+                const self = this;
+
+                operations.forEach(function(operation) {
+                    const operationEl = document.getElementById(operation + 'Operation');
+
+                    if (!operationEl) {
+                        console.error("Operation element not found: " + operation);
+                        return;
+                    }
+
+                    operationEl.innerHTML = '';
+                    const assignedStaff = self.staff.filter(s => s.currentOperation === operation);
+
+                    if (assignedStaff.length === 0) {
+                        const emptyText = document.createElement('em');
+                        emptyText.textContent = 'No gardeners assigned';
+                        operationEl.appendChild(emptyText);
+                        return;
+                    }
+
+                    assignedStaff.forEach(function(staff) {
+                        operationEl.appendChild(self.createStaffElement(staff));
+                    });
+                });
+            },
+
+            // Update progress bars
+            updateProgressBars: function() {
+                // Update progress for all busy staff elements
+                const operations = ['planning', 'soilprep', 'planting', 'inspection', 'harvesting'];
+                const self = this;
+
+                operations.forEach(function(operation) {
+                    const operationEl = document.getElementById(operation + 'Operation');
+                    if (!operationEl) return;
+
+                    // Find all staff elements in this operation
+                    const staffElements = operationEl.querySelectorAll('[data-staff-id]');
+                    staffElements.forEach(function(elem) {
+                        const staffId = elem.dataset.staffId;
+                        const staff = self.staff.find(s => s.id === staffId);
+
+                        if (staff && (staff.busy || !self.isRunning)) {
+                            // Re-create the element with updated styles based on running state
+                            const newElem = self.createStaffElement(staff);
+                            if (newElem) {
+                                elem.parentNode.replaceChild(newElem, elem);
+                            }
+                        }
+                    });
+                });
+            },
+
+            setupDropZone: function(element, operation) {
+                const self = this;
+
+                element.addEventListener('dragover', function(e) {
+                    e.preventDefault(); // This just enables dropping
+                    element.style.backgroundColor = '#E3F1F9';
+                });
+
+                element.addEventListener('dragleave', function() {
+                    element.style.backgroundColor = '#f7f9fb';
+                });
+
+                element.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    element.style.backgroundColor = '#f7f9fb';
+
+                    // Use the direct reference instead of parsing from dataTransfer
+                    const staff = self.currentDraggedStaff;
+
+                    if (!staff) {
+                        console.error("No staff being dragged");
+                        return;
+                    }
+
+                    // Check if the staff member can perform this operation
+                    if (operation && !staff.canPerformOperation(operation)) {
+                        alert("This gardener doesn't have the required skills for this activity.");
+                        return;
+                    }
+
+                    // Handle reassignment of a busy staff member
+                    if (staff.busy) {
+                        // Get the task that was being worked on
+                        const currentTask = staff.currentTask;
+                        const oldOperation = staff.currentOperation;
+
+                        // Remove the task from inProcess
+                        if (currentTask && oldOperation && self.inProcess[oldOperation].has(currentTask.id)) {
+                            self.inProcess[oldOperation].delete(currentTask.id);
+
+                            // Add the task back to the queue of its current operation
+                            currentTask.updatePriority(self.simulationTime);
+                            self.queues[oldOperation].push(currentTask);
+
+                            // Sort the queue by priority
+                            self.queues[oldOperation].sort((a, b) => a.priority - b.priority);
+
+                            // Mark the staff as no longer busy
+                            staff.completeTask(self.simulationTime);
+
+                            // Update the UI to reflect this change
+                            self.updateQueueDisplay();
+                        }
+                    }
+
+                    // Assign staff to the operation (or unassign if dropped back in pool)
+                    staff.assignToOperation(operation);
+
+                    // Reset the currentDraggedStaff
+                    self.currentDraggedStaff = null;
+
+                    // Re-render the staff pool and operation areas
+                    self.renderStaffPool();
+                });
+            },
+
+            // Initialize drop zones
+            initializeDropZones: function() {
+                const dropZones = document.querySelectorAll('[data-operation]');
+                const staffPool = document.getElementById('staffPool');
+
+                if (!staffPool) {
+                    console.error("Staff pool element not found for drop zone!");
+                    return;
+                }
+
+                this.setupDropZone(staffPool, null);
+
+                for (let i = 0; i < dropZones.length; i++) {
+                    this.setupDropZone(dropZones[i], dropZones[i].dataset.operation);
+                }
+            },
+
+            // Updated renderStaffPool method to use the new permanent label
+            renderStaffPool: function() {
+                const staffPool = document.getElementById('staffPool');
+                const poolLabel = document.getElementById('poolLabel');
+
+                if (!staffPool || !poolLabel) {
+                    console.error("Staff pool or pool label element not found!");
+                    return;
+                }
+
+                // Clear current gardeners from the pool
+                // But keep the label element
+                Array.from(staffPool.childNodes).forEach(node => {
+                    if (node !== poolLabel) {
+                        staffPool.removeChild(node);
+                    }
+                });
+
+                // Get staff that aren't assigned to any operation
+                const unassignedStaff = this.staff.filter(s => !s.currentOperation);
+
+                // Add each unassigned staff member to the pool
+                unassignedStaff.forEach(staff => {
+                    const elem = this.createStaffElement(staff);
+                    if (elem) {
+                        staffPool.appendChild(elem);
+                    }
+                });
+
+                // Show or hide the label based on whether there are unassigned staff
+                if (unassignedStaff.length === 0) {
+                    poolLabel.style.display = 'block';
+                } else {
+                    poolLabel.style.display = 'none';
+                }
+
+                // Update the operation areas too
+                this.updateOperationStaff();
+            },
+
+            // Initialize staff members
+            initializeStaff: function() {
+                this.staff = []; // Clear the staff array first
+                const skillDistribution = [1, 1, 1, 1, 2, 2, 2, 3, 3]; // Changed to 4-3-2 configuration (9 total)
+
+                for (let i = 0; i < 9; i++) { // Changed from 10 to 9
+                    const staff = new StaffMember('G' + (i + 1), skillDistribution[i]);
+                    this.staff.push(staff);
+                }
+
+                // Render staff pool after creating staff
+                this.renderStaffPool();
+            },
+
+            // Updated initializeUI function to use the volunteer check when resuming
+            initializeUI: function() {
+                // Initialize drop zones first
+                this.initializeDropZones();
+
+                const self = this;
+
+                // Button event listeners - with volunteer-only constraint check on resume
+                const controlButton = document.getElementById('simulationControlButton');
+                const resetButton = document.getElementById('resetButton');
+                const speedSelect = document.getElementById('simulationSpeed');
+
+                if (controlButton) {
+                    controlButton.addEventListener('click', function() {
+                        if (self.isRunning) {
+                            // Pause
+                            self.pauseSimulation();
+                        } else {
+                            // Resume - check constraints first
+                            if (self.simulationTime > 0) {
+                                // This is a resume, not the initial start
+                                // First check all the regular constraints
+                                // Improved constraint messages to explain why they're necessary
+                                const requiredChecks = [{
+                                        operation: 'planning',
+                                        message: "You need to assign at least one gardener to Planning! Without gardeners assigned, plots will sit indefinitely in the queue and never progress."
+                                    },
+                                    {
+                                        operation: 'soilprep',
+                                        message: "You need to assign at least one gardener to Soil Preparation! Without gardeners assigned, plots will sit indefinitely in the queue and never progress."
+                                    },
+                                    {
+                                        operation: 'planting',
+                                        message: "You need to assign at least one gardener to Planting! Without gardeners assigned, plots will sit indefinitely in the queue and never progress."
+                                    },
+                                    {
+                                        operation: 'inspection',
+                                        message: "You need to assign at least one Master Gardener to Inspection! Without gardeners assigned, plots will sit indefinitely in the queue and never progress."
+                                    },
+                                    {
+                                        operation: 'harvesting',
+                                        message: "You need to assign at least one gardener to Harvesting! Without gardeners assigned, plots will sit indefinitely in the queue and never progress."
+                                    }
+                                ];
+
+                                for (const check of requiredChecks) {
+                                    if (self.hasActiveWork(check.operation) && !self.hasStaffAssigned(check.operation)) {
+                                        alert(check.message);
+                                        return;
+                                    }
+                                }
+
+                                // Now check for volunteer-only constraint
+                                if (!self.checkVolunteerOnlyConstraint()) {
+                                    return; // Don't resume if check fails
+                                }
+                            }
+                            // All checks passed or this is the initial start
+                            self.startSimulation();
+                        }
+                    });
+                }
+
+                if (resetButton) {
+                    resetButton.addEventListener('click', function() {
+                        if (window.flow && window.flow.resetPhase) { window.flow.resetPhase(); } else { location.reload(); }
+                    });
+                }
+
+                if (speedSelect) {
+                    speedSelect.addEventListener('change', function(e) {
+                        self.simulationSpeed = parseFloat(e.target.value);
+
+                        // If simulation is running, restart it with the new speed
+                        if (self.isRunning) {
+                            // Clear the existing interval
+                            clearInterval(self.simulationInterval);
+
+                            // Start a new interval with the updated speed
+                            self.simulationInterval = setInterval(function() {
+                                self.simulationTime++;
+
+                                // End simulation if we've reached the maximum time
+                                if (self.simulationTime >= self.maxSimulationTime) {
+                                    self.endSimulation();
+                                    return;
+                                }
+
+                                // Process each operation
+                                self.processOperation('planning');
+                                self.processOperation('soilprep');
+                                self.processOperation('planting');
+                                self.processGrowing();
+                                self.processOperation('inspection');
+                                self.processOperation('harvesting');
+
+                                // Update the UI
+                                self.updateChartData();
+                                self.updateUI();
+
+                                // Update progress bars
+                                self.updateProgressBars();
+                            }, 2000 / self.simulationSpeed); // Changed to 2000ms (2 seconds) per day at 1x speed
+                        }
+                    });
+                    // Add difficulty selector event listener
+                    if (document.getElementById('difficultyLevel') && document.getElementById('applyDifficulty')) {
+                        document.getElementById('applyDifficulty').addEventListener('click', function() {
+                            const difficultyLevel = document.getElementById('difficultyLevel').value;
+
+                            // Confirm before changing difficulty
+                            if (confirm("Changing difficulty will reset the simulation. Continue?")) {
+                                self.resetSimulation(difficultyLevel);
+                            }
+                        });
+                    }
+                }
+            },
+
+            // Check if an operation has staff assigned
+            hasStaffAssigned: function(operation) {
+                return this.staff.some(staff =>
+                    staff.currentOperation === operation && staff.canPerformOperation(operation)
+                );
+            },
+
+            hasNonVolunteersAssigned: function(operation) {
+                // Check if at least one non-volunteer (level 2 or 3) is assigned to this operation
+                return this.staff.some(staff =>
+                    staff.currentOperation === operation &&
+                    staff.skillLevel > 1 &&
+                    staff.canPerformOperation(operation)
+                );
+            },
+
+            hasActiveWork: function(operation) {
+                // Check if there are any plots in the queue - direct work
+                if (this.queues[operation] && this.queues[operation].length > 0) {
+                    return true;
+                }
+
+                // Check if there are any plots being processed - direct work
+                if (this.inProcess[operation] && this.inProcess[operation].size > 0) {
+                    return true;
+                }
+
+                // More careful checks for upstream work
+                if (operation === 'soilprep') {
+                    // Only consider planning if plots are about to complete
+                    return this.hasCompletingWork('planning');
+                } else if (operation === 'planting') {
+                    // Only consider upstream if plots are about to complete
+                    return this.hasCompletingWork('soilprep');
+                } else if (operation === 'growing') {
+                    // Growing doesn't need staff, so return false
+                    return false;
+                } else if (operation === 'inspection') {
+                    // Only consider upstream if plots are about to complete growing
+                    return this.hasCompletingWork('growing');
+                } else if (operation === 'harvesting') {
+                    // Only consider upstream if plots are about to complete inspection
+                    return this.hasCompletingWork('inspection');
+                }
+
+                return false;
+            },
+
+            // Add this helper method to check if work is about to complete in an operation
+            hasCompletingWork: function(operation) {
+                // Only consider in-process items that are near completion
+                const nearCompletion = [];
+
+                this.inProcess[operation].forEach((processInfo, taskId) => {
+                    // Consider a task "near completion" if it will complete in the next 2 days
+                    if (processInfo.completionTime - this.simulationTime <= 2) {
+                        nearCompletion.push(taskId);
+                    }
+                });
+
+                return nearCompletion.length > 0;
+            },
+
+            // Improved function to check for volunteer-only constraint regardless of queue status
+            checkVolunteerOnlyConstraint: function() {
+                // Check for operations with only volunteers - regardless of active work
+                const volunteerOnlyChecks = [{
+                        operation: 'planning',
+                        message: "Planning can't be done by volunteers only! Assign at least one Experienced or Master Gardener."
+                    },
+                    {
+                        operation: 'planting',
+                        message: "Planting can't be done by volunteers only! Assign at least one Experienced or Master Gardener."
+                    },
+                    {
+                        operation: 'harvesting',
+                        message: "Harvesting can't be done by volunteers only! Assign at least one Experienced or Master Gardener."
+                    }
+                ];
+
+                for (const check of volunteerOnlyChecks) {
+                    // Check any operation that has staff assigned, regardless of whether it has active work
+                    const hasStaff = this.staff.some(staff => staff.currentOperation === check.operation);
+
+                    // If this operation has any staff at all, it needs at least one non-volunteer
+                    if (hasStaff && !this.hasNonVolunteersAssigned(check.operation)) {
+                        alert(check.message);
+                        return false;
+                    }
+                }
+
+                return true; // All checks passed
+            },
+            // Initialize charts
+            initializeCharts: function() {
+                const chartCanvas = document.getElementById('queueChart');
+
+                if (!chartCanvas) {
+                    console.error("Queue chart canvas not found!");
+                    return;
+                }
+
+                const ctx = chartCanvas.getContext('2d');
+                if (window.Chart) { Chart.defaults.font.family = "'Montserrat', sans-serif"; Chart.defaults.color = '#001641'; }
+
+                this.queueChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: this.chartLabels,
+                        datasets: [{
+                                label: 'Planning Queue',
+                                data: this.chartData.planning,
+                                borderColor: '#001641',
+                                backgroundColor: 'rgba(0,22,65,0.08)',
+                                tension: 0.35,
+                                pointRadius: 0,
+                                fill: false
+                            },
+                            {
+                                label: 'Soil Prep Queue',
+                                data: this.chartData.soilprep,
+                                borderColor: '#0033FF',
+                                backgroundColor: 'rgba(0,51,255,0.08)',
+                                tension: 0.35,
+                                pointRadius: 0,
+                                fill: false
+                            },
+                            {
+                                label: 'Planting Queue',
+                                data: this.chartData.planting,
+                                borderColor: '#00A39B',
+                                backgroundColor: 'rgba(0,163,155,0.08)',
+                                tension: 0.35,
+                                pointRadius: 0,
+                                fill: false
+                            },
+                            {
+                                label: 'Growing Queue',
+                                data: this.chartData.growing,
+                                borderColor: '#5C657B',
+                                backgroundColor: 'rgba(92,101,123,0.08)',
+                                tension: 0.35,
+                                pointRadius: 0,
+                                fill: false
+                            },
+                            {
+                                label: 'Inspection Queue',
+                                data: this.chartData.inspection,
+                                borderColor: '#ED0A00',
+                                backgroundColor: 'rgba(237,10,0,0.08)',
+                                tension: 0.35,
+                                pointRadius: 0,
+                                fill: false
+                            },
+                            {
+                                label: 'Harvesting Queue',
+                                data: this.chartData.harvesting,
+                                borderColor: '#E8A400',
+                                backgroundColor: 'rgba(232,164,0,0.10)',
+                                tension: 0.35,
+                                pointRadius: 0,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        animation: false,
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Time (days)'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Queue Length'
+                                }
+                            }
+                        }
+                    }
+                });
+            },
+
+            // Generate new task
+            generateNewTask: function() {
+                const id = 'P' + (this.taskArrivals.length + 1);
+                const plot = new Plot(id, this.simulationTime);
+                this.queues.planning.push(plot);
+                this.taskArrivals.push(plot);
+            },
+
+            // Process growing - special case with no staff requirement
+            processGrowing: function() {
+                const queue = this.queues.growing;
+                const completions = [];
+
+                // Check for completed growing tasks
+                this.inProcess.growing.forEach((processInfo, taskId) => {
+                    if (this.simulationTime >= processInfo.completionTime) {
+                        completions.push(taskId);
+                        const task = processInfo.task;
+                        task.growingEndTime = this.simulationTime;
+
+                        // Move to inspection
+                        task.currentOperation = 'inspection';
+                        this.queues.inspection.push(task);
+                    }
+                });
+
+                // Remove completed tasks
+                completions.forEach(taskId => {
+                    this.inProcess.growing.delete(taskId);
+                });
+
+                // Process all plots ready for growing (no staff constraint)
+                while (queue.length > 0) {
+                    const task = queue.shift();
+                    const growingTime = 10; // Fixed growing time
+                    const completionTime = this.simulationTime + growingTime;
+
+                    task.growingStartTime = this.simulationTime;
+
+                    this.inProcess.growing.set(task.id, {
+                        task: task,
+                        completionTime: completionTime
+                    });
+                }
+            },
+            // Complete modified processOperation function
+            processOperation: function(operation) {
+                const queue = this.queues[operation];
+                const completions = [];
+                if (!this.checkBudgetConstraint()) {
+                    return; // Stop processing if budget is depleted
+                }
+
+                // Check for completed tasks
+                this.inProcess[operation].forEach((processInfo, taskId) => {
+                    if (this.simulationTime >= processInfo.completionTime) {
+                        completions.push(taskId);
+                        const staff = processInfo.staff;
+                        const task = processInfo.task;
+                        task[operation + 'EndTime'] = this.simulationTime;
+
+                        // Calculate time spent on this task
+                        const timeSpent = this.simulationTime - staff.busyStartTime;
+
+                        // Update resource usage statistics based on staff level
+                        if (staff.skillLevel === 1) {
+                            task.volunteerHours += timeSpent;
+                        } else if (staff.skillLevel === 2) {
+                            task.experiencedHours += timeSpent;
+                            task.totalCost += timeSpent * 40; // $40 per day for Level 2
+                        } else if (staff.skillLevel === 3) {
+                            task.masterHours += timeSpent;
+                            task.totalCost += timeSpent * 120; // $120 per day for Level 3
+                        }
+
+                        staff.completeTask(this.simulationTime);
+
+                        // Move to next operation based on the current one
+                        if (operation === 'planning') {
+                            task.currentOperation = 'soilprep';
+                            this.queues.soilprep.push(task);
+                        } else if (operation === 'soilprep') {
+                            task.currentOperation = 'planting';
+                            this.queues.planting.push(task);
+                        } else if (operation === 'planting') {
+                            task.currentOperation = 'growing';
+                            this.queues.growing.push(task);
+                        } else if (operation === 'inspection') {
+                            task.currentOperation = 'harvesting';
+                            this.queues.harvesting.push(task);
+                        } else if (operation === 'harvesting') {
+                            task.completionTime = this.simulationTime;
+                            this.completedTasks.push(task);
+                            this.addTaskToHistory(task);
+                        }
+                    }
+                });
+
+                // Remove completed tasks
+                completions.forEach(taskId => {
+                    this.inProcess[operation].delete(taskId);
+                });
+
+                // Find available staff for this operation
+                const availableStaff = this.staff.filter(staff =>
+                    staff.currentOperation === operation && !staff.busy && staff.canPerformOperation(operation));
+
+                // Sort queue by priority
+                if (queue.length > 0) {
+                    queue.forEach(task => task.updatePriority(this.simulationTime));
+                    queue.sort((a, b) => a.priority - b.priority);
+                }
+
+                // Assign tasks to staff
+                while (queue.length > 0 && availableStaff.length > 0) {
+                    const staff = availableStaff.pop();
+                    const task = queue.shift();
+                    const processingTime = staff.getDuration(operation);
+                    const completionTime = this.simulationTime + processingTime;
+
+                    staff.startTask(task, this.simulationTime);
+                    task[operation + 'StartTime'] = this.simulationTime;
+
+                    this.inProcess[operation].set(task.id, {
+                        task: task,
+                        staff: staff,
+                        completionTime: completionTime
+                    });
+                }
+
+                this.updateOperationStaff();
+            },
+
+
+            // Updated startSimulation function to use the volunteer constraint check
+            startSimulation: function() {
+                if (this.isRunning) return;
+
+                // Check if there are staff assigned to essential operations that have active work
+                const requiredChecks = [{
+                        operation: 'planning',
+                        message: "You need to assign at least one gardener to Planning!"
+                    },
+                    {
+                        operation: 'soilprep',
+                        message: "You need to assign at least one gardener to Soil Preparation!"
+                    },
+                    {
+                        operation: 'planting',
+                        message: "You need to assign at least one gardener to Planting!"
+                    },
+                    {
+                        operation: 'inspection',
+                        message: "You need to assign at least one Master Gardener to Inspection!"
+                    },
+                    {
+                        operation: 'harvesting',
+                        message: "You need to assign at least one gardener to Harvesting!"
+                    }
+                ];
+
+                // First check for any operations without staff
+                for (const check of requiredChecks) {
+                    if (this.hasActiveWork(check.operation) && !this.hasStaffAssigned(check.operation)) {
+                        alert(check.message);
+                        return;
+                    }
+                }
+
+                // Now check for operations with only volunteers
+                if (!this.checkVolunteerOnlyConstraint()) {
+                    return; // Don't proceed if the check fails
+                }
+
+                this.isRunning = true;
+
+                const controlButton = document.getElementById('simulationControlButton');
+                if (controlButton) {
+                    controlButton.textContent = 'Pause';
+                }
+
+                const self = this;
+                this.simulationInterval = setInterval(function() {
+                    self.simulationTime++;
+
+                    // End simulation if we've reached the maximum time
+                    if (self.simulationTime >= self.maxSimulationTime) {
+                        self.endSimulation();
+                        return;
+                    }
+
+                    // Process each operation
+                    self.processOperation('planning');
+                    self.processOperation('soilprep');
+                    self.processOperation('planting');
+                    self.processGrowing();
+                    self.processOperation('inspection');
+                    self.processOperation('harvesting');
+
+                    // Update the UI
+                    self.updateChartData();
+                    self.updateUI();
+
+                    // Update progress bars
+                    self.updateProgressBars();
+                }, 2000 / this.simulationSpeed);
+            },
+
+            // Modify the pauseSimulation method
+            pauseSimulation: function() {
+                if (!this.isRunning) return;
+
+                this.isRunning = false;
+                clearInterval(this.simulationInterval);
+
+                const controlButton = document.getElementById('simulationControlButton');
+                if (controlButton) {
+                    controlButton.textContent = 'Resume';
+                }
+
+                // Update staff elements to make them draggable when paused
+                this.updateOperationStaff();
+            },
+
+            // Update the endSimulation method with budget status
+            endSimulation: function() {
+                this.isRunning = false;
+                clearInterval(this.simulationInterval);
+
+                const controlButton = document.getElementById('simulationControlButton');
+                if (controlButton) {
+                    controlButton.textContent = 'Start Simulation';
+                    controlButton.disabled = true;
+                }
+
+                this.updateUI();
+
+                // Calculate completion percentage
+                const completionPercentage = (this.completedTasks.length / this.taskArrivals.length * 100).toFixed(1);
+
+                // Calculate budget status
+                const totalCost = this.calculateTotalCost();
+                const budgetStatus = this.totalBudget - totalCost;
+
+                // Determine budget message based on whether over or under budget
+                let budgetMessage;
+                if (budgetStatus >= 0) {
+                    budgetMessage = "Under budget by: $" + budgetStatus.toFixed(2);
+                } else {
+                    budgetMessage = "Over budget by: $" + Math.abs(budgetStatus).toFixed(2);
+                }
+
+                // End-of-phase summary is shown in the phase-advance panel (flow controller).
+            },
+            // In the resetSimulation function, add budget scaling:
+            resetSimulation: function(difficultyLevel) {
+                // Clear all data
+                this.staff = [];
+                this.completedTasks = [];
+                this.taskArrivals = [];
+                this.simulationTime = 0;
+                this.isRunning = false;
+
+                // Reset queues and in-process collections
+                for (const key in this.queues) {
+                    this.queues[key] = [];
+                }
+                for (const key in this.inProcess) {
+                    this.inProcess[key] = new Map();
+                }
+
+                // Reset chart data
+                this.chartLabels = [];
+                for (const key in this.chartData) {
+                    this.chartData[key] = [];
+                }
+
+                // Set plot count based on difficulty
+                this.plotCount = difficultyLevel === 'beginner' ? 15 :
+                    difficultyLevel === 'intermediate' ? 25 : 40;
+
+                // Set budget based on difficulty level
+                this.totalBudget = difficultyLevel === 'beginner' ? 16000 :
+                    difficultyLevel === 'intermediate' ? 24000 : 32000;
+
+                // Initialize with the new plot count
+                this.generateAllPlots();
+                this.initializeStaff();
+
+                // Re-enable controls
+                const controlButton = document.getElementById('simulationControlButton');
+                if (controlButton) {
+                    controlButton.disabled = false;
+                    controlButton.textContent = 'Start';
+                }
+
+                // Update UI
+                this.updateUI();
+            },
+
+            // Complete modified addTaskToHistory function
+            addTaskToHistory: function(task) {
+                const tbody = document.getElementById('taskHistoryBody');
+
+                if (!tbody) {
+                    console.error("Task history body element not found!");
+                    return;
+                }
+
+                const row = document.createElement('tr');
+                const cycleTime = task.getCycleTime();
+
+                // Create the row with only the columns we want
+                row.innerHTML =
+                    '<td>' + task.completionTime + '</td>' +
+                    '<td>' + cycleTime + '</td>' +
+                    '<td>' + task.totalCost.toFixed(2) + '</td>' +
+                    '<td>' + task.volunteerHours.toFixed(1) + '</td>' +
+                    '<td>' + task.experiencedHours.toFixed(1) + '</td>' +
+                    '<td>' + task.masterHours.toFixed(1) + '</td>';
+
+                tbody.prepend(row);
+
+                // Keep only the most recent 20 entries
+                if (tbody.children.length > 20) {
+                    tbody.removeChild(tbody.lastChild);
+                }
+            },
+
+            // Calculate total cost
+            calculateTotalCost: function() {
+                return this.staff.reduce((total, staff) => total + staff.totalCost, 0);
+            },
+            // Add this function to the simulation object
+            checkBudgetConstraint: function() {
+                const totalCost = this.calculateTotalCost();
+                if (totalCost >= this.totalBudget) {
+                    // Budget is depleted
+                    this.pauseSimulation();
+                    alert("Budget depleted! No more work can be performed. You've spent $" + totalCost.toFixed(2));
+
+                    // Disable staff reassignment
+                    this.disableStaffReassignment();
+
+                    // Disable resume button
+                    const controlButton = document.getElementById('simulationControlButton');
+                    if (controlButton) {
+                        controlButton.disabled = true;
+                    }
+
+                    return false;
+                }
+                return true;
+            },
+
+            // Add this helper function
+            disableStaffReassignment: function() {
+                // Make all staff elements non-draggable
+                const staffElements = document.querySelectorAll('[data-staff-id]');
+                staffElements.forEach(function(elem) {
+                    elem.draggable = false;
+                    elem.style.cursor = 'default';
+                    elem.style.opacity = '0.7'; // Visual indicator
+                });
+            },
+
+            // Calculate cost per task
+            calculateCostPerTask: function() {
+                const totalCost = this.calculateTotalCost();
+                if (this.completedTasks.length === 0) return 0;
+                return totalCost / this.completedTasks.length;
+            },
+
+            // Calculate on-time rate
+            calculateOnTimeRate: function() {
+                if (this.completedTasks.length === 0) return 0;
+                const onTimeCount = this.completedTasks.filter(task => task.isOnTime()).length;
+                return (onTimeCount / this.completedTasks.length) * 100;
+            },
+
+            // Calculate average cycle time
+            calculateAvgCycleTime: function() {
+                if (this.completedTasks.length === 0) return 0;
+                const totalCycleTime = this.completedTasks.reduce((sum, task) => sum + task.getCycleTime(), 0);
+                return totalCycleTime / this.completedTasks.length;
+            },
+
+            // Calculate operation utilization
+            calculateOperationUtilization: function(operation) {
+                if (this.simulationTime === 0) return 0;
+
+                const operationStaff = this.staff.filter(staff => staff.currentOperation === operation);
+
+                if (operationStaff.length === 0) return 0;
+
+                const totalUtilization = operationStaff.reduce((sum, staff) =>
+                    sum + staff.getUtilization(this.simulationTime), 0);
+
+                return totalUtilization / operationStaff.length;
+            },
+
+            // Calculate overall utilization
+            calculateOverallUtilization: function() {
+                if (this.simulationTime === 0) return 0;
+
+                const totalUtilization = this.staff.reduce((sum, staff) =>
+                    sum + staff.getUtilization(this.simulationTime), 0);
+
+                return totalUtilization / this.staff.length;
+            },
+
+
+            // Update chart data
+            updateChartData: function() {
+                const windowSize = 30; // Show last 30 days
+                const startTime = Math.max(0, this.simulationTime - windowSize + 1);
+
+                // Update chart labels (x-axis)
+                this.chartLabels = [];
+                for (let i = 0; i < Math.min(windowSize, this.simulationTime + 1); i++) {
+                    this.chartLabels.push(startTime + i);
+                }
+
+                // Add current queue lengths to the datasets
+                this.chartData.planning.push(this.queues.planning.length);
+                this.chartData.soilprep.push(this.queues.soilprep.length);
+                this.chartData.planting.push(this.queues.planting.length);
+                this.chartData.growing.push(this.queues.growing.length);
+                this.chartData.inspection.push(this.queues.inspection.length);
+                this.chartData.harvesting.push(this.queues.harvesting.length);
+
+                // Remove oldest data points if we exceed the window size
+                if (this.chartData.planning.length > windowSize) {
+                    this.chartData.planning.shift();
+                    this.chartData.soilprep.shift();
+                    this.chartData.planting.shift();
+                    this.chartData.growing.shift();
+                    this.chartData.inspection.shift();
+                    this.chartData.harvesting.shift();
+                }
+
+                // Update the chart
+                if (this.queueChart) {
+                    this.queueChart.data.labels = this.chartLabels;
+                    this.queueChart.data.datasets[0].data = this.chartData.planning;
+                    this.queueChart.data.datasets[1].data = this.chartData.soilprep;
+                    this.queueChart.data.datasets[2].data = this.chartData.planting;
+                    this.queueChart.data.datasets[3].data = this.chartData.growing;
+                    this.queueChart.data.datasets[4].data = this.chartData.inspection;
+                    this.queueChart.data.datasets[5].data = this.chartData.harvesting;
+
+                    this.queueChart.options.scales.x.min = startTime;
+                    this.queueChart.options.scales.x.max = this.simulationTime;
+
+                    this.queueChart.update();
+                }
+            },
+
+            // Update queue display function to include in-process items for all operations
+            updateQueueDisplay: function() {
+                const operations = ['planning', 'soilprep', 'planting', 'growing', 'inspection', 'harvesting'];
+
+                for (let i = 0; i < operations.length; i++) {
+                    const operation = operations[i];
+
+                    // For all stages, show both queue and in-process items
+                    const queueCount = this.queues[operation].length;
+                    const inProcessCount = this.inProcess[operation].size;
+                    const displayCount = queueCount + inProcessCount;
+
+                    const queueEl = document.getElementById(operation + 'QueueCount');
+
+                    if (!queueEl) {
+                        console.error("Queue count element not found for: " + operation);
+                        continue;
+                    }
+
+                    // Update the display to show "X+Y" format (queued + in process)
+                    if (inProcessCount > 0) {
+                        queueEl.textContent = queueCount + "+" + inProcessCount;
+                    } else {
+                        queueEl.textContent = displayCount;
+                    }
+
+                    // Color-code the queue length indicators
+                    if (displayCount <= 3) {
+                        queueEl.style.backgroundColor = '#E3F1F9'; queueEl.style.color = '#001641';
+                    } else if (displayCount <= 8) {
+                        queueEl.style.backgroundColor = '#FFE7A3'; queueEl.style.color = '#7a5b00';
+                    } else {
+                        queueEl.style.backgroundColor = '#FAD2CE'; queueEl.style.color = '#ED0A00';
+                    }
+                }
+            },
+
+            // Helper to update an element by ID
+            updateElement: function(id, value) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                } else {
+                    console.error("Element not found: " + id);
+                }
+            },
+
+            // Update UI elements
+            updateUI: function() {
+                // Update queue display
+                this.updateQueueDisplay();
+
+                // Update total queue length
+                // First declaration of totalQueueEl
+                const totalQueueEl = document.getElementById('totalQueueLength');
+                if (totalQueueEl) {
+                    totalQueueEl.textContent =
+                        this.queues.planning.length + this.queues.soilprep.length +
+                        this.queues.planting.length + this.queues.growing.length +
+                        this.queues.inspection.length + this.queues.harvesting.length;
+                }
+
+                // Update tasks in process
+                const tasksInProcessEl = document.getElementById('tasksInProcess');
+                if (tasksInProcessEl) {
+                    tasksInProcessEl.textContent =
+                        this.inProcess.planning.size + this.inProcess.soilprep.size +
+                        this.inProcess.planting.size + this.inProcess.growing.size +
+                        this.inProcess.inspection.size + this.inProcess.harvesting.size;
+                }
+
+                // Update various counters and metrics
+                this.updateElement('totalArrivals', this.taskArrivals.length);
+                this.updateElement('completedTasks', this.completedTasks.length);
+                this.updateElement('onTimeCompletion', this.calculateOnTimeRate().toFixed(1));
+                this.updateElement('avgCycleTime', this.calculateAvgCycleTime().toFixed(1));
+                this.updateElement('simulationTime', this.simulationTime);
+
+                // Update utilization percentages
+                this.updateElement('planningUtilization', this.calculateOperationUtilization('planning').toFixed(1));
+                this.updateElement('soilprepUtilization', this.calculateOperationUtilization('soilprep').toFixed(1));
+                this.updateElement('plantingUtilization', this.calculateOperationUtilization('planting').toFixed(1));
+                this.updateElement('inspectionUtilization', this.calculateOperationUtilization('inspection').toFixed(1));
+                this.updateElement('harvestingUtilization', this.calculateOperationUtilization('harvesting').toFixed(1));
+                this.updateElement('overallUtilization', this.calculateOverallUtilization().toFixed(1));
+                // Add this code to the updateUI method in the simulation object
+                // Place it after the existing utilization updates
+
+                // Update workflow header utilization values
+                const planningUtil = this.calculateOperationUtilization('planning').toFixed(1);
+                const soilprepUtil = this.calculateOperationUtilization('soilprep').toFixed(1);
+                const plantingUtil = this.calculateOperationUtilization('planting').toFixed(1);
+                const inspectionUtil = this.calculateOperationUtilization('inspection').toFixed(1);
+                const harvestingUtil = this.calculateOperationUtilization('harvesting').toFixed(1);
+
+                this.updateElement('planningUtilWorkflow', planningUtil);
+                this.updateElement('soilprepUtilWorkflow', soilprepUtil);
+                this.updateElement('plantingUtilWorkflow', plantingUtil);
+                this.updateElement('inspectionUtilWorkflow', inspectionUtil);
+                this.updateElement('harvestingUtilWorkflow', harvestingUtil);
+
+                // Also apply bold styling to the utilization values
+                document.querySelectorAll('.utilization-value').forEach(function(elem) {
+                    elem.style.fontWeight = 'bold';
+                });
+
+                // Update budget information
+                const totalCost = this.calculateTotalCost();
+                this.updateElement('currentSpending', totalCost.toFixed(2));
+                this.updateElement('remainingBudget', Math.max(0, (this.totalBudget - totalCost)).toFixed(2));
+                this.updateElement('costPerTask', this.calculateCostPerTask().toFixed(2));
+                this.updateElement('totalCosts', totalCost.toFixed(2));
+
+                // Update staff display
+                this.updateOperationStaff();
+            },
+
+            // 1. Create a new function to generate all plots at the start
+            initialize: function() {
+                // Make sure we're starting with clean data
+                this.plotCount = 15;
+                this.staff = [];
+                this.completedTasks = [];
+                this.taskArrivals = [];
+                this.simulationTime = 0;
+                this.isRunning = false;
+
+                // Reset queues
+                for (const key in this.queues) {
+                    this.queues[key] = [];
+                }
+
+                // Reset in-process maps
+                for (const key in this.inProcess) {
+                    this.inProcess[key] = new Map();
+                }
+
+                // Reset chart data
+                this.chartLabels = [];
+                for (const key in this.chartData) {
+                    this.chartData[key] = [];
+                }
+
+                // Generate all 60 plots at initialization
+                this.generateAllPlots();
+
+                // Initialize components in the correct order
+                this.initializeStaff(); // Create staff first
+                this.initializeUI(); // Set up UI and event listeners
+                this.initializeCharts(); // Set up charts
+                this.updateUI(); // Initial UI update
+            },
+
+            // New function to generate all plots at once
+            generateAllPlots: function() {
+                // Create all 40 plots with arrival time 0 - changed from 60 to 40
+                for (let i = 1; i <= this.plotCount; i++) {
+                    const id = 'P' + i;
+                    const plot = new Plot(id, 0); // All plots available at time 0
+                    this.queues.planning.push(plot);
+                    this.taskArrivals.push(plot);
+                }
+            }
+        };
+
+
+
+        // Start the simulation when the page loads
+        window.simulation = simulation;
+        simulation.initialize();
     });
-    if(phase<3){el.difficulty.disabled=true;el.applyDiff.disabled=true;el.applyDiff.style.cursor='not-allowed';el.applyDiff.style.color='#94a3b8';}
-    else{el.difficulty.disabled=false;el.applyDiff.disabled=false;el.applyDiff.style.cursor='pointer';el.applyDiff.style.color='#475569';}
-    if(state.cpcVisible){el.cpcRow.style.display='block';el.cpcPrompt.style.display='none';}
-    else if(phase>=2){el.cpcPrompt.style.display='block';}
-    if(state.insightsRevealed>=9){el.cpcRow.style.display='block';el.cpcPrompt.style.display='none';}
-    renderInstructions(); renderInsights(); saveState();
-}
-function advancePhase(){if(state.currentPhase>=3)return;setPhase(state.currentPhase+1);}
-function skipToPhase(target){
-    if(target<=state.currentPhase||target>3)return;
-    for(var p=state.currentPhase;p<target;p++){
-        var pi=PHASE_INSIGHTS[p],mx=pi[pi.length-1];
-        if(state.questionsShown<=mx)state.questionsShown=mx+1;
-        while(state.insightsRevealed<=mx){var ins=insights[state.insightsRevealed];state.insightsRevealed++;if(typeof ins.action==='function')ins.action();}
+</script>
+
+<script>
+/* ===== OPS802 Community Garden — phase + insight flow (Vending-style) ===== */
+window.addEventListener('load', function () {
+  'use strict';
+  var sim = window.simulation;
+  if (!sim) { console.error('Garden flow: simulation not found'); return; }
+
+  var PHASE_CONFIG = { 1:{name:'Beginner',level:'beginner'}, 2:{name:'Intermediate',level:'intermediate'}, 3:{name:'Advanced',level:'advanced'} };
+  var PHASE_GOAL = {
+    1: '<strong>Phase 1 &middot; Beginner</strong> &mdash; 15 plots, $16,000 budget. Get comfortable: put a gardener on each activity and finish every plot before day 112. Watch where the queue builds.',
+    2: '<strong>Phase 2 &middot; Intermediate</strong> &mdash; 25 plots, $24,000 budget. More plots, tighter money. Use the free Volunteers wisely and keep the bottleneck fed.',
+    3: '<strong>Phase 3 &middot; Advanced</strong> &mdash; 40 plots, $32,000 budget. Full pressure. Only a deliberate, constraint-focused strategy finishes on time and on budget.'
+  };
+  var CHECKPOINTS = [
+    {phase:1,day:5,i:0},{phase:1,day:25,i:1},{phase:1,day:60,i:2},
+    {phase:2,day:10,i:3},{phase:2,day:40,i:4},{phase:2,day:80,i:5},
+    {phase:3,day:10,i:6},{phase:3,day:55,i:7},{phase:3,day:100,i:8}
+  ];
+  var INSIGHTS = [
+    {phase:1, q:'Before any plot finishes, which activity do you expect to become the first bottleneck, and why?',
+     a:'The stages with the fewest capable gardeners. <strong>Inspection</strong> is Master-only (just 2 Masters) and <strong>Soil Prep</strong> needs an Experienced or Master &mdash; both are structural bottlenecks. <strong>Growing</strong> is a fixed 10-day wait. Watch the queue badges: the longest queue is the bottleneck.'},
+    {phase:1, q:'The first plots are finishing. What is the fastest a single plot can be completed, and what does that tell you?',
+     a:'Fastest = <strong>21 days</strong> using Masters at every staffed step (2+3+2+10+2+2). The fixed <strong>10-day Growing</strong> block dominates and cannot be sped up, so it sets a floor on cycle time. Every plot must pass through all six stages in order.'},
+    {phase:1, q:'Budget is limited. Where is it worth paying for Master gardeners, and where is it wasteful?',
+     a:'Pay for Masters where they are <strong>required</strong> (Inspection) or where they <strong>clear a bottleneck</strong>. Putting Masters on non-bottleneck "Any level" stages (Planning, Planting, Harvest) burns budget for little gain, because the bottleneck caps throughput anyway.'},
+    {phase:2, q:'With more plots, a long queue is building before a stage. What does that tell you, and how should you respond?',
+     a:'A growing queue marks the <strong>bottleneck</strong> &mdash; that stage cannot keep up. Move a capable gardener there (pause first; a reassigned busy gardener sends its plot back to the queue). Do not over-staff stages that are not constrained.'},
+    {phase:2, q:'Volunteers are free but slower and cannot work alone. How do you use them well?',
+     a:'Use Volunteers on "Any level" stages (Planning, Planting, Harvest) under the supervision of at least one Experienced or Master, to save budget. They take longer (6 days vs 2), so do not rely on them where speed matters most. Idle Volunteers are wasted free capacity.'},
+    {phase:2, q:'Look at utilisation across the stages. Is high utilisation everywhere the goal?',
+     a:'No. The goal is <strong>throughput within budget</strong>, not 100% utilisation. It is fine for a Master to sit idle if the bottleneck is elsewhere; what is wasteful is leaving free Volunteers idle, or starving the bottleneck.'},
+    {phase:3, q:'With 40 plots and a tight budget, what overall strategy works best?',
+     a:'<strong>Staff to the constraint.</strong> Keep both Masters on Inspection and feed the pipeline so Growing and Inspection never starve. Use Experienced on Soil Prep and supervised Volunteers elsewhere. Spreading staff evenly, or putting Masters everywhere, both underperform.'},
+    {phase:3, q:'How do time and cost trade off here, and how does the deadline change your choices?',
+     a:'Higher skill buys speed but costs more, and the <strong>112-day deadline never moves</strong>. With many plots you must finish on time AND on budget &mdash; so spend on speed only where it lifts throughput (the bottleneck), and accept cheaper, slower labour elsewhere.'},
+    {phase:3, q:'Across all three phases, how did the best approach change as scale and pressure increased?',
+     a:'<strong>Beginner:</strong> basic allocation is forgiving. <strong>Intermediate:</strong> you must manage queues and use free labour wisely. <strong>Advanced:</strong> only a deliberate, constraint-focused strategy finishes on time and on budget. The throughline: operations management is continually putting the right resource on the right task at the right time, within the constraints.'}
+  ];
+
+  var st = { phase:1, qShown:0, revealed:0, done:false };
+  function $(id){ return document.getElementById(id); }
+  var pillsEl=$('gardenPhasePills'), goalEl=$('phaseGoal'), insEl=$('gardenInsights'),
+      counterEl=$('gardenInsightsCounter'), advEl=$('gardenPhaseAdvance'),
+      advMsg=$('gardenPhaseAdvanceMsg'), advBtn=$('gardenAdvanceBtn');
+
+  function phaseItems(p){ var a=[]; for(var i=0;i<INSIGHTS.length;i++){ if(INSIGHTS[i].phase===p) a.push(i); } return a; }
+
+  function updatePills(){
+    var pills=pillsEl.querySelectorAll('[data-phase]');
+    for (var k=0;k<pills.length;k++){
+      var p=parseInt(pills[k].getAttribute('data-phase'),10);
+      if (p===st.phase){ pills[k].style.background='#001641'; pills[k].style.color='#fff'; }
+      else if (p<st.phase){ pills[k].style.background='#2E7D32'; pills[k].style.color='#fff'; }
+      else { pills[k].style.background='#eef1f6'; pills[k].style.color='#5C657B'; }
     }
-    setPhase(target);
-}
-// Insights
-function renderInsights() {
-    var total=insights.length;
-    el.insCount.textContent=state.insightsRevealed+' of '+total;
+  }
+  function updateGoal(){ goalEl.innerHTML = PHASE_GOAL[st.phase]; }
+
+  var CIRCLE='min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;';
+  function cardHtml(idx,num,isPrev){
+    var ins=INSIGHTS[idx];
+    var revealed=idx<st.revealed, surfaced=idx<st.qShown, clickable=(idx===st.revealed && surfaced);
+    if (revealed && isPrev){
+      return '<div style="padding:8px 12px;margin-bottom:2px;border-radius:6px;background:#f8fafb;border:1px solid #e2e8f0;opacity:0.85;"><div style="display:flex;gap:10px;align-items:flex-start;"><div style="'+CIRCLE+'background:#2E7D32;color:#fff;">&#10003;</div><div style="flex:1;"><div style="font-size:0.82em;color:#5C657B;margin-bottom:4px;">'+ins.q+'</div><div style="font-size:0.82em;color:#001641;font-weight:500;padding:4px 8px;background:#f0fdf4;border-left:3px solid #16A34A;border-radius:0 4px 4px 0;">'+ins.a+'</div></div></div></div>';
+    } else if (revealed){
+      return '<div style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#fff;border:1px solid #e2e8f0;"><div style="display:flex;gap:10px;align-items:flex-start;"><div style="'+CIRCLE+'background:#001641;color:#fff;">'+num+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#001641;margin-bottom:6px;">'+ins.q+'</div><div style="font-size:0.9em;color:#001641;font-weight:500;padding:6px 10px;background:#f0fdf4;border-left:3px solid #16A34A;border-radius:0 4px 4px 0;">'+ins.a+'</div></div></div></div>';
+    } else if (surfaced){
+      return '<div '+(clickable?'data-idx="'+idx+'" ':'')+'style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#F0E5D0;border:1px solid #A15A35;'+(clickable?'cursor:pointer;':'')+'"><div style="display:flex;gap:10px;align-items:flex-start;"><div style="'+CIRCLE+'background:#A15A35;color:#fff;">'+num+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#001641;margin-bottom:6px;">'+ins.q+'</div>'+(clickable?'<div style="font-size:0.8em;color:#A15A35;font-weight:600;padding:4px 10px;background:#F0E5D0;border-radius:4px;display:inline-block;">Click to reveal answer</div>':'<div style="font-size:0.8em;color:#94a3b8;font-style:italic;">(answer the previous question first)</div>')+'</div></div></div>';
+    }
+    return '<div style="padding:6px 12px;margin-bottom:2px;"><div style="display:flex;gap:10px;align-items:center;"><div style="'+CIRCLE+'background:#e5e7eb;color:#94a3b8;">'+num+'</div><div style="font-size:0.82em;color:#cbd5e1;font-style:italic;">(not yet revealed)</div></div></div>';
+  }
+  function renderInsights(){
     var html='';
-    for(var i=0;i<total;i++){
-        var ins=insights[i];
-        if(i<state.insightsRevealed){
-            html+='<div style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#fff;border:1px solid #e2e8f0;"><div style="display:flex;gap:10px;align-items:start;"><div style="min-width:28px;height:28px;border-radius:50%;background:#0033FF;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#475569;font-style:italic;margin-bottom:6px;">\u201c'+ins.q+'\u201d</div><div style="font-size:0.9em;color:#001641;font-weight:500;padding:6px 10px;background:#f0fdf4;border-left:3px solid #16A34A;border-radius:0 4px 4px 0;">'+ins.a+'</div></div></div></div>';
-        } else if(i<state.questionsShown){
-            html+='<div data-reveal-index="'+i+'" style="padding:10px 12px;margin-bottom:2px;border-radius:6px;background:#F0E5D0;border:1px solid #A15A35;cursor:pointer;"><div style="display:flex;gap:10px;align-items:start;"><div style="min-width:28px;height:28px;border-radius:50%;background:#A15A35;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="flex:1;"><div style="font-size:0.85em;color:#001641;font-style:italic;margin-bottom:6px;">\u201c'+ins.q+'\u201d</div>';
-            if(i===state.insightsRevealed) html+='<div style="font-size:0.8em;color:#A15A35;font-weight:600;padding:4px 10px;background:#F0E5D0;border-radius:4px;display:inline-block;">Click to reveal answer</div>';
-            else html+='<div style="font-size:0.8em;color:#94a3b8;font-style:italic;">(answer previous first)</div>';
-            html+='</div></div></div>';
-        } else {
-            html+='<div style="padding:6px 12px;margin-bottom:2px;"><div style="display:flex;gap:10px;align-items:center;"><div style="min-width:28px;height:28px;border-radius:50%;background:#e5e7eb;color:#94a3b8;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;">'+(i+1)+'</div><div style="font-size:0.82em;color:#cbd5e1;font-style:italic;">(not yet revealed)</div></div></div>';
-        }
+    for (var p=1;p<=st.phase;p++){
+      var items=phaseItems(p); if(!items.length) continue;
+      if (p<st.phase){
+        var any=false; for(var a=0;a<items.length;a++){ if(items[a]<st.revealed){ any=true; break; } }
+        if(!any) continue;
+        html+='<div style="font-size:0.75rem;font-weight:700;color:#5C657B;text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px 0;border-bottom:1px solid #e2e8f0;padding-bottom:4px;">Phase '+p+' Insights</div>';
+        for (var b=0;b<items.length;b++){ html+=cardHtml(items[b], b+1, true); }
+      } else {
+        if (st.phase>1) html+='<div style="font-size:0.75rem;font-weight:700;color:#001641;text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 6px 0;border-bottom:2px solid #001641;padding-bottom:4px;">Phase '+p+' Insights</div>';
+        for (var c=0;c<items.length;c++){ html+=cardHtml(items[c], c+1, false); }
+      }
     }
-    el.insList.innerHTML=html;
-    var phase=state.currentPhase,pi=PHASE_INSIGHTS[phase],mx=pi[pi.length-1];
-    if(state.insightsRevealed>mx&&phase<3){
-        el.phaseAdv.style.display='block';
-        el.phaseAdv.innerHTML='<div style="font-size:0.9em;color:#001641;margin-bottom:8px;">All Phase '+phase+' insights completed!</div><button id="gpAdvBtn" onclick="void(0)" style="padding:8px 20px;background:#0033FF;color:#fff;border:none;border-radius:6px;font-size:0.95em;font-weight:600;cursor:pointer;">Continue to Phase '+(phase+1)+' &#9654;</button>';
-    } else { el.phaseAdv.style.display='none'; el.phaseAdv.innerHTML=''; }
-    var ls='background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.78em;padding:2px 6px;text-decoration:underline;';
-    var oh='';
-    if(state.currentPhase<2)oh+='<button id="gpSkip2" onclick="void(0)" style="'+ls+'">Skip to Phase 2</button>';
-    if(state.currentPhase<3)oh+='<button id="gpSkip3" onclick="void(0)" style="'+ls+'">Skip to Phase 3</button>';
-    oh+='<button id="gpRevealQ" onclick="void(0)" style="'+ls+'">Reveal Next Question</button>';
-    oh+='<button id="gpFullReset" onclick="void(0)" style="'+ls+'">Full Reset</button>';
-    el.overrides.innerHTML=oh;
-}
-function checkForNewQuestion(){
+    insEl.innerHTML=html;
+    var cur=phaseItems(st.phase), curStart=cur.length?cur[0]:0;
+    counterEl.textContent='('+Math.max(0,Math.min(cur.length, st.revealed-curStart))+' of '+cur.length+')';
+  }
+  function revealInsight(idx){ if (idx!==st.revealed || idx>=st.qShown) return; st.revealed=idx+1; renderInsights(); }
+
+  function showAdvance(){
+    var done=sim.completedTasks?sim.completedTasks.length:0, total=sim.plotCount||0;
+    var spent=sim.calculateTotalCost?Math.round(sim.calculateTotalCost()):0, budget=sim.totalBudget||0;
+    var msg='<strong>Phase '+st.phase+' &middot; '+PHASE_CONFIG[st.phase].name+' complete.</strong> '+done+' of '+total+' plots finished &middot; $'+spent.toLocaleString()+' of $'+budget.toLocaleString()+' spent.';
+    if (st.phase<3){ advMsg.innerHTML=msg+' Reveal any remaining questions, then continue.'; advBtn.innerHTML='Continue to Phase '+(st.phase+1)+' &#9654;'; advBtn.style.display=''; }
+    else { advMsg.innerHTML=msg+' That is all three phases &mdash; review the insights to wrap up.'; advBtn.style.display='none'; }
+    advEl.style.display='block';
+  }
+  function onPhaseComplete(){
+    if (st.done) return; st.done=true;
+    if (sim.isRunning && sim.pauseSimulation) sim.pauseSimulation();
+    var items=phaseItems(st.phase);
+    if (items.length) st.qShown=Math.max(st.qShown, items[items.length-1]+1);
+    showAdvance(); renderInsights();
+  }
+  function onDay(){
+    if (st.done) return;
     var changed=false;
-    for(var i=0;i<CHECKPOINT_SCHEDULE.length;i++){
-        var cp=CHECKPOINT_SCHEDULE[i];
-        if(cp.phase===state.currentPhase&&state.simulationTime>=cp.turn&&cp.idx>=state.questionsShown){state.questionsShown=cp.idx+1;changed=true;}
-    }
-    if(changed) renderInsights();
-}
-function revealInsight(idx){
-    if(idx!==state.insightsRevealed||idx>=state.questionsShown)return;
-    state.insightsRevealed=idx+1;
-    if(typeof insights[idx].action==='function') insights[idx].action();
-    renderInsights(); saveState();
-}
-// Persistence
-function saveState() {
-    state.staffData=[];
-    for(var i=0;i<staff.length;i++){
-        var s=staff[i];
-        state.staffData.push({id:s.id,skillLevel:s.skillLevel,busy:s.busy,currentOperation:s.currentOperation,
-            totalBusyTime:s.totalBusyTime,busyStartTime:s.busyStartTime,costPerDay:s.costPerDay,totalCost:s.totalCost,
-            currentTaskId:s.currentTask?s.currentTask.id:null});
-    }
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
-}
-function loadState() {
-    try{
-        var saved=localStorage.getItem(STORAGE_KEY);
-        if(saved){var p=JSON.parse(saved);if(p&&typeof p.simulationTime==='number'){state=p;return true;}}
-    }catch(e){localStorage.removeItem(STORAGE_KEY);}
-    return false;
-}
-function restoreFromState() {
-    // Rebuild staff from saved data
-    staff=[]; staffIdCounter=0;
-    for(var i=0;i<state.staffData.length;i++){
-        var sd=state.staffData[i];
-        var s={id:sd.id,skillLevel:sd.skillLevel,busy:false,currentTask:null,
-            currentOperation:sd.currentOperation,totalBusyTime:sd.totalBusyTime,
-            busyStartTime:sd.busyStartTime,costPerDay:sd.costPerDay,totalCost:sd.totalCost};
-        // Reconnect busy staff to their tasks
-        if(sd.busy&&sd.currentTaskId&&sd.currentOperation){
-            var ip=state.inProcess[sd.currentOperation];
-            if(ip&&ip[sd.currentTaskId]){s.busy=true;s.currentTask=ip[sd.currentTaskId].task;}
-        }
-        staff.push(s);
-        var num=parseInt(sd.id.replace('G',''));
-        if(num>staffIdCounter) staffIdCounter=num;
-    }
-    var maxPlotId=0;
-    for(var j=0;j<state.taskArrivals.length;j++){var n=parseInt(state.taskArrivals[j].id.replace('P',''));if(n>maxPlotId)maxPlotId=n;}
-    plotIdCounter=maxPlotId;
-    el.speed.value=state.simulationSpeed;
-    el.difficulty.value=state.difficulty;
-    el.histWrap.style.display=state.historyVisible?'block':'none';
-    el.toggleHist.textContent=state.historyVisible?'Hide':'Show';
-    if(state.isComplete){el.startBtn.textContent='Complete';el.startBtn.disabled=true;el.startBtn.style.background='#e0e0e0';el.startBtn.style.cursor='not-allowed';}
-    else{el.startBtn.textContent=state.simulationTime>0?'Resume':'Start';}
-    for(var k=0;k<state.completedTasks.length;k++) addHistoryRow(state.completedTasks[k]);
-    setPhase(state.currentPhase);
-    renderStaffPool(); updateUI();
-}
-function resetSim(full) {
-    clearInterval(simInterval); simInterval=null; isRunning=false;
-    currentDraggedStaff=null; staff=[]; staffIdCounter=0; plotIdCounter=0;
-    var savedPhase=state.currentPhase,savedQ=state.questionsShown,savedR=state.insightsRevealed,savedExp=state.instructionExpanded,savedHist=state.historyVisible,savedCpc=state.cpcVisible;
-    if(full){localStorage.removeItem(STORAGE_KEY);state=makeDefaultState();}
-    else{var diff=state.difficulty;state=makeDefaultState();state.difficulty=diff;state.totalBudget=BUDGETS[diff];state.plotCount=PLOT_COUNTS[diff];
-        state.currentPhase=savedPhase;state.questionsShown=savedQ;state.insightsRevealed=savedR;state.instructionExpanded=savedExp;state.historyVisible=savedHist;state.cpcVisible=savedCpc;}
-    generateAllPlots(); initStaff();
-    el.histBody.innerHTML='';
-    el.startBtn.textContent='Start';el.startBtn.disabled=false;el.startBtn.style.background='#0033FF';el.startBtn.style.cursor='pointer';
-    if(queueChart){queueChart.data.labels=[];for(var d=0;d<6;d++)queueChart.data.datasets[d].data=[];queueChart.update();}
-    setPhase(state.currentPhase); updateUI(); saveState();
-}
-function initStaff() {
-    staff=[]; var dist=[1,1,1,1,2,2,2,3,3];
-    for(var i=0;i<9;i++) staff.push(createStaffMember(dist[i]));
-    renderStaffPool();
-}
-// Events
-function bindEvents() {
-    el.startBtn.addEventListener('click',function(){if(isRunning)pauseSim();else startSim();});
-    el.resetBtn.addEventListener('click',function(){resetSim(false);});
-    el.speed.addEventListener('change',function(){
-        state.simulationSpeed=parseFloat(el.speed.value);
-        if(simInterval){clearInterval(simInterval);simInterval=setInterval(simTick,2000/state.simulationSpeed);}
-    });
-    el.applyDiff.addEventListener('click',function(){
-        if(state.currentPhase<3)return;
-        var diff=el.difficulty.value;
-        state.difficulty=diff; state.totalBudget=BUDGETS[diff]; state.plotCount=PLOT_COUNTS[diff];
-        resetSim(false);
-    });
-    el.toggleInstr.addEventListener('click',function(){state.instructionExpanded=!state.instructionExpanded;renderInstructions();saveState();});
-    el.toggleHist.addEventListener('click',function(){state.historyVisible=!state.historyVisible;el.histWrap.style.display=state.historyVisible?'block':'none';el.toggleHist.textContent=state.historyVisible?'Hide':'Show';saveState();});
-    // Drop zones
-    setupDropZone(el.staffPool,null);
-    var opKeys=Object.keys(el.opContainers);
-    for(var i=0;i<opKeys.length;i++) setupDropZone(el.opContainers[opKeys[i]],opKeys[i]);
-    // Insights panel
-    document.getElementById('gpInsightsPanel').addEventListener('click',function(ev){
-        var rev=ev.target.closest('[data-reveal-index]');
-        if(rev){revealInsight(parseInt(rev.getAttribute('data-reveal-index')));return;}
-        if(ev.target.id==='gpAdvBtn'){advancePhase();return;}
-        if(ev.target.id==='gpSkip2'){skipToPhase(2);return;}
-        if(ev.target.id==='gpSkip3'){skipToPhase(3);return;}
-        if(ev.target.id==='gpRevealQ'){if(state.questionsShown<insights.length){state.questionsShown++;renderInsights();saveState();}return;}
-        if(ev.target.id==='gpFullReset'){resetSim(true);return;}
-    });
-}
-function init() {
-    cacheDom();
-    var restored=loadState();
-    if(restored&&state.simulationTime>0){
-        initChart(); bindEvents(); restoreFromState();
-    } else {
-        generateAllPlots(); initStaff(); initChart(); bindEvents();
-        setPhase(1); updateUI(); renderInstructions(); renderInsights();
-    }
-}
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
-else init();
-})();
+    for (var k=0;k<CHECKPOINTS.length;k++){ var cp=CHECKPOINTS[k];
+      if (cp.phase===st.phase && sim.simulationTime>=cp.day && st.qShown<=cp.i){ st.qShown=cp.i+1; changed=true; } }
+    if (sim.plotCount && sim.completedTasks && sim.completedTasks.length>=sim.plotCount){ onPhaseComplete(); return; }
+    if (changed) renderInsights();
+  }
+
+  function setPhase(p){
+    st.phase=p; st.done=false; advEl.style.display='none';
+    var lastPrev=-1; for(var i=0;i<INSIGHTS.length;i++){ if(INSIGHTS[i].phase<p) lastPrev=i; }
+    st.qShown=Math.max(st.qShown, lastPrev+1);
+    sim.resetSimulation(PHASE_CONFIG[p].level);
+    updatePills(); updateGoal(); renderInsights();
+    try { window.scrollTo({top:0,behavior:'smooth'}); } catch(e){ window.scrollTo(0,0); }
+  }
+  function resetPhase(){ st.done=false; advEl.style.display='none'; sim.resetSimulation(PHASE_CONFIG[st.phase].level); renderInsights(); }
+
+  /* wrap engine methods — no edits to the model itself */
+  var _updateUI=sim.updateUI.bind(sim); sim.updateUI=function(){ _updateUI(); onDay(); };
+  var _end=sim.endSimulation.bind(sim); sim.endSimulation=function(){ _end(); onPhaseComplete(); };
+  var _budget=sim.checkBudgetConstraint.bind(sim); sim.checkBudgetConstraint=function(){ var ok=_budget(); if(!ok) onPhaseComplete(); return ok; };
+
+  /* wiring */
+  insEl.addEventListener('click', function(e){ var c=e.target.closest('[data-idx]'); if(c) revealInsight(parseInt(c.getAttribute('data-idx'),10)); });
+  advBtn.addEventListener('click', function(){ if(st.phase<3) setPhase(st.phase+1); });
+  $('gardenSkipReveal').addEventListener('click', function(){ if(st.qShown<=st.revealed) st.qShown=Math.min(INSIGHTS.length, st.revealed+1); revealInsight(st.revealed); });
+  $('gardenSkip2').addEventListener('click', function(){ setPhase(2); });
+  $('gardenSkip3').addEventListener('click', function(){ setPhase(3); });
+  $('gardenFullReset').addEventListener('click', function(){ location.reload(); });
+  window.flow = { resetPhase:resetPhase, setPhase:setPhase };
+
+  /* initial paint (engine already set up Phase 1) */
+  updatePills(); updateGoal(); renderInsights();
+});
 </script>

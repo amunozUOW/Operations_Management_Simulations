@@ -1,22 +1,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
 <style data-uow-tokens>
 :root {
-  --uow-white:        #FFFFFF;
-  --uow-blue-dark:    #001641;
-  --uow-blue-bright:  #0033FF;
-  --uow-red:          #ED0A00;
-  --uow-grey-light:   #F2F2F2;
-  --uow-copper:       #A15A35;
-  --uow-copper-light: #C4744F;
-  --uow-cream:        #F0E5D0;
-  --uow-lavender:     #CDD6F8;
-  --uow-ice-blue:     #E3F1F9;
   --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --uow-navy: #001641;
+  --uow-red: #ED0A00;
+  --uow-copper: #A15A35;
+  --uow-ice: #E3F1F9;
+  --uow-cream: #F4ECDB;
+  --uow-grey: #5C657B;
+  --uow-box: #F0F2F5;
+  --uow-green: #2E7D32;
   --chart-1: #001641;
   --chart-2: #ED0A00;
-  --chart-3: #0033FF;
+  --chart-3: #001641;
   --chart-4: #A15A35;
   --chart-5: #6B7280;
 }
@@ -25,25 +23,25 @@
 }
 </style>
 
-<div id="food-truck-sim-v2" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #001641;">
+<div id="food-truck-sim-v2" style="display: flex; flex-direction: column; gap: 14px; font-family: var(--uow-font); max-width: 1200px; margin: 0 auto; padding: 16px; color: #001641;">
 
     <!-- ROW 1: Title + Phase Progress -->
     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
         <h2 style="margin: 0; font-size: 1.5em; color: #001641;">The (Un)Productive Food Truck</h2>
         <div id="phaseIndicator" style="display: flex; gap: 4px; align-items: center;">
-            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #0033FF; color: #fff;">Phase 1: Staffing</span>
-            <span style="color: #cbd5e1;">&#9654;</span>
-            <span id="phaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Pricing</span>
-            <span style="color: #cbd5e1;">&#9654;</span>
-            <span id="phaseLabel3" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 3: Full Picture</span>
+            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #001641; white-space: nowrap; color: #fff;">Phase 1: Staffing</span>
+            <span style="color: #5C657B; font-size: 0.7rem;">&#9654;</span>
+            <span id="phaseLabel2" style="padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #F0F2F5; color: #5C657B; white-space: nowrap;">Phase 2: Pricing</span>
+            <span style="color: #5C657B; font-size: 0.7rem;">&#9654;</span>
+            <span id="phaseLabel3" style="padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: #F0F2F5; color: #5C657B; white-space: nowrap;">Phase 3: Full Picture</span>
         </div>
     </div>
 
     <!-- ROW 2: Instruction Panel -->
-    <div id="instructionPanel" style="background: #E3F1F9; border-left: 4px solid #0033FF; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
+    <div id="instructionPanel" style="background: #E3F1F9; border-left: 4px solid #001641; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5; position: relative;">
         <div style="display: flex; justify-content: space-between; align-items: start;">
             <div id="instructionContent"></div>
-            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #0033FF; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+            <button id="toggleInstructions" onclick="void(0)" style="position: absolute; top: 10px; right: 14px; background: none; border: none; color: #001641; font-family: var(--uow-font); font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: underline;">Show less</button>
         </div>
     </div>
 
@@ -51,96 +49,96 @@
     <div style="display: flex; flex-wrap: wrap; gap: 14px;">
 
         <!-- Controls Panel -->
-        <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
-            <div style="font-weight: 700; font-size: 0.95em; margin-bottom: 12px; color: #334155;">Your Decisions</div>
+        <div style="flex: 1; min-width: 300px; background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 12px; color: #001641;">Your Decisions</div>
 
             <div style="margin-bottom: 14px;">
-                <label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 4px; color: #475569;">
-                    Number of Staff: <span id="staffValue" style="color: #0033FF; font-size: 1.1em;">3</span>
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: #001641;">
+                    Number of Staff: <span id="staffValue" style="color: #001641; font-size: 1.1em;">3</span>
                 </label>
                 <input type="range" id="staffCount" min="1" max="10" value="3" step="1" style="width: 100%; cursor: pointer;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #5C657B;">
                     <span>1</span><span>5</span><span>10</span>
                 </div>
             </div>
 
             <div id="priceControl" style="margin-bottom: 14px;">
-                <label style="display: block; font-size: 0.9em; font-weight: 600; margin-bottom: 4px; color: #475569;">
-                    Average Price per Meal: $<span id="priceValue" style="color: #0033FF; font-size: 1.1em;">10</span>
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: #001641;">
+                    Average Price per Meal: $<span id="priceValue" style="color: #001641; font-size: 1.1em;">10</span>
                     <span id="priceLockLabel" style="font-size: 0.8em; color: #ED0A00; font-weight: 400;">(locked at $10 for Phase 1)</span>
                 </label>
                 <input type="range" id="itemPrice" min="8" max="25" value="10" step="1" style="width: 100%; cursor: not-allowed; opacity: 0.4;" disabled>
-                <div style="display: flex; justify-content: space-between; font-size: 0.75em; color: #94a3b8;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: #5C657B;">
                     <span>$8</span><span>$16</span><span>$25</span>
                 </div>
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 8px;">
-                <button id="runDayBtn" onclick="void(0)" style="flex: 1; padding: 10px 16px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Run Day</button>
-                <button id="resetBtn" onclick="void(0)" style="padding: 10px 16px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.95em; cursor: pointer;">Reset</button>
+                <button id="runDayBtn" onclick="void(0)" style="flex: 1; padding: 10px 16px; background: #001641; color: #fff; border: none; border-radius: 8px; font-family: var(--uow-font); font-size: 0.85rem; font-weight: 700; cursor: pointer;">Run Day</button>
+                <button id="resetBtn" onclick="void(0)" style="padding: 10px 16px; background: #5C657B; color: #fff; border: none; border-radius: 8px; font-family: var(--uow-font); font-size: 0.85rem; font-weight: 700; cursor: pointer;">Reset</button>
             </div>
         </div>
 
         <!-- Metrics Dashboard -->
         <div style="flex: 1.2; min-width: 300px; display: flex; flex-wrap: wrap; gap: 10px; align-content: start;">
-            <div style="width: 100%; font-weight: 700; font-size: 0.95em; color: #334155;">Day <span id="dayCounter">0</span> Results</div>
+            <div style="width: 100%; font-weight: 700; font-size: 0.85rem; color: #001641;">Day <span id="dayCounter">0</span> Results</div>
 
-            <div id="metricCapacity" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Service Capacity</div>
-                <div id="serviceCapacity" style="font-size: 1.4em; font-weight: 700; color: #001641;">&mdash;</div>
-                <div style="font-size: 0.7em; color: #94a3b8;">customers/day</div>
+            <div id="metricCapacity" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Service Capacity</div>
+                <div id="serviceCapacity" style="font-size: 1.15rem; font-weight: 700; color: #001641;">&mdash;</div>
+                <div style="font-size: 0.65rem; color: #5C657B;">customers/day</div>
             </div>
 
-            <div id="metricDemand" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Potential Demand</div>
-                <div id="potentialDemand" style="font-size: 1.4em; font-weight: 700; color: #001641;">&mdash;</div>
-                <div style="font-size: 0.7em; color: #94a3b8;">customers</div>
+            <div id="metricDemand" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Potential Demand</div>
+                <div id="potentialDemand" style="font-size: 1.15rem; font-weight: 700; color: #001641;">&mdash;</div>
+                <div style="font-size: 0.65rem; color: #5C657B;">customers</div>
             </div>
 
-            <div id="metricServed" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Customers Served</div>
-                <div id="customersServed" style="font-size: 1.4em; font-weight: 700; color: #001641;">&mdash;</div>
-                <div style="font-size: 0.7em; color: #94a3b8;">actual</div>
+            <div id="metricServed" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Customers Served</div>
+                <div id="customersServed" style="font-size: 1.15rem; font-weight: 700; color: #001641;">&mdash;</div>
+                <div style="font-size: 0.65rem; color: #5C657B;">actual</div>
             </div>
 
-            <div id="metricRevenue" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Revenue</div>
-                <div style="font-size: 1.4em; font-weight: 700; color: #001641;">$<span id="revenue">&mdash;</span></div>
+            <div id="metricRevenue" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Revenue</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: #001641;">$<span id="revenue">&mdash;</span></div>
             </div>
 
-            <div id="metricCosts" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Total Costs</div>
-                <div style="font-size: 1.4em; font-weight: 700; color: #001641;">$<span id="totalCosts">&mdash;</span></div>
+            <div id="metricCosts" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Total Costs</div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: #001641;">$<span id="totalCosts">&mdash;</span></div>
             </div>
 
-            <div id="metricProfit" style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.75em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Daily Profit</div>
-                <div id="dailyProfit" style="font-size: 1.4em; font-weight: 700; color: #001641;">$&mdash;</div>
+            <div id="metricProfit" style="flex: 1; min-width: 130px; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <div style="font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #5C657B; margin-bottom: 2px;">Daily Profit</div>
+                <div id="dailyProfit" style="font-size: 1.15rem; font-weight: 700; color: #001641;">$&mdash;</div>
             </div>
 
             <!-- SFP Card -->
-            <div id="metricSFP" style="flex: 1; min-width: 160px; padding: 10px; border: 2px solid #0033FF; border-radius: 8px; text-align: center; background: #E3F1F9;">
+            <div id="metricSFP" style="flex: 1; min-width: 160px; padding: 10px; border: 2px solid #001641; border-radius: 10px; text-align: center; background: #E3F1F9;">
                 <div style="font-size: 0.75em; color: #001641; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Single-Factor Productivity</div>
-                <div id="sfpFormulaHint" style="font-size: 0.8em; color: #64748b; margin: 6px 0 2px 0; display: none;">Calculate: Customers Served &divide; (Staff &times; Hours)</div>
+                <div id="sfpFormulaHint" style="font-size: 0.8em; color: #5C657B; margin: 6px 0 2px 0; display: none;">Calculate: Customers Served &divide; (Staff &times; Hours)</div>
                 <div id="sfpRevealedValue" style="display: none;">
                     <div id="sfpValue" style="font-size: 1.6em; font-weight: 700; color: #001641;">&mdash;</div>
-                    <div style="font-size: 0.7em; color: #0033FF;">customers / staff-hour</div>
+                    <div style="font-size: 0.7em; color: #001641;">customers / staff-hour</div>
                 </div>
             </div>
 
             <!-- MFP Card -->
-            <div id="metricMFP" style="flex: 1; min-width: 160px; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff; display: none;">
-                <div style="font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; color: #64748b;">Multi-Factor Productivity</div>
-                <div id="mfpFormulaHint" style="font-size: 0.8em; color: #64748b; margin: 6px 0 2px 0; display: none;">Calculate: Revenue &divide; Total Costs</div>
+            <div id="metricMFP" style="flex: 1; min-width: 160px; padding: 10px; border: 2px solid #e8e8e8; border-radius: 8px; text-align: center; background: #fff; display: none;">
+                <div style="font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; color: #5C657B;">Multi-Factor Productivity</div>
+                <div id="mfpFormulaHint" style="font-size: 0.8em; color: #5C657B; margin: 6px 0 2px 0; display: none;">Calculate: Revenue &divide; Total Costs</div>
                 <div id="mfpRevealedValue" style="display: none;">
                     <div id="mfpValue" style="font-size: 1.6em; font-weight: 700; color: #001641;">&mdash;</div>
-                    <div id="mfpLabel" style="font-size: 0.7em; color: #94a3b8;">revenue / total costs</div>
+                    <div id="mfpLabel" style="font-size: 0.65rem; color: #5C657B;">revenue / total costs</div>
                 </div>
             </div>
 
             <!-- Cumulative Profit -->
-            <div id="metricCumProfit" style="width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <span style="font-size: 0.8em; color: #64748b;">Cumulative Profit: </span>
+            <div id="metricCumProfit" style="width: 100%; padding: 12px 14px; border-radius: 10px; text-align: center; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+                <span style="font-size: 0.8em; color: #5C657B;">Cumulative Profit: </span>
                 <span id="cumulativeProfit" style="font-size: 1em; font-weight: 700; color: #001641;">$0.00</span>
             </div>
         </div>
@@ -165,14 +163,14 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <h3 style="margin: 0; font-size: 1.1em; color: #001641;">Performance Frontier</h3>
             <div style="display: flex; gap: 8px;">
-                <button id="heatmapToggleSFP" onclick="void(0)" style="padding: 4px 12px; border-radius: 4px; font-size: 0.8em; cursor: pointer; background: #0033FF; color: #fff; border: none; font-weight: 600;">SFP</button>
-                <button id="heatmapToggleMFP" onclick="void(0)" style="padding: 4px 12px; border-radius: 4px; font-size: 0.8em; cursor: pointer; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">MFP</button>
+                <button id="heatmapToggleSFP" onclick="void(0)" style="padding: 4px 12px; border-radius: 4px; font-size: 0.8em; cursor: pointer; background: #001641; color: #fff; border: none; font-weight: 600;">SFP</button>
+                <button id="heatmapToggleMFP" onclick="void(0)" style="padding: 4px 12px; border-radius: 4px; font-size: 0.8em; cursor: pointer; background: #F0F2F5; color: #5C657B; border: none;">MFP</button>
             </div>
         </div>
         <div style="overflow-x: auto;">
             <table id="heatmapTable" style="width: 100%; border-collapse: collapse; font-size: 0.8em; text-align: center;"></table>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.75em; color: #64748b;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.75em; color: #5C657B;">
             <span>Low</span>
             <div style="display: flex; height: 12px; flex: 1; max-width: 200px; border-radius: 3px; overflow: hidden;">
                 <div style="flex:1; background: #ED0A00;"></div>
@@ -190,21 +188,21 @@
         <h3 style="margin: 0 0 8px 0; font-size: 1.1em; color: #001641;">Operations History</h3>
         <div style="overflow-x: auto;">
             <table id="historyTable" style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
-                <thead><tr id="historyHeader" style="background: #f8fafc;"></tr></thead>
+                <thead><tr id="historyHeader" style="background: #001641;"></tr></thead>
                 <tbody id="historyBody"></tbody>
             </table>
         </div>
     </div>
 
     <!-- ROW 7: Discussion Insights Panel (with embedded overrides) -->
-    <div id="insightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
+    <div id="insightsPanel" style="background: #fff; border-radius: 10px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div style="font-weight: 700; font-size: 1.05em; color: #001641;">Discussion Insights</div>
-            <div id="insightsCounter" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 8</div>
+            <div id="insightsCounter" style="font-size: 0.85em; color: #5C657B; font-weight: 600;">0 of 8</div>
         </div>
         <div id="insightsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
-        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #E3F1F9; border: 1px solid #0033FF; border-radius: 6px; text-align: center;"></div>
-        <div id="overrideControls" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #E8F5E9; border-radius: 10px; text-align: center;"></div>
+        <div id="overrideControls" style="margin-top: 12px; padding-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
     </div>
 
 </div>
@@ -447,19 +445,19 @@
         var rev = mfpIsRevealed();
         if (mfp < 1) {
             card.style.background = rev ? '#FBEDED' : '#fff';
-            card.style.borderColor = rev ? '#ED0A00' : '#e2e8f0';
+            card.style.borderColor = rev ? '#ED0A00' : 'transparent';
             el.mfpValue.style.color = '#ED0A00';
             el.mfpLabel.textContent = 'UNPROFITABLE (< 1.0)';
             el.mfpLabel.style.color = '#ED0A00';
         } else if (mfp < 1.2) {
             card.style.background = rev ? '#F0E5D0' : '#fff';
-            card.style.borderColor = rev ? '#A15A35' : '#e2e8f0';
+            card.style.borderColor = rev ? '#A15A35' : 'transparent';
             el.mfpValue.style.color = '#A15A35';
             el.mfpLabel.textContent = 'MARGINALLY PROFITABLE';
             el.mfpLabel.style.color = '#A15A35';
         } else {
             card.style.background = rev ? '#f0fdf4' : '#fff';
-            card.style.borderColor = rev ? '#16A34A' : '#e2e8f0';
+            card.style.borderColor = rev ? '#16A34A' : 'transparent';
             el.mfpValue.style.color = '#16a34a';
             el.mfpLabel.textContent = 'PROFITABLE (> 1.0)';
             el.mfpLabel.style.color = '#16a34a';
@@ -477,11 +475,11 @@
 
             if (i < state.insightsRevealed) {
                 // ANSWERED: blue circle, question + answer
-                html += '<div style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0;">';
+                html += '<div style="padding: 10px 12px; margin-bottom: 2px; border-radius: 8px; background: #fff;">';
                 html += '<div style="display: flex; gap: 10px; align-items: start;">';
-                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #0033FF; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #001641; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
                 html += '<div style="flex: 1;">';
-                html += '<div style="font-size: 0.85em; color: #475569; font-style: italic; margin-bottom: 6px;">\u201c' + insight.question + '\u201d</div>';
+                html += '<div style="font-size: 0.85em; color: #001641; margin-bottom: 6px;">\u201c' + insight.question + '\u201d</div>';
                 html += '<div style="font-size: 0.9em; color: #001641; font-weight: 500; padding: 6px 10px; background: #f0fdf4; border-left: 3px solid #16A34A; border-radius: 0 4px 4px 0;">' + insight.answer + '</div>';
                 html += '</div></div></div>';
 
@@ -495,7 +493,7 @@
                 if (i === state.insightsRevealed) {
                     html += '<div style="font-size: 0.8em; color: #A15A35; font-weight: 600; padding: 4px 10px; background: #F0E5D0; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
                 } else {
-                    html += '<div style="font-size: 0.8em; color: #94a3b8; font-style: italic;">(answer the previous question first)</div>';
+                    html += '<div style="font-size: 0.8em; color: #5C657B; font-style: italic;">(answer the previous question first)</div>';
                 }
                 html += '</div></div></div>';
 
@@ -503,8 +501,8 @@
                 // HIDDEN: grey circle, placeholder
                 html += '<div style="padding: 6px 12px; margin-bottom: 2px;">';
                 html += '<div style="display: flex; gap: 10px; align-items: center;">';
-                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #e5e7eb; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
-                html += '<div style="font-size: 0.82em; color: #cbd5e1; font-style: italic;">(not yet revealed)</div>';
+                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #F0F2F5; color: #5C657B; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i + 1) + '</div>';
+                html += '<div style="font-size: 0.82em; color: #5C657B; font-style: italic;">(not yet revealed)</div>';
                 html += '</div></div>';
             }
         }
@@ -526,8 +524,8 @@
         if (allPhaseAnswered && phase < 3) {
             var nextPhase = phase + 1;
             el.phaseAdvanceArea.style.display = 'block';
-            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #001641; margin-bottom: 8px;">All Phase ' + phase + ' discussion points completed!</div>' +
-                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + nextPhase + ' &#9654;</button>';
+            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.85rem; font-weight: 600; color: #2E7D32; margin-bottom: 8px;">All Phase ' + phase + ' discussion points completed!</div>' +
+                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 10px 24px; background: #2E7D32; color: #fff; border: none; border-radius: 8px; font-family: var(--uow-font); font-size: 0.85rem; font-weight: 700; cursor: pointer;">Continue to Phase ' + nextPhase + ' &#9654;</button>';
         } else {
             el.phaseAdvanceArea.style.display = 'none';
             el.phaseAdvanceArea.innerHTML = '';
@@ -536,7 +534,7 @@
 
     function renderOverrides() {
         var phase = state.currentPhase;
-        var linkStyle = 'background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78em; padding: 2px 6px; text-decoration: underline;';
+        var linkStyle = 'background: none; border: none; color: #5C657B; cursor: pointer; font-size: 0.78em; padding: 2px 6px; text-decoration: underline;';
         var html = '';
         if (phase < 2) html += '<button id="overrideSkip2" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 2</button>';
         if (phase < 3) html += '<button id="overrideSkip3" onclick="void(0)" style="' + linkStyle + '">Skip to Phase 3</button>';
@@ -615,8 +613,8 @@
         state.currentPhase = phase;
         state.phaseTurns = 0;
 
-        var colors = { active: '#0033FF', completed: '#16a34a', upcoming: '#e5e7eb' };
-        var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
+        var colors = { active: '#001641', completed: '#16a34a', upcoming: '#F0F2F5' };
+        var textColors = { active: '#fff', completed: '#fff', upcoming: '#5C657B' };
         [1, 2, 3].forEach(function(p) {
             var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
             var label = document.getElementById('phaseLabel' + p);
@@ -664,23 +662,23 @@
     function renderInstructions() {
         var inst = instructionText[state.currentPhase];
         el.instructionContent.innerHTML = state.instructionExpanded ? inst.full : inst.short;
-        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
+        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show less' : 'Show more';
     }
 
     // === HISTORY TABLE ===
     function renderHistoryHeader() {
         var headers = ['Day', 'Staff', 'Price', 'Capacity', 'Demand', 'Served', 'Revenue', 'Costs', 'Profit', 'SFP'];
         if (state.currentPhase >= 3) headers.push('MFP');
-        var s = 'padding: 8px 6px; text-align: center; font-weight: 600; font-size: 0.85em; border-bottom: 2px solid #e2e8f0; color: #475569;';
+        var s = 'padding: 6px 8px; text-align: center; font-weight: 600; background: #001641; color: #fff; white-space: nowrap;';
         el.historyHeader.innerHTML = headers.map(function(h) { return '<th style="' + s + '">' + h + '</th>'; }).join('');
     }
 
     function addHistoryRow(m, dayNum) {
-        var cs = 'padding: 6px; text-align: center; border-bottom: 1px solid #f1f5f9;';
+        var cs = 'padding: 5px 8px; text-align: center; border-bottom: 1px solid #e8e8e8;';
         var sfpColor = m.sfp >= 12 ? '#16a34a' : m.sfp >= 6 ? '#A15A35' : '#ED0A00';
         var sfpDisplay = sfpIsRevealed()
             ? '<span style="color:' + sfpColor + '; font-weight: 600;">' + m.sfp.toFixed(1) + '</span>'
-            : '<span style="color: #94a3b8; font-style: italic;">?</span>';
+            : '<span style="color: #5C657B; font-style: italic;">?</span>';
 
         var cells = [dayNum, m.staff, '$' + fmt(m.price), m.serviceCapacity, m.potentialDemand, m.actualCustomers,
             '$' + fmt(m.revenue), '$' + fmt(m.totalCosts),
@@ -691,7 +689,7 @@
             var mfpColor = m.mfp >= 1 ? '#16a34a' : '#ED0A00';
             cells.push(mfpIsRevealed()
                 ? '<span style="color:' + mfpColor + '; font-weight: 600;">' + m.mfp.toFixed(2) + '</span>'
-                : '<span style="color: #94a3b8; font-style: italic;">?</span>');
+                : '<span style="color: #5C657B; font-style: italic;">?</span>');
         }
 
         var row = document.createElement('tr');
@@ -740,8 +738,8 @@
                 borderColor: function(c) { return c.raw < 0 ? '#ED0A00' : '#001641'; },
                 borderWidth: 1.5 }] },
             options: { responsive: true, maintainAspectRatio: false,
-                scales: { y: { beginAtZero: false, grid: { display: true, color: '#f1f5f9', lineWidth: 0.5 }, border: { width: 1.5, color: '#334155' }, ticks: { font: { size: 12 }, callback: function(v) { return '$' + v; } } },
-                    x: { grid: { display: false }, border: { width: 1.5, color: '#334155' }, ticks: { font: { size: 12 } } } },
+                scales: { y: { beginAtZero: false, grid: { display: true, color: '#F0F2F5', lineWidth: 0.5 }, border: { width: 1.5, color: '#001641' }, ticks: { font: { size: 12 }, callback: function(v) { return '$' + v; } } },
+                    x: { grid: { display: false }, border: { width: 1.5, color: '#001641' }, ticks: { font: { size: 12 } } } },
                 plugins: { legend: { display: false }, title: { display: true, text: 'Daily Profit', font: { size: 14, weight: 'bold' }, color: '#001641', padding: 10 } } }
         });
     }
@@ -763,8 +761,8 @@
                 { label: 'Your Price', data: [], borderColor: '#ED0A00', backgroundColor: '#ED0A00', pointRadius: 8, pointStyle: 'circle', showLine: false }
             ] },
             options: { responsive: true, maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, max: 320, grid: { display: true, color: '#f1f5f9', lineWidth: 0.5 }, border: { width: 1.5, color: '#334155' }, ticks: { font: { size: 12 } }, title: { display: true, text: 'Customers', font: { size: 12 } } },
-                    x: { grid: { display: false }, border: { width: 1.5, color: '#334155' }, ticks: { font: { size: 11 }, callback: function(v, i) { return i % 4 === 0 ? '$' + this.getLabelForValue(v) : ''; } }, title: { display: true, text: 'Price ($)', font: { size: 12 } } } },
+                scales: { y: { beginAtZero: true, max: 320, grid: { display: true, color: '#F0F2F5', lineWidth: 0.5 }, border: { width: 1.5, color: '#001641' }, ticks: { font: { size: 12 } }, title: { display: true, text: 'Customers', font: { size: 12 } } },
+                    x: { grid: { display: false }, border: { width: 1.5, color: '#001641' }, ticks: { font: { size: 11 }, callback: function(v, i) { return i % 4 === 0 ? '$' + this.getLabelForValue(v) : ''; } }, title: { display: true, text: 'Price ($)', font: { size: 12 } } } },
                 plugins: { legend: { display: false }, title: { display: true, text: 'Demand Curve \u2014 How Price Affects Customer Demand', font: { size: 14, weight: 'bold' }, color: '#001641', padding: 10 },
                     tooltip: { callbacks: { title: function(items) { return 'Your Price: $' + items[0].label; }, label: function(item) { return 'Average Demand: ' + item.formattedValue + ' customers'; } } } } }
         });
@@ -811,7 +809,7 @@
         var explored = {};
         state.history.forEach(function(h) { explored[h.staff + '_' + h.price] = true; });
 
-        var thS = 'padding: 4px 6px; font-weight: 600; background: #f8fafc; border: 1px solid #e2e8f0; font-size: 0.8em; color: #475569;';
+        var thS = 'padding: 4px 6px; font-weight: 600; background: #001641; color: #fff; font-size: 0.75rem;';
         var html = '<tr><th style="' + thS + '">' + (mode === 'mfp' ? 'MFP' : 'SFP') + '</th>';
         priceRange.forEach(function(p) { html += '<th style="' + thS + '">$' + p + '</th>'; });
         html += '</tr>';
@@ -832,11 +830,11 @@
         var sfpBtn = document.getElementById('heatmapToggleSFP');
         var mfpBtn = document.getElementById('heatmapToggleMFP');
         if (mode === 'sfp') {
-            sfpBtn.style.background = '#0033FF'; sfpBtn.style.color = '#fff'; sfpBtn.style.border = 'none';
-            mfpBtn.style.background = '#f1f5f9'; mfpBtn.style.color = '#475569'; mfpBtn.style.border = '1px solid #e2e8f0';
+            sfpBtn.style.background = '#001641'; sfpBtn.style.color = '#fff'; sfpBtn.style.border = 'none';
+            mfpBtn.style.background = '#F0F2F5'; mfpBtn.style.color = '#5C657B'; mfpBtn.style.border = 'none';
         } else {
-            mfpBtn.style.background = '#0033FF'; mfpBtn.style.color = '#fff'; mfpBtn.style.border = 'none';
-            sfpBtn.style.background = '#f1f5f9'; sfpBtn.style.color = '#475569'; sfpBtn.style.border = '1px solid #e2e8f0';
+            mfpBtn.style.background = '#001641'; mfpBtn.style.color = '#fff'; mfpBtn.style.border = 'none';
+            sfpBtn.style.background = '#F0F2F5'; sfpBtn.style.color = '#5C657B'; sfpBtn.style.border = 'none';
         }
     }
 
