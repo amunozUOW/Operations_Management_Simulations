@@ -1,1422 +1,1485 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
 
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap">
-<style data-uow-tokens>
-:root {
-  --uow-white:        #FFFFFF;
-  --uow-blue-dark:    #001641;
-  --uow-blue-bright:  #0033FF;
-  --uow-red:          #ED0A00;
-  --uow-grey-light:   #F2F2F2;
-  --uow-copper:       #A15A35;
-  --uow-copper-light: #C4744F;
-  --uow-cream:        #F0E5D0;
-  --uow-lavender:     #CDD6F8;
-  --uow-ice-blue:     #E3F1F9;
-  --uow-font: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  --chart-1: #001641;
-  --chart-2: #ED0A00;
-  --chart-3: #0033FF;
-  --chart-4: #A15A35;
-  --chart-5: #6B7280;
-}
-[id^="ops"], [id*="-sim-"], [id*="Sim"], [id$="-sim-v1"], [id$="-sim-v2"] {
-  font-family: var(--uow-font) !important;
-}
-</style>
+<div id="ops802-hammers-sim-v1" style="max-width:1200px;margin:0 auto;padding:16px;font-family:'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#001641;line-height:1.5;">
 
-<div id="hammer-shop-sim-v1" style="display: flex; flex-direction: column; gap: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 16px; color: #001641; position: relative;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+    <span style="font-size:1.5rem;">&#128296;</span>
+    <h2 style="font-size:1.4rem;font-weight:700;margin:0;color:#001641;">Hammer Shop Simulation</h2>
+  </div>
 
-    <!-- ROW 1: Title + Phase Progress -->
-    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
-        <h2 style="margin: 0; font-size: 1.5em; color: #001641;">Hammer Shop Simulation</h2>
-        <div style="display: flex; gap: 4px; align-items: center;">
-            <span id="phaseLabel1" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #0033FF; color: #fff;">Phase 1: Service</span>
-            <span style="color: #cbd5e1;">&#9654;</span>
-            <span id="phaseLabel2" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 2: Inventory</span>
-            <span style="color: #cbd5e1;">&#9654;</span>
-            <span id="phaseLabel3" style="padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600; background: #e5e7eb; color: #94a3b8;">Phase 3: Optimize</span>
+  <div style="background:#E3F1F9;border-left:4px solid #001641;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:16px;font-size:0.8rem;color:#001641;">
+    <p style="margin:0 0 8px 0;">You manage a retail shop selling two products &mdash; <strong style="color:#ED0A00;">red</strong> and <strong style="color:#0033FF;">blue</strong> hammers &mdash; to customers who arrive at random. Each minute you balance <strong>staffing</strong>, <strong>inventory ordering</strong>, and <strong>customer satisfaction</strong>.</p>
+    <ul style="margin:0 0 8px 0;padding-left:18px;">
+      <li>Staff: regular serve 1 customer/min at $5/min; emergency serve 2 customers/min at $25/min.</li>
+      <li>Inventory: red ($15 cost, $20 order fee, $1/min holding); blue ($25 cost, $200 order fee, $2/min holding). Orders arrive 2 minutes after issue.</li>
+      <li>Demand: red 1&ndash;4 customers/min buying 1&ndash;2 each (3-min patience); blue 1&ndash;2/min buying 1&ndash;4 each (2-min patience).</li>
+      <li><strong>Quality (customer satisfaction)</strong> blends fill rate and wait time into one score: stockouts reject customers (<span style="color:#ED0A00;font-weight:600;">red&nbsp;25%</span>, <span style="color:#0033FF;font-weight:600;">blue&nbsp;50%</span>) and waits beyond a customer&rsquo;s patience erode it &mdash; so keep both products stocked <em>and</em> served quickly.</li>
+    </ul>
+    <p style="margin:0;font-size:0.75rem;color:#5C657B;">Runs for 60 minutes. <strong>Fails</strong> if cash falls below &minus;$1,000, or satisfaction stays below 40% for 5 consecutive minutes. Maximise profit while keeping customers satisfied.</p>
+  </div>
+
+  <!-- Row A: Staffing (with live staff status) + Inventory -->
+  <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start;">
+
+    <div style="flex:1;min-width:300px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="font-size:0.85rem;font-weight:700;margin:0;color:#001641;">Staffing</h3>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="toggleButton" style="min-width:78px;padding:10px 16px;border:none;border-radius:8px;background:#001641;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">Start</button>
+          <select id="simulationSpeed" style="font-family:'Montserrat',sans-serif;border:1px solid #cfd4dd;border-radius:6px;padding:6px 8px;color:#001641;background:#fff;font-size:0.8rem;">
+            <option value="3000">Slow</option>
+            <option value="2000" selected="">Medium</option>
+            <option value="1000">Fast</option>
+          </select>
+          <button id="resetButton" style="padding:10px 16px;border:none;border-radius:8px;background:#5C657B;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">Reset</button>
         </div>
+      </div>
+      <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:4px;color:#001641;">Regular Staff: <span id="regularStaffValue" style="color:#001641;">1</span></label>
+      <input type="range" id="regularStaffCount" min="1" max="10" value="1" step="1" style="width:100%;margin-bottom:14px;accent-color:#001641;">
+      <label style="display:block;font-size:0.8rem;font-weight:600;margin-bottom:4px;color:#001641;">Emergency Staff: <span id="emergencyStaffValue" style="color:#001641;">0</span></label>
+      <input type="range" id="emergencyStaffCount" min="0" max="5" value="0" step="1" style="width:100%;accent-color:#001641;">
+      <div style="border-top:1px solid #eef0f3;margin-top:14px;padding-top:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Staff Status</div>
+          <div style="display:flex;gap:12px;font-size:0.7rem;color:#5C657B;">
+            <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:#001641;vertical-align:middle;margin-right:4px;"></span>Busy</span>
+            <span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:#E3F1F9;border:1px solid #cfd4dd;vertical-align:middle;margin-right:4px;"></span>Idle</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <span style="width:78px;flex-shrink:0;font-size:0.72rem;color:#5C657B;">Regular</span>
+          <div id="regularStaffStatus" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:26px;"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:78px;flex-shrink:0;font-size:0.72rem;color:#5C657B;">Emergency</span>
+          <div id="emergencyStaffStatus" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:26px;"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- ROW 2: Instruction Panel -->
-    <div id="instructionPanel" style="background: #E3F1F9; border-left: 4px solid #0033FF; border-radius: 0 8px 8px 0; padding: 14px 18px; line-height: 1.5;">
-        <div style="display: flex; justify-content: space-between; align-items: start;">
-            <div id="instructionContent"></div>
-            <button id="toggleInstructions" onclick="void(0)" style="background: none; border: none; color: #0033FF; cursor: pointer; font-size: 0.85em; white-space: nowrap; padding: 0 0 0 12px;">Show Less</button>
+    <div style="flex:1;min-width:300px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="font-size:0.85rem;font-weight:700;margin:0;color:#001641;">Inventory</h3>
+        <button id="placeOrderButton" style="padding:10px 16px;border:none;border-radius:8px;background:#001641;color:#fff;font-family:'Montserrat',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;">Place Order</button>
+      </div>
+      <div style="display:flex;gap:14px;margin-bottom:12px;">
+        <div style="flex:1;">
+          <div style="font-size:0.78rem;font-weight:600;color:#001641;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ED0A00;vertical-align:middle;margin-right:5px;border:1px solid rgba(0,0,0,0.15);"></span>Red Hammers</div>
+          <div style="font-size:1.1rem;font-weight:700;color:#001641;">Stock: <span id="redInventory">50</span></div>
+          <input type="number" id="redOrderQty" min="1" max="1000" style="width:90px;margin-top:5px;font-family:'Montserrat',sans-serif;border:1px solid #cfd4dd;border-radius:6px;padding:6px 8px;color:#001641;background:#fff;" placeholder="Order qty">
+          <div id="redInventoryWarning" style="display:none;color:#ED0A00;font-weight:700;font-size:0.72rem;margin-top:4px;">LOW STOCK!</div>
         </div>
+        <div style="flex:1;">
+          <div style="font-size:0.78rem;font-weight:600;color:#001641;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#0033FF;vertical-align:middle;margin-right:5px;border:1px solid rgba(0,0,0,0.15);"></span>Blue Hammers</div>
+          <div style="font-size:1.1rem;font-weight:700;color:#001641;">Stock: <span id="blueInventory">50</span></div>
+          <input type="number" id="blueOrderQty" min="1" max="1000" style="width:90px;margin-top:5px;font-family:'Montserrat',sans-serif;border:1px solid #cfd4dd;border-radius:6px;padding:6px 8px;color:#001641;background:#fff;" placeholder="Order qty">
+          <div id="blueInventoryWarning" style="display:none;color:#0033FF;font-weight:700;font-size:0.72rem;margin-top:4px;">LOW STOCK!</div>
+        </div>
+      </div>
+      <div style="border-top:1px solid #eef0f3;padding-top:10px;">
+        <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;">Pending Orders</div>
+        <div id="pendingOrdersDisplay" style="margin-top:6px;font-size:0.78rem;color:#001641;">
+          <div id="noPendingOrdersMsg" style="font-style:italic;color:#5C657B;">No pending orders</div>
+          <div id="pendingRedOrders" style="display:none;margin-top:2px;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ED0A00;vertical-align:middle;margin-right:5px;border:1px solid rgba(0,0,0,0.15);"></span>Red: <span id="pendingRedQty">0</span> arriving in <span id="pendingRedTime">0</span> min</div>
+          <div id="pendingBlueOrders" style="display:none;margin-top:2px;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#0033FF;vertical-align:middle;margin-right:5px;border:1px solid rgba(0,0,0,0.15);"></span>Blue: <span id="pendingBlueQty">0</span> arriving in <span id="pendingBlueTime">0</span> min</div>
+        </div>
+        <p style="margin:10px 0 0 0;font-size:0.72rem;color:#5C657B;">Tip: enter a quantity for either or both hammers, then <strong>Place Order</strong>. Orders arrive after a 2-minute lead time.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance metric cards -->
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+    <div style="flex:1;min-width:150px;background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Time</div><div style="font-size:1.15rem;font-weight:700;color:#001641;"><span id="timeDisplay">0</span> <span style="font-size:0.7rem;color:#5C657B;">min</span></div></div>
+    <div style="flex:1;min-width:150px;background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Cash on Hand</div><div style="font-size:1.15rem;font-weight:700;color:#001641;">$<span id="cashOnHand">0.00</span></div></div>
+    <div style="flex:1;min-width:150px;background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Wage Cost / min</div><div style="font-size:1.15rem;font-weight:700;color:#001641;">$<span id="wagePerMin">0.00</span></div></div>
+    <div style="flex:1;min-width:150px;background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Holding Cost / min</div><div style="font-size:1.15rem;font-weight:700;color:#001641;">$<span id="holdingPerMin">0.00</span></div></div>
+    <div style="flex:1;min-width:150px;background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Revenue / min</div><div style="font-size:1.15rem;font-weight:700;color:#001641;">$<span id="revenuePerMin">0.00</span></div></div>
+    <div style="flex:1;min-width:150px;background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.08);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#5C657B;margin-bottom:2px;">Profit / min</div><div style="font-size:1.15rem;font-weight:700;color:#001641;">$<span id="profitPerMin">0.00</span></div></div>
+  </div>
+
+  <!-- Charts -->
+  <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:340px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">Customer Satisfaction</h3>
+      <div style="position:relative;height:300px;"><canvas id="satisfactionChart"></canvas></div>
+    </div>
+    <div style="flex:1;min-width:340px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">Average Wait Time</h3>
+      <div style="position:relative;height:300px;"><canvas id="waitTimeChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Customer metrics + Order history (paired, balanced) -->
+  <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="flex:1;min-width:300px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">Customer Metrics <span style="font-weight:400;color:#5C657B;font-size:0.8em;">(10-min average)</span></h3>
+      <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+        <thead><tr><th style="text-align:left;padding:6px 8px;color:#5C657B;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #eef0f3;">Metric</th><th style="padding:6px 8px;color:#001641;border-bottom:2px solid #eef0f3;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ED0A00;vertical-align:middle;margin-right:5px;border:1px solid rgba(0,0,0,0.15);"></span>Red</th><th style="padding:6px 8px;color:#001641;border-bottom:2px solid #eef0f3;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#0033FF;vertical-align:middle;margin-right:5px;border:1px solid rgba(0,0,0,0.15);"></span>Blue</th></tr></thead>
+        <tbody>
+          <tr><td style="padding:6px 8px;text-align:left;color:#5C657B;border-bottom:1px solid #eef0f3;">Satisfaction</td><td style="padding:6px 8px;text-align:center;border-bottom:1px solid #eef0f3;font-weight:700;color:#001641;"><span id="redSatisfaction">100</span>%</td><td style="padding:6px 8px;text-align:center;border-bottom:1px solid #eef0f3;font-weight:700;color:#001641;"><span id="blueSatisfaction">100</span>%</td></tr>
+          <tr><td style="padding:6px 8px;text-align:left;color:#5C657B;border-bottom:1px solid #eef0f3;">Fill Rate</td><td style="padding:6px 8px;text-align:center;border-bottom:1px solid #eef0f3;color:#001641;"><span id="redFillRate">100</span>%</td><td style="padding:6px 8px;text-align:center;border-bottom:1px solid #eef0f3;color:#001641;"><span id="blueFillRate">100</span>%</td></tr>
+          <tr><td style="padding:6px 8px;text-align:left;color:#5C657B;border-bottom:1px solid #eef0f3;">Avg Wait (min)</td><td style="padding:6px 8px;text-align:center;border-bottom:1px solid #eef0f3;color:#001641;"><span id="redWaitTime">0.0</span></td><td style="padding:6px 8px;text-align:center;border-bottom:1px solid #eef0f3;color:#001641;"><span id="blueWaitTime">0.0</span></td></tr>
+          <tr><td style="padding:6px 8px;text-align:left;color:#5C657B;">Queue Length</td><td style="padding:6px 8px;text-align:center;color:#001641;"><span id="redQueueLength">0</span></td><td style="padding:6px 8px;text-align:center;color:#001641;"><span id="blueQueueLength">0</span></td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <!-- Notification Area -->
-    <div id="notificationArea" style="display: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9em; text-align: center;"></div>
-
-    <!-- Failure Overlay -->
-    <div id="failureOverlay" style="display: none; padding: 16px; background: #FBEDED; border: 2px solid #ED0A00; border-radius: 8px; text-align: center;">
-        <div id="failureMessage" style="font-size: 1.1em; font-weight: 700; color: #ED0A00;"></div>
-        <div style="font-size: 0.85em; color: #B00800; margin-top: 4px;">Simulation terminated. Press Reset to try again.</div>
+    <div style="flex:1;min-width:300px;background:#fff;border-radius:10px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      <h3 style="font-size:0.85rem;font-weight:700;margin:0 0 12px 0;color:#001641;">Order History</h3>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+          <thead><tr><th style="background:#001641;color:#fff;padding:7px 8px;font-weight:600;text-align:center;">Time (min)</th><th style="background:#001641;color:#fff;padding:7px 8px;font-weight:600;text-align:center;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#ED0A00;vertical-align:middle;margin-right:5px;border:1px solid rgba(255,255,255,0.4);"></span>Red</th><th style="background:#001641;color:#fff;padding:7px 8px;font-weight:600;text-align:center;"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#0033FF;vertical-align:middle;margin-right:5px;border:1px solid rgba(255,255,255,0.4);"></span>Blue</th><th style="background:#001641;color:#fff;padding:7px 8px;font-weight:600;text-align:center;">Total Cost</th></tr></thead>
+          <tbody id="orderHistory"><tr id="orderHistPlaceholder"><td colspan="4" style="padding:14px;text-align:center;color:#5C657B;font-style:italic;">No orders placed yet &mdash; orders you place will appear here.</td></tr></tbody>
+        </table>
+      </div>
     </div>
+  </div>
 
-    <!-- ROW 3: Controls + Metrics -->
-    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
-
-        <!-- Controls Panel -->
-        <div style="flex: 1; min-width: 320px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
-
-            <!-- Simulation Controls -->
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 14px;">
-                <button id="toggleBtn" onclick="void(0)" style="flex: 1; padding: 8px 16px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Start</button>
-                <select id="speedSelect" style="padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; cursor: pointer; font-size: 0.85em;">
-                    <option value="3000">Slow</option>
-                    <option value="2000" selected>Medium</option>
-                    <option value="1000">Fast</option>
-                </select>
-                <button id="resetBtn" onclick="void(0)" style="padding: 8px 12px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em; cursor: pointer;">Reset</button>
-            </div>
-
-            <!-- Time Progress Bar -->
-            <div style="margin-bottom: 14px;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.8em; color: #64748b; margin-bottom: 4px;">
-                    <span>Minute: <strong id="timeDisplay">0</strong> / 60</span>
-                    <span>Cash: <strong id="cashDisplay" style="color: #16a34a;">$4,000.00</strong></span>
-                </div>
-                <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-                    <div id="timeBar" style="height: 100%; width: 0%; background: #0033FF; transition: width 0.3s;"></div>
-                </div>
-            </div>
-
-            <!-- Staffing -->
-            <div style="font-weight: 700; font-size: 0.9em; margin-bottom: 8px; color: #334155;">Staffing</div>
-
-            <div style="margin-bottom: 10px;">
-                <label style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 2px; color: #475569;">
-                    Regular Staff ($5/min, 1 cust/min): <span id="regularStaffValue" style="color: #0033FF;">1</span>
-                </label>
-                <input type="range" id="regularStaffSlider" min="1" max="10" value="1" step="1" style="width: 100%; cursor: pointer;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #94a3b8;"><span>1</span><span>5</span><span>10</span></div>
-            </div>
-
-            <div style="margin-bottom: 14px;">
-                <label style="display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 2px; color: #475569;">
-                    Emergency Staff ($25/min, 2 cust/min): <span id="emergencyStaffValue" style="color: #0033FF;">0</span>
-                    <span id="emergencyLockLabel" style="font-size: 0.8em; color: #ED0A00; font-weight: 400;">(locked until Phase 3)</span>
-                </label>
-                <input type="range" id="emergencyStaffSlider" min="0" max="5" value="0" step="1" style="width: 100%; cursor: not-allowed; opacity: 0.4;" disabled>
-                <div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #94a3b8;"><span>0</span><span>2</span><span>5</span></div>
-            </div>
-
-            <!-- Inventory -->
-            <div style="font-weight: 700; font-size: 0.9em; margin-bottom: 8px; color: #334155;">Inventory</div>
-
-            <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-                <div style="flex: 1; padding: 8px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px;">
-                    <div style="font-size: 0.8em; color: #475569; display: flex; align-items: center; gap: 4px;">
-                        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span> Red Stock
-                    </div>
-                    <div id="redInventoryDisplay" style="font-size: 1.2em; font-weight: 700; color: #001641;">50</div>
-                    <div id="redWarning" style="display: none; font-size: 0.75em; color: #ED0A00; font-weight: 600;">LOW STOCK</div>
-                    <input type="number" id="redOrderQty" min="1" max="100" placeholder="Order qty" style="width: 100%; margin-top: 4px; padding: 4px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.85em;">
-                </div>
-                <div style="flex: 1; padding: 8px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px;">
-                    <div style="font-size: 0.8em; color: #475569; display: flex; align-items: center; gap: 4px;">
-                        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span> Blue Stock
-                    </div>
-                    <div id="blueInventoryDisplay" style="font-size: 1.2em; font-weight: 700; color: #001641;">50</div>
-                    <div id="blueWarning" style="display: none; font-size: 0.75em; color: #0033FF; font-weight: 600;">LOW STOCK</div>
-                    <input type="number" id="blueOrderQty" min="1" max="100" placeholder="Order qty" style="width: 100%; margin-top: 4px; padding: 4px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 0.85em;">
-                </div>
-            </div>
-
-            <button id="placeOrderBtn" onclick="void(0)" style="width: 100%; padding: 8px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85em; font-weight: 600; cursor: pointer; margin-bottom: 6px;">Place Order (2 min lead time)</button>
-
-            <div id="pendingOrdersArea" style="font-size: 0.82em; color: #64748b; padding: 4px 0;">
-                <div id="noPendingMsg" style="text-align: center; font-style: italic;">No pending orders</div>
-                <div id="pendingRedDiv" style="display: none; align-items: center; gap: 4px;">
-                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ff4444;"></span>
-                    Red: <span id="pendingRedQty">0</span> arriving in <span id="pendingRedTime">0</span> min
-                </div>
-                <div id="pendingBlueDiv" style="display: none; align-items: center; gap: 4px;">
-                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #0033FF;"></span>
-                    Blue: <span id="pendingBlueQty">0</span> arriving in <span id="pendingBlueTime">0</span> min
-                </div>
-            </div>
-        </div>
-
-        <!-- Metrics Dashboard -->
-        <div style="flex: 1.2; min-width: 300px; display: flex; flex-wrap: wrap; gap: 8px; align-content: start;">
-
-            <!-- Satisfaction -->
-            <div style="flex: 1; min-width: 140px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
-                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Avg Satisfaction</div>
-                <div style="margin-top: 4px; font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span>
-                    Red: <strong id="redSatisfaction">100</strong>%
-                </div>
-                <div style="font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span>
-                    Blue: <strong id="blueSatisfaction">100</strong>%
-                </div>
-            </div>
-
-            <!-- Fill Rate -->
-            <div style="flex: 1; min-width: 140px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
-                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Fill Rate</div>
-                <div style="margin-top: 4px; font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span>
-                    Red: <strong id="redFillRate">100</strong>%
-                </div>
-                <div style="font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span>
-                    Blue: <strong id="blueFillRate">100</strong>%
-                </div>
-            </div>
-
-            <!-- Wait Time -->
-            <div style="flex: 1; min-width: 140px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
-                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Avg Wait Time</div>
-                <div style="margin-top: 4px; font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span>
-                    Red: <strong id="redWaitTime">0.0</strong> min
-                </div>
-                <div style="font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span>
-                    Blue: <strong id="blueWaitTime">0.0</strong> min
-                </div>
-            </div>
-
-            <!-- Queue Length -->
-            <div style="flex: 1; min-width: 140px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff;">
-                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Queue Length</div>
-                <div style="margin-top: 4px; font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4444; border: 1px solid #333;"></span>
-                    Red: <strong id="redQueueLength">0</strong>
-                </div>
-                <div style="font-size: 0.85em;">
-                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #0033FF; border: 1px solid #333;"></span>
-                    Blue: <strong id="blueQueueLength">0</strong>
-                </div>
-            </div>
-
-            <!-- Wage Cost -->
-            <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Wage Cost/min</div>
-                <div style="font-size: 1.3em; font-weight: 700; color: #001641;">$<span id="wageCostDisplay">0</span></div>
-            </div>
-
-            <!-- Holding Cost -->
-            <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Holding Cost/min</div>
-                <div style="font-size: 1.3em; font-weight: 700; color: #001641;">$<span id="holdingCostDisplay">0</span></div>
-            </div>
-
-            <!-- Revenue -->
-            <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Revenue/min</div>
-                <div style="font-size: 1.3em; font-weight: 700; color: #16a34a;">$<span id="revenueDisplay">0</span></div>
-            </div>
-
-            <!-- Profit -->
-            <div style="flex: 1; min-width: 130px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; background: #fff;">
-                <div style="font-size: 0.72em; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Profit/min</div>
-                <div id="profitDisplay" style="font-size: 1.3em; font-weight: 700; color: #001641;">$0</div>
-            </div>
-
-            <!-- Protected Metric: Cost per Customer -->
-            <div id="metricCPC" style="width: 100%; padding: 10px; border: 2px solid #0033FF; border-radius: 8px; text-align: center; background: #E3F1F9; display: none;">
-                <div style="font-size: 0.72em; color: #001641; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Cost per Customer Served</div>
-                <div style="font-size: 0.8em; color: #64748b; margin: 4px 0;">Calculate: Total Costs &divide; Customers Served</div>
-                <div id="cpcRevealedValue" style="display: none;">
-                    <div id="cpcValue" style="font-size: 1.5em; font-weight: 700; color: #001641;">&mdash;</div>
-                    <div style="font-size: 0.7em; color: #0033FF;">$ per customer</div>
-                </div>
-            </div>
-        </div>
+  <!-- Discussion Insights (full-width, bottom of page) -->
+  <div style="margin-bottom:8px;">
+    <h3 style="font-size:0.95rem;font-weight:700;margin:0 0 12px 0;color:#001641;">Discussion Insights <span id="insightsCounter" style="font-weight:400;color:#94a3b8;font-size:0.85em;"></span></h3>
+    <div id="insightsContainer">
+      <div id="insightsPlaceholder" style="font-size:0.78rem;color:#5C657B;font-style:italic;background:#F0F2F5;border-radius:8px;padding:14px 16px;">Discussion prompts appear here as the clock advances &mdash; at minutes 5, 12, 18 and 30. Pause the simulation to talk each one through, then click each card to reveal the model answer.</div>
     </div>
-
-    <!-- ROW 4: Staff Status -->
-    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
-        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
-            <div style="font-weight: 700; font-size: 0.9em; color: #334155;">Staff Status:</div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 0.85em; color: #475569; font-weight: 600;">Regular:</span>
-                <div id="regularStaffStatus" style="display: flex; gap: 4px;"></div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 0.85em; color: #475569; font-weight: 600;">Emergency:</span>
-                <div id="emergencyStaffStatus" style="display: flex; gap: 4px;"></div>
-            </div>
-            <div style="display: flex; gap: 12px; margin-left: auto; font-size: 0.8em;">
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 14px; height: 14px; background: #C4744F; border: 1.5px solid #333; border-radius: 3px;"></div> Busy
-                </div>
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 14px; height: 14px; background: #BBF7D0; border: 1.5px solid #333; border-radius: 3px;"></div> Idle
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ROW 5: Charts -->
-    <div style="display: flex; flex-wrap: wrap; gap: 14px;">
-        <div style="flex: 1; min-width: 340px;">
-            <div style="position: relative; height: 40vh; max-height: 350px;">
-                <canvas id="satisfactionChart"></canvas>
-            </div>
-        </div>
-        <div style="flex: 1; min-width: 340px;">
-            <div style="position: relative; height: 40vh; max-height: 350px;">
-                <canvas id="waitTimeChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- ROW 6: Order History (collapsible) -->
-    <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <h3 style="margin: 0; font-size: 1.05em; color: #001641;">Order History</h3>
-            <button id="toggleHistory" onclick="void(0)" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.82em; text-decoration: underline;">Hide</button>
-        </div>
-        <div id="historyWrap" style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.85em;">
-                <thead>
-                    <tr style="background: #f8fafc;">
-                        <th style="padding: 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #e2e8f0; color: #475569;">Time</th>
-                        <th style="padding: 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #e2e8f0; color: #475569;">Red</th>
-                        <th style="padding: 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #e2e8f0; color: #475569;">Blue</th>
-                        <th style="padding: 6px; text-align: center; font-weight: 600; border-bottom: 2px solid #e2e8f0; color: #475569;">Cost</th>
-                    </tr>
-                </thead>
-                <tbody id="orderHistoryBody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- ROW 7: Discussion Insights Panel -->
-    <div id="insightsPanel" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <div style="font-weight: 700; font-size: 1.05em; color: #001641;">Discussion Insights</div>
-            <div id="insightsCounter" style="font-size: 0.85em; color: #64748b; font-weight: 600;">0 of 9</div>
-        </div>
-        <div id="insightsList" style="display: flex; flex-direction: column; gap: 0px;"></div>
-        <div id="phaseAdvanceArea" style="display: none; margin-top: 12px; padding: 10px 12px; background: #E3F1F9; border: 1px solid #0033FF; border-radius: 6px; text-align: center;"></div>
-        <div id="overrideControls" style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
-    </div>
+  </div>
 
 </div>
 
+<div id="notificationToast" style="position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;color:white;font-weight:700;font-family:'Montserrat',sans-serif;box-shadow:0 4px 14px rgba(0,0,0,0.2);z-index:1000;display:none;"></div>
+
 <script>
-(function() {
-    'use strict';
 
-    // === CONSTANTS ===
-    var STORAGE_KEY = 'ops802_hammer_shop_v1';
-    var INITIAL_CASH = 4000;
-    var SIM_DURATION = 60;
-    var PRICES = { red: 25, blue: 50 };
-    var PURCHASE_COSTS = { red: 15, blue: 25 };
-    var HOLDING_COSTS = { red: 2, blue: 4 };
-    var ORDERING_COSTS = { red: 20, blue: 200 };
-    var LEAD_TIMES = { red: 2, blue: 2 };
-    var MAX_INVENTORY = 200;
-    var MAX_ORDER_SIZE = 100;
-    var STAFF_COSTS = { regular: 5, emergency: 25 };
-    var STAFF_RATES = { regular: 1, emergency: 2 };
-    var WAIT_LIMITS = { red: 3, blue: 2 };
-    var FAILURE_MIN_CASH = -1000;
-    var FAILURE_MIN_SAT = 40;
-    var FAILURE_CONSEC_LOW = 5;
-
-    // === CHECKPOINT SCHEDULE ===
-    var CHECKPOINT_SCHEDULE = [
-        { phase: 1, turn: 8, insightIndex: 0 },
-        { phase: 1, turn: 20, insightIndex: 1 },
-        { phase: 1, turn: 40, insightIndex: 2 },
-        { phase: 2, turn: 8, insightIndex: 3 },
-        { phase: 2, turn: 20, insightIndex: 4 },
-        { phase: 2, turn: 40, insightIndex: 5 },
-        { phase: 3, turn: 8, insightIndex: 6 },
-        { phase: 3, turn: 25, insightIndex: 7 },
-        { phase: 3, turn: 45, insightIndex: 8 }
-    ];
-    var PHASE_INSIGHTS = { 1: [0,1,2], 2: [3,4,5], 3: [6,7,8] };
-
-    // === INSIGHTS ===
-    var insights = [
-        {
-            id: 1,
-            question: "How does the number of regular staff affect customer wait times and satisfaction? Try different staffing levels and watch the charts.",
-            answer: "Each regular staff member serves 1 customer per minute. With too few staff, queues build and customers wait beyond tolerance (3 min for red, 2 min for blue). With too many, you pay $5/min per idle worker.",
-            action: null
-        },
-        {
-            id: 2,
-            question: "On average, how many customers arrive per minute? What does this tell you about the minimum number of regular staff needed?",
-            answer: "Red customers: 1\u20134/min (avg ~2.5), Blue customers: 1\u20132/min (avg ~1.5). Total average demand is ~4 customers/min. You need at least 4 regular staff to keep up, but demand variability means 5\u20136 staff provide a safer buffer.",
-            action: null
-        },
-        {
-            id: 3,
-            question: "Why do blue customers tend to have lower satisfaction than red customers, even with adequate staffing?",
-            answer: "Blue customers have a shorter wait tolerance (2 min vs 3 min for red). During demand spikes, both types queue up equally, but blue customers hit their dissatisfaction threshold faster. This makes blue satisfaction harder to maintain.",
-            action: null
-        },
-        {
-            id: 4,
-            question: "When stock runs out, customers are turned away immediately. How does this differ from making customers wait in a queue?",
-            answer: "Stockouts cause immediate rejection \u2014 no sale, no revenue, and low satisfaction (25% for red, 50% for blue). Queue waits at least allow a sale once served. Stockouts damage both fill rate and revenue, making them worse than moderate wait times.",
-            action: null
-        },
-        {
-            id: 5,
-            question: "Red hammers cost $20 to order plus $15/unit. Blue hammers cost $200 to order plus $25/unit. How should your ordering strategy differ?",
-            answer: "Red: Low fixed cost ($20) means frequent small orders are affordable. Blue: High fixed cost ($200) means you should order larger quantities less often to spread the fixed cost. This is the classic economic order quantity trade-off.",
-            action: null
-        },
-        {
-            id: 6,
-            question: "Holding costs are $2/min per red hammer and $4/min per blue hammer. With 50 of each in stock, what is your holding cost per minute? Is that sustainable?",
-            answer: "50 red \u00d7 $2 + 50 blue \u00d7 $4 = $300/min in holding costs alone. That is very expensive. Hold just enough to cover demand during the 2-minute order lead time, not excess stock.",
-            action: function() {
-                el.metricCPC.style.display = 'block';
-            }
-        },
-        {
-            id: 7,
-            question: "Emergency staff serve 2 customers/min but cost $25/min. Regular staff serve 1 customer/min at $5/min. Which is more cost-efficient per customer?",
-            answer: "Regular staff: $5 per customer. Emergency staff: $12.50 per customer. Regular staff are always more cost-efficient. Emergency staff are only justified during temporary demand spikes that would otherwise cause unacceptable wait times.",
-            action: null
-        },
-        {
-            id: 8,
-            question: "Look at your total costs \u2014 wages, inventory holding, and ordering. Which is the largest component and what could you do to reduce it?",
-            answer: "Typically, holding costs dominate if inventory levels are high, while wage costs dominate with many staff. Ordering costs are periodic and smaller. The biggest savings come from right-sizing inventory and matching staffing to demand.",
-            action: null
-        },
-        {
-            id: 9,
-            question: "What is your cost per customer served? Can you write a formula for it?",
-            answer: "Cost per Customer = (Total Wages + Total Holding Costs + Total Ordering Costs) \u00f7 Customers Served. Minimizing this requires balancing all three cost components while maintaining enough capacity and stock to serve customers.",
-            action: function() {
-                el.cpcRevealedValue.style.display = 'block';
-                updateCpcDisplay();
-            }
-        }
-    ];
-
-    // === STATE ===
-    var state = makeDefaultState();
-
-    function makeDefaultState() {
-        var cs = [];
-        for (var i = 0; i < 10; i++) cs.push({ red: [], blue: [] });
-        var rs = [];
-        for (var j = 0; j < 10; j++) rs.push({ red: [], blue: [] });
-        return {
-            currentPhase: 1,
-            questionsShown: 0,
-            insightsRevealed: 0,
-            instructionExpanded: true,
-            historyVisible: true,
-            simulatedTime: 0,
-            isComplete: false,
-            currentCash: INITIAL_CASH,
-            inventoryRed: 50,
-            inventoryBlue: 50,
-            regularStaffCount: 1,
-            emergencyStaffCount: 0,
-            simulationSpeed: 2000,
-            failureOccurred: false,
-            failureReason: null,
-            failureMessage: null,
-            lowSatRed: 0,
-            lowSatBlue: 0,
-            totalRevenue: 0,
-            totalStaffCost: 0,
-            totalHoldingCost: 0,
-            totalOrderCost: 0,
-            curMinRevenue: 0,
-            curMinStaffCost: 0,
-            curMinHoldingCost: 0,
-            curMinOrderCost: 0,
-            completedCustomers: cs,
-            rejectedCustomers: rs,
-            pendingOrders: [],
-            orderHistory: [],
-            chartSatLabels: [],
-            chartSatRed: [],
-            chartSatBlue: [],
-            chartWaitLabels: [],
-            chartWaitRed: [],
-            chartWaitBlue: [],
-            totalCustomersServed: 0
-        };
-    }
-
-    // === TRANSIENT STATE ===
-    var queue = [];
-    var inService = {};
-    var staff = [];
-    var simInterval = null;
-    var notifTimeout = null;
-
-    // === DOM CACHE ===
-    var el = {};
-    function cacheDom() {
-        el.toggleBtn = document.getElementById('toggleBtn');
-        el.speedSelect = document.getElementById('speedSelect');
-        el.resetBtn = document.getElementById('resetBtn');
-        el.timeDisplay = document.getElementById('timeDisplay');
-        el.cashDisplay = document.getElementById('cashDisplay');
-        el.timeBar = document.getElementById('timeBar');
-        el.regularStaffSlider = document.getElementById('regularStaffSlider');
-        el.regularStaffValue = document.getElementById('regularStaffValue');
-        el.emergencyStaffSlider = document.getElementById('emergencyStaffSlider');
-        el.emergencyStaffValue = document.getElementById('emergencyStaffValue');
-        el.emergencyLockLabel = document.getElementById('emergencyLockLabel');
-        el.redInventoryDisplay = document.getElementById('redInventoryDisplay');
-        el.blueInventoryDisplay = document.getElementById('blueInventoryDisplay');
-        el.redWarning = document.getElementById('redWarning');
-        el.blueWarning = document.getElementById('blueWarning');
-        el.redOrderQty = document.getElementById('redOrderQty');
-        el.blueOrderQty = document.getElementById('blueOrderQty');
-        el.placeOrderBtn = document.getElementById('placeOrderBtn');
-        el.noPendingMsg = document.getElementById('noPendingMsg');
-        el.pendingRedDiv = document.getElementById('pendingRedDiv');
-        el.pendingBlueDiv = document.getElementById('pendingBlueDiv');
-        el.pendingRedQty = document.getElementById('pendingRedQty');
-        el.pendingRedTime = document.getElementById('pendingRedTime');
-        el.pendingBlueQty = document.getElementById('pendingBlueQty');
-        el.pendingBlueTime = document.getElementById('pendingBlueTime');
-        el.redSatisfaction = document.getElementById('redSatisfaction');
-        el.blueSatisfaction = document.getElementById('blueSatisfaction');
-        el.redFillRate = document.getElementById('redFillRate');
-        el.blueFillRate = document.getElementById('blueFillRate');
-        el.redWaitTime = document.getElementById('redWaitTime');
-        el.blueWaitTime = document.getElementById('blueWaitTime');
-        el.redQueueLength = document.getElementById('redQueueLength');
-        el.blueQueueLength = document.getElementById('blueQueueLength');
-        el.wageCostDisplay = document.getElementById('wageCostDisplay');
-        el.holdingCostDisplay = document.getElementById('holdingCostDisplay');
-        el.revenueDisplay = document.getElementById('revenueDisplay');
-        el.profitDisplay = document.getElementById('profitDisplay');
-        el.metricCPC = document.getElementById('metricCPC');
-        el.cpcRevealedValue = document.getElementById('cpcRevealedValue');
-        el.cpcValue = document.getElementById('cpcValue');
-        el.regularStaffStatus = document.getElementById('regularStaffStatus');
-        el.emergencyStaffStatus = document.getElementById('emergencyStaffStatus');
-        el.orderHistoryBody = document.getElementById('orderHistoryBody');
-        el.historyWrap = document.getElementById('historyWrap');
-        el.toggleHistory = document.getElementById('toggleHistory');
-        el.instructionContent = document.getElementById('instructionContent');
-        el.toggleInstructions = document.getElementById('toggleInstructions');
-        el.notificationArea = document.getElementById('notificationArea');
-        el.failureOverlay = document.getElementById('failureOverlay');
-        el.failureMessage = document.getElementById('failureMessage');
-        el.phaseLabel1 = document.getElementById('phaseLabel1');
-        el.phaseLabel2 = document.getElementById('phaseLabel2');
-        el.phaseLabel3 = document.getElementById('phaseLabel3');
-        el.insightsCounter = document.getElementById('insightsCounter');
-        el.insightsList = document.getElementById('insightsList');
-        el.phaseAdvanceArea = document.getElementById('phaseAdvanceArea');
-        el.overrideControls = document.getElementById('overrideControls');
-    }
-
-    // === FACTORY FUNCTIONS ===
-    var custIdCounter = 0;
-    function createCustomer(type, arrivalTime, demandQuantity) {
-        return {
-            id: 'c' + (++custIdCounter),
-            type: type,
-            arrivalTime: arrivalTime,
-            demandQuantity: demandQuantity,
-            serviceStartTime: null,
-            completionTime: null,
-            waitTimeLimit: WAIT_LIMITS[type]
-        };
-    }
-
-    var staffIdCounter = 0;
-    function createStaff(type) {
-        return {
-            id: 's' + (++staffIdCounter),
-            type: type,
-            busy: false,
-            serviceRate: STAFF_RATES[type],
-            costPerMinute: STAFF_COSTS[type],
-            currentCustomer: null,
-            totalBusyTime: 0,
-            currentStartTime: null
-        };
-    }
-
-    // === CORE SIMULATION ===
-    function generateRandomDemand(type) {
-        if (type === 'red') {
-            return Math.floor(Math.random() * 2) + 1;
-        } else {
-            return Math.floor(Math.random() * 4) + 1;
+    // hammer-shop.js
+    class Customer {
+        constructor(type, arrivalTime, demandQuantity) {
+            this.id = Math.random().toString(36).substr(2, 9);
+            this.type = type; // 'red' or 'blue'
+            this.arrivalTime = arrivalTime;
+            this.demandQuantity = demandQuantity;
+            this.serviceStartTime = null;
+            this.completionTime = null;
+            this.satisfied = false;
+            this.waitTimeLimit = type === 'red' ? 3 : 2; // minutes
         }
     }
 
-    function generateNewCustomers() {
-        var redArrivals = Math.floor(Math.random() * 4) + 1;
-        for (var i = 0; i < redArrivals; i++) {
-            var demand = generateRandomDemand('red');
-            if (state.inventoryRed >= demand) {
-                queue.push(createCustomer('red', state.simulatedTime, demand));
-            } else {
-                state.rejectedCustomers[state.simulatedTime % 10].red.push({
-                    time: state.simulatedTime, satisfaction: 25
-                });
-            }
-        }
-        var blueArrivals = Math.floor(Math.random() * 2) + 1;
-        for (var j = 0; j < blueArrivals; j++) {
-            var bDemand = generateRandomDemand('blue');
-            if (state.inventoryBlue >= bDemand) {
-                queue.push(createCustomer('blue', state.simulatedTime, bDemand));
-            } else {
-                state.rejectedCustomers[state.simulatedTime % 10].blue.push({
-                    time: state.simulatedTime, satisfaction: 50
-                });
-            }
+    class Staff {
+        constructor(id, type) {
+            this.id = id;
+            this.type = type; // 'regular' or 'emergency'
+            this.busy = false;
+            this.serviceRate = type === 'regular' ? 1 : 2; // customers per minute
+            this.costPerMinute = type === 'regular' ? 5 : 25;
+            this.currentCustomer = null;
+            this.totalBusyTime = 0;
+            this.currentStartTime = null;
         }
     }
 
-    function calculateStaffCosts() {
-        var total = 0;
-        for (var i = 0; i < staff.length; i++) total += staff[i].costPerMinute;
-        state.curMinStaffCost = total;
-    }
-
-    function calculateCurrentCosts() {
-        calculateStaffCosts();
-        state.curMinHoldingCost = state.inventoryRed * HOLDING_COSTS.red + state.inventoryBlue * HOLDING_COSTS.blue;
-    }
-
-    function applyMinuteCosts() {
-        state.totalStaffCost += state.curMinStaffCost;
-        state.totalHoldingCost += state.curMinHoldingCost;
-        var curProfit = state.curMinRevenue - state.curMinStaffCost - state.curMinHoldingCost - state.curMinOrderCost;
-        state.currentCash -= state.curMinStaffCost;
-        state.currentCash -= state.curMinHoldingCost;
-    }
-
-    function processCustomer(customer, staffMember) {
-        var type = customer.type;
-        var inv = type === 'red' ? state.inventoryRed : state.inventoryBlue;
-        if (inv >= customer.demandQuantity) {
-            if (type === 'red') state.inventoryRed -= customer.demandQuantity;
-            else state.inventoryBlue -= customer.demandQuantity;
-            staffMember.busy = true;
-            staffMember.currentCustomer = customer;
-            staffMember.currentStartTime = state.simulatedTime;
-            customer.serviceStartTime = state.simulatedTime;
-            var serviceTime = 1 / staffMember.serviceRate;
-            inService[customer.id] = {
-                customer: customer,
-                staffId: staffMember.id,
-                completionTime: state.simulatedTime + serviceTime
+    class HammerShopSimulation {
+        constructor() {
+            this.simulationSpeed = 2000;
+            // Initialize parameters
+            this.inventory = {
+                red: 50,
+                blue: 50
             };
-            calculateCurrentCosts();
-            return true;
-        }
-        return false;
-    }
+            this.queue = [];
+            this.inService = new Map();
+            this.completedCustomers = new Array(10).fill(null).map(() => ({
+                red: [],
+                blue: []
+            }));
+            this.rejectedCustomers = new Array(10).fill(null).map(() => ({
+                red: [],
+                blue: []
+            }));
+            this.simulatedTime = 0;
+            this.isRunning = false;
 
-    function calculateSatisfaction(customer) {
-        var waitTime = customer.serviceStartTime - customer.arrivalTime;
-        if (customer.type === 'red') {
-            return waitTime <= 3 ? 100 : Math.max(0, 100 - ((waitTime - 3) * 10));
-        } else {
-            return waitTime <= 2 ? 100 : Math.max(0, 100 - ((waitTime - 2) * 25));
-        }
-    }
+            // Financial tracking
+            this.initialCash = 4000;
+            this.currentCash = this.initialCash;
+            this.metrics = {
+                totalRevenue: 0,
+                totalStaffCost: 0,
+                totalHoldingCost: 0,
+                totalOrderCost: 0,
+                // Add current minute metrics with initial values
+                currentMinuteRevenue: 0,
+                currentMinuteStaffCost: 0,
+                currentMinuteHoldingCost: 0,
+                currentMinuteOrderCost: 0,
+                currentMinuteProfit: 0 // Added this to track profit consistently
+            };
 
-    function checkServiceCompletions() {
-        var keys = Object.keys(inService);
-        for (var k = 0; k < keys.length; k++) {
-            var service = inService[keys[k]];
-            if (state.simulatedTime >= service.completionTime) {
-                var sm = null;
-                for (var s = 0; s < staff.length; s++) {
-                    if (staff[s].id === service.staffId) { sm = staff[s]; break; }
-                }
-                if (sm) {
-                    sm.busy = false;
-                    sm.totalBusyTime += (state.simulatedTime - sm.currentStartTime);
-                    sm.currentCustomer = null;
-                }
-                var customer = service.customer;
-                customer.completionTime = state.simulatedTime;
-                var saleRevenue = PRICES[customer.type] * customer.demandQuantity;
-                state.totalRevenue += saleRevenue;
-                state.curMinRevenue += saleRevenue;
-                state.currentCash += saleRevenue;
-                state.totalCustomersServed++;
-                var sat = calculateSatisfaction(customer);
-                state.completedCustomers[state.simulatedTime % 10][customer.type].push({
-                    time: state.simulatedTime,
-                    waitTime: customer.serviceStartTime - customer.arrivalTime,
-                    satisfaction: sat
-                });
-                delete inService[keys[k]];
+            // Product parameters
+            this.PRICES = {
+                red: 25,
+                blue: 50
+            };
+            this.PURCHASE_COSTS = {
+                red: 15,
+                blue: 25
+            };
+            this.HOLDING_COSTS = {
+                red: 1,
+                blue: 2
+            }; // per unit per minute (rebalanced 2026: was 2/4; halved so EOQ-sized
+               // ordering is profitable while overstocking still runs at a loss)
+            this.ORDERING_COSTS = {
+                red: 20,
+                blue: 200
+            };
+            this.orderHistory = []; // Add this line to track orders
+
+            this.insightsRevealed = 0;
+            this.questionsShown = 0;
+            this.INSIGHTS = [{"min": 5, "q": "Customers arrive at about 4 per minute on average and up to 6 in a surge. Each regular staff member serves 1 customer per minute. How many regular staff do you need?", "a": "Staff needed ≈ arrival rate ÷ service rate = 4 ÷ 1 = 4 just to keep pace on average. Because arrivals are random and peak near 6/min, 5–6 regular staff keep queues short. With fewer than 4 the queue grows without bound, and blue customers — who tolerate only a 2-minute wait — lose satisfaction first."}, {"min": 12, "q": "Red hammers cost $20 to order and $60 per unit per hour to hold, with demand about 225 units/hour. Using EOQ = √(2·D·C₀/Cₕ), what order size minimises cost?", "a": "EOQ = √(2 × 225 × 20 / 60) = √150 ≈ 12 units. Reorder when stock nears the 2-minute lead demand (about 8 units) — the under-10 warning is the cue. Red is cheap to order and cheap to hold, so order little and often, roughly every 3 minutes."}, {"min": 18, "q": "Blue hammers cost $200 to order and $120 per unit per hour to hold. What is the EOQ, and how does the strategy differ from red?", "a": "EOQ = √(2 × 225 × 200 / 120) = √750 ≈ 27 units. The high $200 fee pushes blue toward larger, less frequent orders (about every 7 minutes), but the steep holding cost stops you over-ordering. Order around 27 at a time — not 100."}, {"min": 30, "q": "When is it worth hiring an emergency staff member at $25/min when a regular costs only $5/min?", "a": "Per customer served, a regular costs $5 and an emergency $12.50, so regulars are always cheaper for steady demand. An emergency worker clears 2 customers/min, so they only earn their wage during a sudden queue spike you were caught under-staffed for — clearing the backlog fast rescues satisfaction before blue customers pass their 2-minute tolerance. Use them as a short, sharp surge lever, then stand them down."}];
+
+            // Create initial staff
+            this.staff = [];
+            const regularStaffElement = document.getElementById('regularStaffCount');
+            const emergencyStaffElement = document.getElementById('emergencyStaffCount');
+
+            if (regularStaffElement && emergencyStaffElement) {
+                const regularCount = parseInt(regularStaffElement.value);
+                const emergencyCount = parseInt(emergencyStaffElement.value);
+                this.updateStaff('regular', regularCount);
+                this.updateStaff('emergency', emergencyCount);
             }
-        }
-        var availableStaff = [];
-        for (var a = 0; a < staff.length; a++) {
-            if (!staff[a].busy) availableStaff.push(staff[a]);
-        }
-        while (availableStaff.length > 0 && queue.length > 0) {
-            var nextStaff = availableStaff.pop();
-            var nextCust = queue.shift();
-            if (!processCustomer(nextCust, nextStaff)) {
-                state.rejectedCustomers[state.simulatedTime % 10][nextCust.type].push({
-                    time: state.simulatedTime,
-                    satisfaction: nextCust.type === 'red' ? 25 : 50
-                });
-            }
-        }
-    }
 
-    function calculateMovingAverages() {
-        var now = state.simulatedTime;
-        var redAll = [], blueAll = [];
-        for (var i = 0; i < 10; i++) {
-            var cm = state.completedCustomers[i];
-            var rm = state.rejectedCustomers[i];
-            for (var r = 0; r < cm.red.length; r++) if (cm.red[r].time > now - 10) redAll.push(cm.red[r]);
-            for (var rb = 0; rb < rm.red.length; rb++) if (rm.red[rb].time > now - 10) redAll.push(rm.red[rb]);
-            for (var b = 0; b < cm.blue.length; b++) if (cm.blue[b].time > now - 10) blueAll.push(cm.blue[b]);
-            for (var bb = 0; bb < rm.blue.length; bb++) if (rm.blue[bb].time > now - 10) blueAll.push(rm.blue[bb]);
-        }
-        var redSat = 100, blueSat = 100, redWait = 0, blueWait = 0, redFill = 100, blueFill = 100;
-        if (redAll.length > 0) {
-            var satSum = 0; for (var rs = 0; rs < redAll.length; rs++) satSum += redAll[rs].satisfaction;
-            redSat = satSum / redAll.length;
-            var waitArr = []; for (var rw = 0; rw < redAll.length; rw++) if (redAll[rw].waitTime !== undefined) waitArr.push(redAll[rw]);
-            if (waitArr.length > 0) {
-                var wSum = 0; for (var w = 0; w < waitArr.length; w++) wSum += waitArr[w].waitTime;
-                redWait = wSum / waitArr.length;
-            }
-            redFill = waitArr.length / redAll.length * 100;
-        }
-        if (blueAll.length > 0) {
-            var bSatSum = 0; for (var bs = 0; bs < blueAll.length; bs++) bSatSum += blueAll[bs].satisfaction;
-            blueSat = bSatSum / blueAll.length;
-            var bWaitArr = []; for (var bw = 0; bw < blueAll.length; bw++) if (blueAll[bw].waitTime !== undefined) bWaitArr.push(blueAll[bw]);
-            if (bWaitArr.length > 0) {
-                var bwSum = 0; for (var bw2 = 0; bw2 < bWaitArr.length; bw2++) bwSum += bWaitArr[bw2].waitTime;
-                blueWait = bwSum / bWaitArr.length;
-            }
-            blueFill = bWaitArr.length / blueAll.length * 100;
-        }
-        return {
-            satisfaction: { red: redSat, blue: blueSat },
-            waitTime: { red: redWait, blue: blueWait },
-            fillRate: { red: redFill, blue: blueFill }
-        };
-    }
+            // Initialize failure state
+            this.failureState = {
+                occurred: false,
+                reason: null,
+                message: null
+            };
 
-    function rebuildStaff() {
-        var newStaff = [];
-        var existingRegular = [];
-        var existingEmergency = [];
-        for (var i = 0; i < staff.length; i++) {
-            if (staff[i].type === 'regular') existingRegular.push(staff[i]);
-            else existingEmergency.push(staff[i]);
-        }
-        for (var r = 0; r < state.regularStaffCount; r++) {
-            newStaff.push(r < existingRegular.length ? existingRegular[r] : createStaff('regular'));
-        }
-        for (var e = 0; e < state.emergencyStaffCount; e++) {
-            newStaff.push(e < existingEmergency.length ? existingEmergency[e] : createStaff('emergency'));
-        }
-        staff = newStaff;
-        calculateStaffCosts();
-    }
+            this.FAILURE_THRESHOLDS = {
+                minCash: -1000, // Bankruptcy at $1000 debt
+                minSatisfaction: {
+                    red: 40, // Minimum satisfaction percentage for red customers
+                    blue: 40 // Minimum satisfaction percentage for blue customers
+                },
+                consecutiveLowSatisfactionPeriods: 5 // How many consecutive minutes of low satisfaction before failure
+            };
 
-    function checkInventoryLevels() {
-        el.redWarning.style.display = state.inventoryRed < 10 ? 'block' : 'none';
-        el.blueWarning.style.display = state.inventoryBlue < 10 ? 'block' : 'none';
-    }
+            this.lowSatisfactionPeriods = {
+                red: 0,
+                blue: 0
+            };
 
-    function checkPendingOrders() {
-        if (state.pendingOrders.length === 0) return;
-        var arrived = [];
-        for (var i = 0; i < state.pendingOrders.length; i++) {
-            var order = state.pendingOrders[i];
-            if (state.simulatedTime >= order.arrivalTime) {
-                arrived.push(i);
-                if (order.type === 'red') state.inventoryRed += order.quantity;
-                else state.inventoryBlue += order.quantity;
-                showNotification(order.quantity + ' ' + order.type.charAt(0).toUpperCase() + order.type.slice(1) + ' hammers arrived!', false);
-            }
-        }
-        if (arrived.length > 0) {
-            var newPending = [];
-            for (var j = 0; j < state.pendingOrders.length; j++) {
-                if (arrived.indexOf(j) === -1) newPending.push(state.pendingOrders[j]);
-            }
-            state.pendingOrders = newPending;
-            calculateCurrentCosts();
-        }
-    }
+            // Initialize pending orders
+            this.pendingOrders = [];
+            this.LEAD_TIMES = {
+                red: 2, // 2 minutes lead time for red hammers
+                blue: 2 // 2 minutes lead time for blue hammers
+            };
 
-    function placeOrders() {
-        var redQty = parseInt(el.redOrderQty.value, 10) || 0;
-        var blueQty = parseInt(el.blueOrderQty.value, 10) || 0;
-        if (redQty === 0 && blueQty === 0) {
-            showNotification('Enter a quantity for at least one type', true); return;
-        }
-        if (redQty < 0 || blueQty < 0) {
-            showNotification('Quantities cannot be negative', true); return;
-        }
-        var pendRed = 0, pendBlue = 0;
-        for (var i = 0; i < state.pendingOrders.length; i++) {
-            if (state.pendingOrders[i].type === 'red') pendRed += state.pendingOrders[i].quantity;
-            else pendBlue += state.pendingOrders[i].quantity;
-        }
-        if (state.inventoryRed + pendRed + redQty > MAX_INVENTORY) {
-            showNotification('Red inventory (inc. pending) cannot exceed ' + MAX_INVENTORY, true); return;
-        }
-        if (state.inventoryBlue + pendBlue + blueQty > MAX_INVENTORY) {
-            showNotification('Blue inventory (inc. pending) cannot exceed ' + MAX_INVENTORY, true); return;
-        }
-        if (redQty > MAX_ORDER_SIZE || blueQty > MAX_ORDER_SIZE) {
-            showNotification('Max order size is ' + MAX_ORDER_SIZE + ' per type', true); return;
-        }
-        var orderCost = (redQty > 0 ? ORDERING_COSTS.red : 0) + (blueQty > 0 ? ORDERING_COSTS.blue : 0) +
-            (redQty * PURCHASE_COSTS.red) + (blueQty * PURCHASE_COSTS.blue);
-        if (orderCost > state.currentCash) {
-            showNotification('Not enough cash. Need $' + orderCost.toFixed(2) + ', have $' + state.currentCash.toFixed(2), true); return;
-        }
-        var newOrder = { time: state.simulatedTime, redQuantity: redQty, blueQuantity: blueQty, cost: orderCost };
-        state.orderHistory.push(newOrder);
-        state.totalOrderCost += orderCost;
-        state.curMinOrderCost += orderCost;
-        state.currentCash -= orderCost;
-        if (redQty > 0) state.pendingOrders.push({ type: 'red', quantity: redQty, arrivalTime: state.simulatedTime + LEAD_TIMES.red });
-        if (blueQty > 0) state.pendingOrders.push({ type: 'blue', quantity: blueQty, arrivalTime: state.simulatedTime + LEAD_TIMES.blue });
-        addOrderHistoryRow(newOrder);
-        updateDisplay();
-        checkInventoryLevels();
-        el.redOrderQty.value = '';
-        el.blueOrderQty.value = '';
-        var msg = 'Order placed: ';
-        if (redQty > 0) msg += redQty + ' Red';
-        if (redQty > 0 && blueQty > 0) msg += ' & ';
-        if (blueQty > 0) msg += blueQty + ' Blue';
-        msg += ' (arrives in 2 min)';
-        showNotification(msg, false);
-        saveState();
-    }
+            // Initialize charts and event listeners
+            this.initializeCharts();
+            this.initializeEventListeners();
 
-    function checkFailureConditions() {
-        if (state.failureOccurred) return;
-        if (state.simulatedTime < 10) return;
-        if (state.currentCash < FAILURE_MIN_CASH) {
-            triggerFailure('bankruptcy', 'Business Bankrupt: Too much debt!');
-            return;
+            // Initialize display and inventory warnings
+            this.calculateCurrentCosts();
+            this.updateDisplay();
+            this.checkInventoryLevels();
+            this.updateInsightsCounter();
         }
-        var avg = calculateMovingAverages();
-        if (avg.satisfaction.red < FAILURE_MIN_SAT) {
-            state.lowSatRed++;
-            if (state.lowSatRed >= FAILURE_CONSEC_LOW) {
-                triggerFailure('red-satisfaction', 'Failed: Red customer satisfaction too low for ' + FAILURE_CONSEC_LOW + ' consecutive minutes!');
-                return;
-            }
-        } else { state.lowSatRed = 0; }
-        if (avg.satisfaction.blue < FAILURE_MIN_SAT) {
-            state.lowSatBlue++;
-            if (state.lowSatBlue >= FAILURE_CONSEC_LOW) {
-                triggerFailure('blue-satisfaction', 'Failed: Blue customer satisfaction too low for ' + FAILURE_CONSEC_LOW + ' consecutive minutes!');
-                return;
-            }
-        } else { state.lowSatBlue = 0; }
-    }
 
-    function triggerFailure(reason, message) {
-        state.failureOccurred = true;
-        state.failureReason = reason;
-        state.failureMessage = message;
-        clearInterval(simInterval);
-        simInterval = null;
-        el.toggleBtn.textContent = 'Failed';
-        el.toggleBtn.disabled = true;
-        el.toggleBtn.style.background = '#ED0A00';
-        el.toggleBtn.style.cursor = 'not-allowed';
-        el.failureMessage.textContent = message;
-        el.failureOverlay.style.display = 'block';
-        saveState();
-    }
-
-    // === SIMULATION TICK ===
-    function simulationTick() {
-        state.curMinRevenue = 0;
-        state.curMinOrderCost = 0;
-        calculateCurrentCosts();
-        applyMinuteCosts();
-        state.simulatedTime += 1;
-        generateNewCustomers();
-        checkServiceCompletions();
-        checkInventoryLevels();
-        checkPendingOrders();
-        var avg = calculateMovingAverages();
-        updateDisplay();
-        updateCharts(avg);
-        checkForNewQuestion();
-        checkFailureConditions();
-        saveState();
-        if (state.simulatedTime >= SIM_DURATION) {
-            clearInterval(simInterval);
-            simInterval = null;
-            state.isComplete = true;
-            el.toggleBtn.textContent = 'Complete';
-            el.toggleBtn.disabled = true;
-            el.toggleBtn.style.background = '#e0e0e0';
-            el.toggleBtn.style.cursor = 'not-allowed';
-            saveState();
-        }
-    }
-
-    function toggleSimulation() {
-        if (state.failureOccurred || state.isComplete) return;
-        if (simInterval) {
-            clearInterval(simInterval);
-            simInterval = null;
-            el.toggleBtn.textContent = 'Resume';
-        } else {
-            state.simulationSpeed = parseInt(el.speedSelect.value);
-            calculateCurrentCosts();
-            simInterval = setInterval(simulationTick, state.simulationSpeed);
-            el.toggleBtn.textContent = 'Pause';
-        }
-    }
-
-    // === PHASE MANAGEMENT ===
-    function setPhase(phase) {
-        state.currentPhase = phase;
-        var colors = { active: '#0033FF', completed: '#16a34a', upcoming: '#e5e7eb' };
-        var textColors = { active: '#fff', completed: '#fff', upcoming: '#94a3b8' };
-        [1, 2, 3].forEach(function(p) {
-            var status = p === phase ? 'active' : p < phase ? 'completed' : 'upcoming';
-            var lbl = document.getElementById('phaseLabel' + p);
-            lbl.style.background = colors[status];
-            lbl.style.color = textColors[status];
-        });
-        if (phase < 3) {
-            el.emergencyStaffSlider.disabled = true;
-            el.emergencyStaffSlider.style.cursor = 'not-allowed';
-            el.emergencyStaffSlider.style.opacity = '0.4';
-            el.emergencyLockLabel.style.display = 'inline';
-            el.emergencyStaffSlider.value = 0;
-            el.emergencyStaffValue.textContent = '0';
-            state.emergencyStaffCount = 0;
-            rebuildStaff();
-        } else {
-            el.emergencyStaffSlider.disabled = false;
-            el.emergencyStaffSlider.style.cursor = 'pointer';
-            el.emergencyStaffSlider.style.opacity = '1';
-            el.emergencyLockLabel.style.display = 'none';
-        }
-        el.metricCPC.style.display = phase >= 3 || state.insightsRevealed >= 6 ? 'block' : 'none';
-        if (state.insightsRevealed >= 9) el.cpcRevealedValue.style.display = 'block';
-        renderInstructions();
-        renderInsights();
-        saveState();
-    }
-
-    function advancePhase() {
-        if (state.currentPhase >= 3) return;
-        setPhase(state.currentPhase + 1);
-    }
-
-    function skipToPhase(targetPhase) {
-        if (targetPhase <= state.currentPhase || targetPhase > 3) return;
-        for (var p = state.currentPhase; p < targetPhase; p++) {
-            var pi = PHASE_INSIGHTS[p];
-            var maxIdx = pi[pi.length - 1];
-            if (state.questionsShown <= maxIdx) state.questionsShown = maxIdx + 1;
-            while (state.insightsRevealed <= maxIdx) {
-                var ins = insights[state.insightsRevealed];
-                state.insightsRevealed++;
-                if (typeof ins.action === 'function') ins.action();
-            }
-        }
-        setPhase(targetPhase);
-    }
-
-    // === INSTRUCTIONS ===
-    var instructionText = {
-        1: {
-            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #001641;">Phase 1: Service Capacity</div>' +
-                '<div style="margin-bottom: 8px;">You manage a hammer shop selling <strong>red hammers</strong> ($25 each) and <strong>blue hammers</strong> ($50 each). Customers arrive randomly each minute. Your main decision is <strong>how many regular staff to hire</strong>.</div>' +
-                '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
-                '<li>Red customers: <strong>1\u20134/min</strong>, buy 1\u20132 hammers, tolerate <strong>3 min</strong> wait</li>' +
-                '<li>Blue customers: <strong>1\u20132/min</strong>, buy 1\u20134 hammers, tolerate <strong>2 min</strong> wait</li>' +
-                '<li>Regular staff: <strong>1 customer/min</strong> at <strong>$5/min</strong></li>' +
-                '<li>Starting cash: <strong>$4,000</strong>. Failure at &lt; \u2013$1,000 or satisfaction &lt; 40% for 5 min</li>' +
-                '</ul>' +
-                '<div style="color: #001641; font-weight: 600;">Try different staffing levels. Watch how queue length, wait times, and satisfaction change.</div>',
-            short: '<span style="font-weight: 700; color: #001641;">Phase 1:</span> Adjust regular staff (emergency locked). Observe queue dynamics and customer satisfaction.'
-        },
-        2: {
-            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #A15A35;">Phase 2: Inventory Strategy</div>' +
-                '<div style="margin-bottom: 8px;">Now focus on <strong>inventory management</strong>. When stock runs out, customers leave immediately with low satisfaction.</div>' +
-                '<ul style="margin: 0 0 8px 0; padding-left: 20px; line-height: 1.6;">' +
-                '<li>Red hammers: $15/unit + $20 order fee, <strong>$2/min holding cost</strong></li>' +
-                '<li>Blue hammers: $25/unit + $200 order fee, <strong>$4/min holding cost</strong></li>' +
-                '<li>All orders take <strong>2 minutes</strong> to arrive. Max inventory: 200 per type</li>' +
-                '</ul>' +
-                '<div style="color: #A15A35; font-weight: 600;">Experiment with order timing and quantities. Can you keep stock without excessive holding costs?</div>',
-            short: '<span style="font-weight: 700; color: #A15A35;">Phase 2:</span> Optimize inventory ordering. Balance holding costs vs stockout risk.'
-        },
-        3: {
-            full: '<div style="font-weight: 700; font-size: 1em; margin-bottom: 6px; color: #1F8A2F;">Phase 3: Integrated Optimization</div>' +
-                '<div style="margin-bottom: 8px;"><strong>Emergency staff</strong> are now available: they serve <strong>2 customers/min</strong> but cost <strong>$25/min</strong> (5\u00d7 regular). All controls are active.</div>' +
-                '<div style="margin-bottom: 8px;">Your goal: maximize profit over 60 minutes by optimizing <strong>staffing levels</strong>, <strong>emergency staff usage</strong>, and <strong>inventory ordering</strong> together.</div>' +
-                '<div style="color: #1F8A2F; font-weight: 600;">Can you find the right balance between service quality, inventory costs, and wage costs?</div>',
-            short: '<span style="font-weight: 700; color: #1F8A2F;">Phase 3:</span> Emergency staff unlocked. Optimize staffing + inventory for maximum profit.'
-        }
-    };
-
-    function renderInstructions() {
-        var inst = instructionText[state.currentPhase];
-        el.instructionContent.innerHTML = state.instructionExpanded ? inst.full : inst.short;
-        el.toggleInstructions.textContent = state.instructionExpanded ? 'Show Less' : 'Show More';
-    }
-
-    // === INSIGHTS PANEL ===
-    function renderInsights() {
-        var total = insights.length;
-        el.insightsCounter.textContent = state.insightsRevealed + ' of ' + total;
-        var html = '';
-        for (var i = 0; i < total; i++) {
-            var ins = insights[i];
-            if (i < state.insightsRevealed) {
-                html += '<div style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #fff; border: 1px solid #e2e8f0;">';
-                html += '<div style="display: flex; gap: 10px; align-items: start;">';
-                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #0033FF; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
-                html += '<div style="flex: 1;"><div style="font-size: 0.85em; color: #475569; font-style: italic; margin-bottom: 6px;">\u201c' + ins.question + '\u201d</div>';
-                html += '<div style="font-size: 0.9em; color: #001641; font-weight: 500; padding: 6px 10px; background: #f0fdf4; border-left: 3px solid #16A34A; border-radius: 0 4px 4px 0;">' + ins.answer + '</div>';
-                html += '</div></div></div>';
-            } else if (i < state.questionsShown) {
-                html += '<div data-reveal-index="' + i + '" style="padding: 10px 12px; margin-bottom: 2px; border-radius: 6px; background: #F0E5D0; border: 1px solid #A15A35; cursor: pointer;">';
-                html += '<div style="display: flex; gap: 10px; align-items: start;">';
-                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #A15A35; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
-                html += '<div style="flex: 1;"><div style="font-size: 0.85em; color: #001641; font-style: italic; margin-bottom: 6px;">\u201c' + ins.question + '\u201d</div>';
-                if (i === state.insightsRevealed) {
-                    html += '<div style="font-size: 0.8em; color: #A15A35; font-weight: 600; padding: 4px 10px; background: #F0E5D0; border-radius: 4px; display: inline-block;">Click to reveal answer</div>';
-                } else {
-                    html += '<div style="font-size: 0.8em; color: #94a3b8; font-style: italic;">(answer the previous question first)</div>';
-                }
-                html += '</div></div></div>';
+        // Calculate demand for customers based on type
+        generateRandomDemand(type) {
+            if (type === 'red') {
+                return Math.floor(Math.random() * 2) + 1; // 1-2 hammers
             } else {
-                html += '<div style="padding: 6px 12px; margin-bottom: 2px;">';
-                html += '<div style="display: flex; gap: 10px; align-items: center;">';
-                html += '<div style="min-width: 28px; height: 28px; border-radius: 50%; background: #e5e7eb; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 700; flex-shrink: 0;">' + (i+1) + '</div>';
-                html += '<div style="font-size: 0.82em; color: #cbd5e1; font-style: italic;">(not yet revealed)</div>';
-                html += '</div></div>';
+                return Math.floor(Math.random() * 4) + 1; // 1-4 hammers
             }
         }
-        el.insightsList.innerHTML = html;
-        renderPhaseAdvance();
-        renderOverrides();
-    }
 
-    function renderPhaseAdvance() {
-        var phase = state.currentPhase;
-        var pi = PHASE_INSIGHTS[phase];
-        var maxIdx = pi[pi.length - 1];
-        if (state.insightsRevealed > maxIdx && phase < 3) {
-            el.phaseAdvanceArea.style.display = 'block';
-            var next = phase + 1;
-            el.phaseAdvanceArea.innerHTML = '<div style="font-size: 0.9em; color: #001641; margin-bottom: 8px;">All Phase ' + phase + ' insights completed!</div>' +
-                '<button id="advancePhaseBtn" onclick="void(0)" style="padding: 8px 20px; background: #0033FF; color: #fff; border: none; border-radius: 6px; font-size: 0.95em; font-weight: 600; cursor: pointer;">Continue to Phase ' + next + ' &#9654;</button>';
-        } else {
-            el.phaseAdvanceArea.style.display = 'none';
-            el.phaseAdvanceArea.innerHTML = '';
-        }
-    }
+        // Generate new customers for the current minute
+        generateNewCustomers() {
+            // Red customers: Random number between 1-4 per minute
+            const redArrivals = Math.floor(Math.random() * 4) + 1;
 
-    function renderOverrides() {
-        var phase = state.currentPhase;
-        var ls = 'background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.78em; padding: 2px 6px; text-decoration: underline;';
-        var html = '';
-        if (phase < 2) html += '<button id="overrideSkip2" onclick="void(0)" style="' + ls + '">Skip to Phase 2</button>';
-        if (phase < 3) html += '<button id="overrideSkip3" onclick="void(0)" style="' + ls + '">Skip to Phase 3</button>';
-        html += '<button id="overrideRevealQ" onclick="void(0)" style="' + ls + '">Reveal Next Question</button>';
-        html += '<button id="overrideReset" onclick="void(0)" style="' + ls + '">Full Reset</button>';
-        el.overrideControls.innerHTML = html;
-    }
-
-    function checkForNewQuestion() {
-        var changed = false;
-        for (var i = 0; i < CHECKPOINT_SCHEDULE.length; i++) {
-            var cp = CHECKPOINT_SCHEDULE[i];
-            if (cp.phase === state.currentPhase && state.simulatedTime >= cp.turn && cp.insightIndex >= state.questionsShown) {
-                state.questionsShown = cp.insightIndex + 1;
-                changed = true;
-            }
-        }
-        if (changed) renderInsights();
-    }
-
-    function revealInsightAnswer(index) {
-        if (index !== state.insightsRevealed) return;
-        if (index >= state.questionsShown) return;
-        var ins = insights[index];
-        state.insightsRevealed = index + 1;
-        if (typeof ins.action === 'function') ins.action();
-        renderInsights();
-        updateCpcDisplay();
-        saveState();
-    }
-
-    function revealNextQuestion() {
-        if (state.questionsShown >= insights.length) return;
-        state.questionsShown++;
-        renderInsights();
-        saveState();
-    }
-
-    // === DISPLAY UPDATES ===
-    function updateDisplay() {
-        el.timeDisplay.textContent = state.simulatedTime;
-        el.timeBar.style.width = (state.simulatedTime / SIM_DURATION * 100) + '%';
-        el.cashDisplay.textContent = '$' + state.currentCash.toFixed(2);
-        el.cashDisplay.style.color = state.currentCash >= 0 ? '#16a34a' : '#ED0A00';
-        el.redInventoryDisplay.textContent = state.inventoryRed;
-        el.blueInventoryDisplay.textContent = state.inventoryBlue;
-        el.wageCostDisplay.textContent = state.curMinStaffCost.toFixed(0);
-        el.holdingCostDisplay.textContent = state.curMinHoldingCost.toFixed(0);
-        el.revenueDisplay.textContent = state.curMinRevenue.toFixed(0);
-        var curProfit = state.curMinRevenue - state.curMinStaffCost - state.curMinHoldingCost;
-        el.profitDisplay.innerHTML = '<span style="color:' + (curProfit >= 0 ? '#16a34a' : '#ED0A00') + '">$' + curProfit.toFixed(0) + '</span>';
-        var avg = calculateMovingAverages();
-        el.redSatisfaction.textContent = Math.round(avg.satisfaction.red);
-        el.blueSatisfaction.textContent = Math.round(avg.satisfaction.blue);
-        el.redFillRate.textContent = Math.round(avg.fillRate.red);
-        el.blueFillRate.textContent = Math.round(avg.fillRate.blue);
-        el.redWaitTime.textContent = avg.waitTime.red.toFixed(1);
-        el.blueWaitTime.textContent = avg.waitTime.blue.toFixed(1);
-        var rq = 0, bq = 0;
-        for (var i = 0; i < queue.length; i++) {
-            if (queue[i].type === 'red') rq++; else bq++;
-        }
-        el.redQueueLength.textContent = rq;
-        el.blueQueueLength.textContent = bq;
-        updateStaffDisplay();
-        updatePendingOrdersDisplay();
-        updateCpcDisplay();
-    }
-
-    function updateCpcDisplay() {
-        if (state.insightsRevealed >= 9 && state.totalCustomersServed > 0) {
-            var totalCosts = state.totalStaffCost + state.totalHoldingCost + state.totalOrderCost;
-            var cpc = totalCosts / state.totalCustomersServed;
-            el.cpcValue.textContent = '$' + cpc.toFixed(2);
-        }
-    }
-
-    function updateStaffDisplay() {
-        el.regularStaffStatus.innerHTML = '';
-        el.emergencyStaffStatus.innerHTML = '';
-        for (var i = 0; i < staff.length; i++) {
-            var box = document.createElement('div');
-            box.style.cssText = 'width: 24px; height: 24px; background: ' + (staff[i].busy ? '#C4744F' : '#BBF7D0') +
-                '; border: 1.5px solid #333; border-radius: 3px; transition: background 0.3s;';
-            if (staff[i].type === 'regular') el.regularStaffStatus.appendChild(box);
-            else el.emergencyStaffStatus.appendChild(box);
-        }
-    }
-
-    function updatePendingOrdersDisplay() {
-        if (state.pendingOrders.length === 0) {
-            el.noPendingMsg.style.display = 'block';
-            el.pendingRedDiv.style.display = 'none';
-            el.pendingBlueDiv.style.display = 'none';
-            return;
-        }
-        el.noPendingMsg.style.display = 'none';
-        var redTotal = 0, blueTotal = 0, redArr = Infinity, blueArr = Infinity;
-        for (var i = 0; i < state.pendingOrders.length; i++) {
-            var o = state.pendingOrders[i];
-            if (o.type === 'red') { redTotal += o.quantity; redArr = Math.min(redArr, o.arrivalTime); }
-            else { blueTotal += o.quantity; blueArr = Math.min(blueArr, o.arrivalTime); }
-        }
-        if (redTotal > 0) {
-            el.pendingRedQty.textContent = redTotal;
-            el.pendingRedTime.textContent = Math.max(0, redArr - state.simulatedTime);
-            el.pendingRedDiv.style.display = 'flex';
-        } else { el.pendingRedDiv.style.display = 'none'; }
-        if (blueTotal > 0) {
-            el.pendingBlueQty.textContent = blueTotal;
-            el.pendingBlueTime.textContent = Math.max(0, blueArr - state.simulatedTime);
-            el.pendingBlueDiv.style.display = 'flex';
-        } else { el.pendingBlueDiv.style.display = 'none'; }
-    }
-
-    function addOrderHistoryRow(order) {
-        var row = document.createElement('tr');
-        var cs = 'padding: 6px; text-align: center; border-bottom: 1px solid #f1f5f9;';
-        var cells = [order.time, order.redQuantity || 0, order.blueQuantity || 0, '$' + order.cost.toFixed(2)];
-        for (var i = 0; i < cells.length; i++) {
-            var td = document.createElement('td');
-            td.style.cssText = cs;
-            td.textContent = cells[i];
-            row.appendChild(td);
-        }
-        el.orderHistoryBody.insertBefore(row, el.orderHistoryBody.firstChild);
-    }
-
-    function showNotification(message, isError, duration) {
-        if (!duration) duration = 3000;
-        el.notificationArea.style.background = isError ? 'rgba(220,53,69,0.9)' : 'rgba(40,167,69,0.9)';
-        el.notificationArea.style.color = '#fff';
-        el.notificationArea.textContent = message;
-        el.notificationArea.style.display = 'block';
-        if (notifTimeout) clearTimeout(notifTimeout);
-        notifTimeout = setTimeout(function() { el.notificationArea.style.display = 'none'; }, duration);
-    }
-
-    // === CHARTS ===
-    var satChart = null, waitChart = null;
-
-    function initCharts() {
-        var commonOpts = {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: true,
-            scales: {
-                x: { title: { display: true, text: 'Time (minutes)', font: { size: 13, weight: 'bold' } }, grid: { color: '#e5e5e5', lineWidth: 0.5 }, border: { width: 1.5, color: '#333' }, ticks: { font: { size: 12 } } },
-                y: { grid: { color: '#e5e5e5', lineWidth: 0.5 }, border: { width: 1.5, color: '#333' }, ticks: { font: { size: 12 } } }
-            },
-            plugins: { legend: { display: true, labels: { usePointStyle: true, pointStyle: 'circle' } } }
-        };
-        var satCtx = document.getElementById('satisfactionChart').getContext('2d');
-        satChart = new Chart(satCtx, {
-            type: 'line',
-            data: { labels: state.chartSatLabels.slice(), datasets: [
-                { label: 'Red Satisfaction', data: state.chartSatRed.slice(), borderColor: '#ff4444', borderWidth: 2, fill: false, pointRadius: 1 },
-                { label: 'Blue Satisfaction', data: state.chartSatBlue.slice(), borderColor: '#0033FF', borderWidth: 2, fill: false, pointRadius: 1 }
-            ] },
-            options: Object.assign({}, commonOpts, { scales: Object.assign({}, commonOpts.scales, {
-                y: Object.assign({}, commonOpts.scales.y, { beginAtZero: true, max: 100, title: { display: true, text: 'Satisfaction (%)', font: { size: 13, weight: 'bold' } } })
-            }) })
-        });
-        var waitCtx = document.getElementById('waitTimeChart').getContext('2d');
-        waitChart = new Chart(waitCtx, {
-            type: 'line',
-            data: { labels: state.chartWaitLabels.slice(), datasets: [
-                { label: 'Red Wait Time', data: state.chartWaitRed.slice(), borderColor: '#ff4444', borderWidth: 2, fill: false, pointRadius: 1 },
-                { label: 'Blue Wait Time', data: state.chartWaitBlue.slice(), borderColor: '#0033FF', borderWidth: 2, fill: false, pointRadius: 1 }
-            ] },
-            options: Object.assign({}, commonOpts, { scales: Object.assign({}, commonOpts.scales, {
-                y: Object.assign({}, commonOpts.scales.y, { beginAtZero: true, title: { display: true, text: 'Wait Time (minutes)', font: { size: 13, weight: 'bold' } } })
-            }) })
-        });
-    }
-
-    function updateCharts(avg) {
-        if (!satChart || !waitChart) return;
-        state.chartSatLabels.push(state.simulatedTime);
-        state.chartSatRed.push(avg.satisfaction.red);
-        state.chartSatBlue.push(avg.satisfaction.blue);
-        state.chartWaitLabels.push(state.simulatedTime);
-        state.chartWaitRed.push(avg.waitTime.red);
-        state.chartWaitBlue.push(avg.waitTime.blue);
-        if (state.chartSatLabels.length > 20) {
-            state.chartSatLabels.shift(); state.chartSatRed.shift(); state.chartSatBlue.shift();
-            state.chartWaitLabels.shift(); state.chartWaitRed.shift(); state.chartWaitBlue.shift();
-        }
-        satChart.data.labels = state.chartSatLabels.slice();
-        satChart.data.datasets[0].data = state.chartSatRed.slice();
-        satChart.data.datasets[1].data = state.chartSatBlue.slice();
-        satChart.update();
-        waitChart.data.labels = state.chartWaitLabels.slice();
-        waitChart.data.datasets[0].data = state.chartWaitRed.slice();
-        waitChart.data.datasets[1].data = state.chartWaitBlue.slice();
-        waitChart.update();
-    }
-
-    // === PERSISTENCE ===
-    function saveState() {
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-    }
-
-    function loadState() {
-        try {
-            var saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                var parsed = JSON.parse(saved);
-                if (parsed && typeof parsed.simulatedTime === 'number') {
-                    state = parsed;
-                    if (state.totalCustomersServed === undefined) state.totalCustomersServed = 0;
-                    if (state.historyVisible === undefined) state.historyVisible = true;
-                    if (state.chartSatLabels === undefined) { state.chartSatLabels = []; state.chartSatRed = []; state.chartSatBlue = []; }
-                    if (state.chartWaitLabels === undefined) { state.chartWaitLabels = []; state.chartWaitRed = []; state.chartWaitBlue = []; }
-                    return true;
+            for (let i = 0; i < redArrivals; i++) {
+                const demand = this.generateRandomDemand('red');
+                if (this.inventory.red >= demand) {
+                    const customer = new Customer('red', this.simulatedTime, demand);
+                    this.queue.push(customer);
+                } else {
+                    this.rejectedCustomers[this.simulatedTime % 10].red.push({
+                        time: this.simulatedTime,
+                        satisfaction: 25
+                    });
                 }
             }
-        } catch (e) { localStorage.removeItem(STORAGE_KEY); }
-        return false;
-    }
 
-    function restoreFromState() {
-        rebuildStaff();
-        setPhase(state.currentPhase);
-        el.regularStaffSlider.value = state.regularStaffCount;
-        el.regularStaffValue.textContent = state.regularStaffCount;
-        el.emergencyStaffSlider.value = state.emergencyStaffCount;
-        el.emergencyStaffValue.textContent = state.emergencyStaffCount;
-        el.speedSelect.value = state.simulationSpeed;
-        calculateCurrentCosts();
-        updateDisplay();
-        checkInventoryLevels();
-        for (var i = 0; i < state.orderHistory.length; i++) addOrderHistoryRow(state.orderHistory[i]);
-        el.historyWrap.style.display = state.historyVisible ? 'block' : 'none';
-        el.toggleHistory.textContent = state.historyVisible ? 'Hide' : 'Show';
-        if (state.failureOccurred) {
-            el.toggleBtn.textContent = 'Failed';
-            el.toggleBtn.disabled = true;
-            el.toggleBtn.style.background = '#ED0A00';
-            el.toggleBtn.style.cursor = 'not-allowed';
-            el.failureMessage.textContent = state.failureMessage || 'Simulation failed';
-            el.failureOverlay.style.display = 'block';
-        } else if (state.isComplete) {
-            el.toggleBtn.textContent = 'Complete';
-            el.toggleBtn.disabled = true;
-            el.toggleBtn.style.background = '#e0e0e0';
-            el.toggleBtn.style.cursor = 'not-allowed';
-        } else {
-            el.toggleBtn.textContent = state.simulatedTime > 0 ? 'Resume' : 'Start';
-        }
-        renderInstructions();
-        renderInsights();
-    }
+            // Blue customers: Random number between 1-2 per minute
+            const blueArrivals = Math.floor(Math.random() * 2) + 1;
 
-    function resetSim(fullReset) {
-        clearInterval(simInterval);
-        simInterval = null;
-        queue = [];
-        inService = {};
-        custIdCounter = 0;
-        staffIdCounter = 0;
-        var savedPhase = state.currentPhase;
-        var savedQShown = state.questionsShown;
-        var savedRevealed = state.insightsRevealed;
-        var savedExpanded = state.instructionExpanded;
-        var savedHistVisible = state.historyVisible;
-        if (fullReset) {
-            localStorage.removeItem(STORAGE_KEY);
-            state = makeDefaultState();
-        } else {
-            state = makeDefaultState();
-            state.currentPhase = savedPhase;
-            state.questionsShown = savedQShown;
-            state.insightsRevealed = savedRevealed;
-            state.instructionExpanded = savedExpanded;
-            state.historyVisible = savedHistVisible;
-        }
-        el.regularStaffSlider.value = state.regularStaffCount;
-        el.regularStaffValue.textContent = state.regularStaffCount;
-        el.emergencyStaffSlider.value = state.emergencyStaffCount;
-        el.emergencyStaffValue.textContent = state.emergencyStaffCount;
-        el.orderHistoryBody.innerHTML = '';
-        el.failureOverlay.style.display = 'none';
-        el.toggleBtn.textContent = 'Start';
-        el.toggleBtn.disabled = false;
-        el.toggleBtn.style.background = '#0033FF';
-        el.toggleBtn.style.cursor = 'pointer';
-        rebuildStaff();
-        if (satChart) {
-            satChart.data.labels = []; satChart.data.datasets[0].data = []; satChart.data.datasets[1].data = []; satChart.update();
-        }
-        if (waitChart) {
-            waitChart.data.labels = []; waitChart.data.datasets[0].data = []; waitChart.data.datasets[1].data = []; waitChart.update();
-        }
-        setPhase(state.currentPhase);
-        calculateCurrentCosts();
-        updateDisplay();
-        checkInventoryLevels();
-        saveState();
-    }
-
-    // === EVENT BINDING ===
-    function bindEvents() {
-        el.toggleBtn.addEventListener('click', toggleSimulation);
-        el.resetBtn.addEventListener('click', function() { resetSim(false); });
-        el.placeOrderBtn.addEventListener('click', placeOrders);
-        el.speedSelect.addEventListener('change', function() {
-            state.simulationSpeed = parseInt(el.speedSelect.value);
-            if (simInterval) {
-                clearInterval(simInterval);
-                simInterval = setInterval(simulationTick, state.simulationSpeed);
+            for (let i = 0; i < blueArrivals; i++) {
+                const demand = this.generateRandomDemand('blue');
+                if (this.inventory.blue >= demand) {
+                    const customer = new Customer('blue', this.simulatedTime, demand);
+                    this.queue.push(customer);
+                } else {
+                    this.rejectedCustomers[this.simulatedTime % 10].blue.push({
+                        time: this.simulatedTime,
+                        satisfaction: 50
+                    });
+                }
             }
-        });
-        el.regularStaffSlider.addEventListener('input', function() {
-            state.regularStaffCount = parseInt(el.regularStaffSlider.value);
-            el.regularStaffValue.textContent = state.regularStaffCount;
-            rebuildStaff();
-            calculateCurrentCosts();
-            updateDisplay();
-            saveState();
-        });
-        el.emergencyStaffSlider.addEventListener('input', function() {
-            state.emergencyStaffCount = parseInt(el.emergencyStaffSlider.value);
-            el.emergencyStaffValue.textContent = state.emergencyStaffCount;
-            rebuildStaff();
-            calculateCurrentCosts();
-            updateDisplay();
-            saveState();
-        });
-        el.toggleInstructions.addEventListener('click', function() {
-            state.instructionExpanded = !state.instructionExpanded;
-            renderInstructions();
-            saveState();
-        });
-        el.toggleHistory.addEventListener('click', function() {
-            state.historyVisible = !state.historyVisible;
-            el.historyWrap.style.display = state.historyVisible ? 'block' : 'none';
-            el.toggleHistory.textContent = state.historyVisible ? 'Hide' : 'Show';
-            saveState();
-        });
-        document.getElementById('insightsPanel').addEventListener('click', function(e) {
-            var revealEl = e.target.closest('[data-reveal-index]');
-            if (revealEl) { revealInsightAnswer(parseInt(revealEl.getAttribute('data-reveal-index'))); return; }
-            if (e.target.id === 'advancePhaseBtn') { advancePhase(); return; }
-            if (e.target.id === 'overrideSkip2') { skipToPhase(2); return; }
-            if (e.target.id === 'overrideSkip3') { skipToPhase(3); return; }
-            if (e.target.id === 'overrideRevealQ') { revealNextQuestion(); return; }
-            if (e.target.id === 'overrideReset') { resetSim(true); return; }
-        });
-    }
-
-    // === INIT ===
-    function init() {
-        cacheDom();
-        initCharts();
-        bindEvents();
-        var restored = loadState();
-        if (restored && state.simulatedTime > 0) {
-            restoreFromState();
-        } else {
-            rebuildStaff();
-            setPhase(1);
-            calculateCurrentCosts();
-            updateDisplay();
-            checkInventoryLevels();
-            renderInstructions();
-            renderInsights();
         }
-    }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+        // Calculate staff costs only
+        calculateStaffCosts() {
+            this.metrics.currentMinuteStaffCost = this.staff.reduce((sum, s) => sum + s.costPerMinute, 0);
+        }
 
-})();
+        // Calculate all current costs (staff and inventory holding)
+        calculateCurrentCosts() {
+            // Calculate staff costs
+            this.calculateStaffCosts();
+
+            // Calculate inventory holding costs
+            const redHoldingCost = this.inventory.red * this.HOLDING_COSTS.red;
+            const blueHoldingCost = this.inventory.blue * this.HOLDING_COSTS.blue;
+            this.metrics.currentMinuteHoldingCost = redHoldingCost + blueHoldingCost;
+
+        }
+
+        // Apply costs for the current minute
+        applyMinuteCosts() {
+            // Update total metrics
+            this.metrics.totalStaffCost += this.metrics.currentMinuteStaffCost;
+            this.metrics.totalHoldingCost += this.metrics.currentMinuteHoldingCost;
+
+            // Calculate current profit for this minute
+            this.metrics.currentMinuteProfit = this.metrics.currentMinuteRevenue -
+                this.metrics.currentMinuteStaffCost -
+                this.metrics.currentMinuteHoldingCost -
+                this.metrics.currentMinuteOrderCost;
+
+            // Deduct from current cash
+            this.currentCash -= this.metrics.currentMinuteStaffCost;
+            this.currentCash -= this.metrics.currentMinuteHoldingCost;
+            // Order costs are already deducted when orders are placed
+        }
+
+        // Process a customer with a staff member
+        processCustomer(customer, staffMember) {
+            const type = customer.type;
+            if (this.inventory[type] >= customer.demandQuantity) {
+                this.inventory[type] -= customer.demandQuantity;
+                staffMember.busy = true;
+                staffMember.currentCustomer = customer;
+                staffMember.currentStartTime = this.simulatedTime;
+                customer.serviceStartTime = this.simulatedTime;
+
+                const serviceTime = 1 / staffMember.serviceRate;
+                this.inService.set(customer.id, {
+                    customer,
+                    staffId: staffMember.id,
+                    completionTime: this.simulatedTime + serviceTime
+                });
+
+                // Recalculate costs after inventory change
+                this.calculateCurrentCosts();
+                return true;
+            }
+            return false;
+        }
+
+        // Calculate customer satisfaction based on wait time
+        calculateSatisfaction(customer) {
+            const waitTime = customer.serviceStartTime - customer.arrivalTime;
+            const type = customer.type;
+
+            if (type === 'red') {
+                if (waitTime <= 3) {
+                    return 100; // 75 + 25
+                } else {
+                    return Math.max(0, 100 - ((waitTime - 3) * 10));
+                }
+            } else { // blue
+                if (waitTime <= 2) {
+                    return 100; // 50 + 50
+                } else {
+                    return Math.max(0, 100 - ((waitTime - 2) * 25));
+                }
+            }
+        }
+
+        // Check and process customers who have completed service
+        checkServiceCompletions() {
+            for (const [customerId, service] of this.inService) {
+                if (this.simulatedTime >= service.completionTime) {
+                    const staffMember = this.staff.find(s => s.id === service.staffId);
+                    if (staffMember) {
+                        staffMember.busy = false;
+                        staffMember.totalBusyTime += (this.simulatedTime - staffMember.currentStartTime);
+                        staffMember.currentCustomer = null;
+                    }
+
+                    const {
+                        customer
+                    } = service;
+                    customer.completionTime = this.simulatedTime;
+
+                    // Calculate revenue from this sale
+                    const saleRevenue = this.PRICES[customer.type] * customer.demandQuantity;
+
+                    // Add to total revenue metric
+                    this.metrics.totalRevenue += saleRevenue;
+
+                    // Add to current minute revenue
+                    this.metrics.currentMinuteRevenue += saleRevenue;
+
+                    // Add to current cash
+                    this.currentCash += saleRevenue;
+
+                    const satisfaction = this.calculateSatisfaction(customer);
+                    this.completedCustomers[this.simulatedTime % 10][customer.type].push({
+                        time: this.simulatedTime,
+                        waitTime: customer.serviceStartTime - customer.arrivalTime,
+                        satisfaction: satisfaction
+                    });
+
+                    this.inService.delete(customerId);
+                }
+            }
+
+            // Process queue if there are idle staff.
+            // Each idle worker serves up to serviceRate customers this minute:
+            // regular = 1/min, emergency = 2/min. This makes emergency staff a genuine
+            // extra-capacity lever (previously every worker only took one customer per
+            // tick, so the "2 per minute" emergency rate did nothing).
+            const availableStaff = this.staff.filter(s => !s.busy);
+            for (const staffMember of availableStaff) {
+                let slots = staffMember.serviceRate;
+                while (slots > 0 && this.queue.length > 0) {
+                    const customer = this.queue.shift();
+                    if (this.processCustomer(customer, staffMember)) {
+                        slots--;
+                    } else {
+                        this.rejectedCustomers[this.simulatedTime % 10][customer.type].push({
+                            time: this.simulatedTime,
+                            satisfaction: customer.type === 'red' ? 25 : 50
+                        });
+                    }
+                }
+            }
+        }
+
+        // Calculate moving averages for customer metrics
+        calculateMovingAverages() {
+            const now = this.simulatedTime;
+            const redCustomers = this.completedCustomers.flatMap(minute => minute.red)
+                .concat(this.rejectedCustomers.flatMap(minute => minute.red))
+                .filter(c => c.time > now - 10);
+            const blueCustomers = this.completedCustomers.flatMap(minute => minute.blue)
+                .concat(this.rejectedCustomers.flatMap(minute => minute.blue))
+                .filter(c => c.time > now - 10);
+
+            return {
+                satisfaction: {
+                    red: redCustomers.length > 0 ?
+                        redCustomers.reduce((sum, c) => sum + c.satisfaction, 0) / redCustomers.length : 100,
+                    blue: blueCustomers.length > 0 ?
+                        blueCustomers.reduce((sum, c) => sum + c.satisfaction, 0) / blueCustomers.length : 100
+                },
+                waitTime: {
+                    red: redCustomers.filter(c => c.waitTime !== undefined).length > 0 ?
+                        redCustomers.filter(c => c.waitTime !== undefined)
+                        .reduce((sum, c) => sum + c.waitTime, 0) /
+                        redCustomers.filter(c => c.waitTime !== undefined).length : 0,
+                    blue: blueCustomers.filter(c => c.waitTime !== undefined).length > 0 ?
+                        blueCustomers.filter(c => c.waitTime !== undefined)
+                        .reduce((sum, c) => sum + c.waitTime, 0) /
+                        blueCustomers.filter(c => c.waitTime !== undefined).length : 0
+                },
+                fillRate: {
+                    red: redCustomers.length > 0 ?
+                        redCustomers.filter(c => c.waitTime !== undefined).length / redCustomers.length * 100 : 100,
+                    blue: blueCustomers.length > 0 ?
+                        blueCustomers.filter(c => c.waitTime !== undefined).length / blueCustomers.length * 100 : 100
+                }
+            };
+        }
+
+        // Update staff configuration
+        updateStaff(type, count) {
+            // Keep track of existing busy states if simulation is running
+            const existingStaff = type === 'regular' ?
+                this.staff.filter(s => s.type === 'regular') :
+                this.staff.filter(s => s.type === 'emergency');
+
+            // Create new staff array for the specified type
+            const newStaff = [];
+            for (let i = 0; i < count; i++) {
+                if (i < existingStaff.length) {
+                    // Keep existing staff member's state
+                    newStaff.push(existingStaff[i]);
+                } else {
+                    // Add new staff member
+                    newStaff.push(new Staff(`${type.toUpperCase()}_${i + 1}`, type));
+                }
+            }
+
+            // Update staff array, keeping the other type unchanged
+            this.staff = this.staff.filter(s => s.type !== type).concat(newStaff);
+
+            // Only update staff costs, not holding costs
+            this.calculateStaffCosts();
+        }
+
+        // Update simulation speed
+        updateSimulationSpeed(speed) {
+            const speedValue = parseInt(speed);
+
+            if (isNaN(speedValue) || speedValue <= 0) {
+                console.error('Invalid simulation speed:', speed);
+                return;
+            }
+
+            this.simulationSpeed = speedValue;
+
+            // If the simulation is running, restart the interval with the new speed
+            if (this.isRunning) {
+                clearInterval(this.simulationInterval);
+                this.startSimulationInterval();
+            }
+        }
+
+        // Start or resume the simulation interval
+        startSimulationInterval() {
+            this.simulationInterval = setInterval(() => {
+                // Reset current minute metrics for revenue and order cost
+                this.metrics.currentMinuteRevenue = 0;
+                this.metrics.currentMinuteOrderCost = 0;
+
+                // Calculate costs based on current inventory and staff
+                this.calculateCurrentCosts();
+
+                // Apply costs (deduct from cash and add to totals)
+                this.applyMinuteCosts();
+
+                // Increment time
+                this.simulatedTime += 1;
+
+                // Generate new customers and check service completions
+                this.generateNewCustomers();
+                this.checkServiceCompletions();
+
+                // Check inventory levels and pending orders
+                this.checkInventoryLevels();
+                this.checkPendingOrders();
+
+                // Update the display with all new information
+                this.updateDisplayWithCharts();
+
+                // Reveal any scheduled discussion insights
+                this.checkInsights();
+
+                // Check for failure conditions
+                this.checkFailureConditions();
+
+                // End simulation if time has reached 60 minutes
+                if (this.simulatedTime >= 60) {
+                    clearInterval(this.simulationInterval);
+                    this.isRunning = false;
+                    const button = document.getElementById('toggleButton');
+                    if (button) {
+                        button.textContent = 'Complete';
+                        button.disabled = true;
+                        button.style.backgroundColor = '#e0e0e0';
+                        button.style.cursor = 'not-allowed';
+                    }
+                    this.updateDisplayWithCharts();
+                }
+            }, this.simulationSpeed);
+        }
+
+        // Check inventory levels and display warnings
+        checkInventoryLevels() {
+            const redWarning = document.getElementById('redInventoryWarning');
+            if (redWarning) {
+                redWarning.style.display = this.inventory.red < 10 ? 'block' : 'none';
+            }
+
+            const blueWarning = document.getElementById('blueInventoryWarning');
+            if (blueWarning) {
+                blueWarning.style.display = this.inventory.blue < 10 ? 'block' : 'none';
+            }
+        }
+
+        // Show notification messages
+        showNotification(message, isError = false, duration = 3000) {
+            const toast = document.getElementById('notificationToast');
+            if (!toast) return;
+
+            toast.style.backgroundColor = isError ?
+                'rgba(220, 53, 69, 0.9)' : 'rgba(40, 167, 69, 0.9)';
+
+            toast.textContent = message;
+            toast.style.display = 'block';
+
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, duration);
+        }
+
+        // Check for arrived orders
+        checkPendingOrders() {
+            if (!this.pendingOrders || this.pendingOrders.length === 0) return;
+
+            const arrivedOrders = [];
+            for (let i = 0; i < this.pendingOrders.length; i++) {
+                const order = this.pendingOrders[i];
+                if (this.simulatedTime >= order.arrivalTime) {
+                    arrivedOrders.push(order);
+                    this.inventory[order.type] += order.quantity;
+                    this.showNotification(`${order.quantity} ${order.type.charAt(0).toUpperCase() + order.type.slice(1)} hammers have arrived!`);
+                }
+            }
+
+            if (arrivedOrders.length > 0) {
+                this.pendingOrders = this.pendingOrders.filter(order =>
+                    !arrivedOrders.some(arrived =>
+                        arrived.type === order.type &&
+                        arrived.quantity === order.quantity &&
+                        arrived.arrivalTime === order.arrivalTime
+                    )
+                );
+
+                // Recalculate costs after inventory changes
+                this.calculateCurrentCosts();
+            }
+        }
+
+        // Place new orders for inventory
+        placeOrders() {
+            try {
+                const redOrderQtyElement = document.getElementById('redOrderQty');
+                const blueOrderQtyElement = document.getElementById('blueOrderQty');
+
+                if (!redOrderQtyElement || !blueOrderQtyElement) {
+                    console.error('Order quantity input elements not found');
+                    return;
+                }
+
+                const redQuantity = parseInt(redOrderQtyElement.value, 10) || 0;
+                const blueQuantity = parseInt(blueOrderQtyElement.value, 10) || 0;
+
+                // Validate orders
+                if (redQuantity === 0 && blueQuantity === 0) {
+                    this.showNotification('Please enter a quantity for at least one type of hammer', true);
+                    return;
+                }
+
+                if (redQuantity < 0 || blueQuantity < 0) {
+                    this.showNotification('Order quantities cannot be negative', true);
+                    return;
+                }
+
+                // Check maximum inventory capacity
+                const MAX_INVENTORY = 200;
+                if (!this.pendingOrders) this.pendingOrders = [];
+
+                const pendingRedOrders = this.pendingOrders.reduce((sum, order) =>
+                    sum + (order.type === 'red' ? order.quantity : 0), 0);
+                const pendingBlueOrders = this.pendingOrders.reduce((sum, order) =>
+                    sum + (order.type === 'blue' ? order.quantity : 0), 0);
+
+                if (this.inventory.red + pendingRedOrders + redQuantity > MAX_INVENTORY) {
+                    this.showNotification('Red hammer inventory (including pending orders) cannot exceed ' + MAX_INVENTORY, true);
+                    return;
+                }
+                if (this.inventory.blue + pendingBlueOrders + blueQuantity > MAX_INVENTORY) {
+                    this.showNotification('Blue hammer inventory (including pending orders) cannot exceed ' + MAX_INVENTORY, true);
+                    return;
+                }
+
+                // Validate order sizes
+                const MAX_ORDER_SIZE = 100;
+                if (redQuantity > MAX_ORDER_SIZE || blueQuantity > MAX_ORDER_SIZE) {
+                    this.showNotification('Maximum order size is ' + MAX_ORDER_SIZE + ' per type', true);
+                    return;
+                }
+
+                // Calculate order cost
+                const orderCost =
+                    (redQuantity > 0 ? this.ORDERING_COSTS.red : 0) +
+                    (blueQuantity > 0 ? this.ORDERING_COSTS.blue : 0) +
+                    (redQuantity * this.PURCHASE_COSTS.red) +
+                    (blueQuantity * this.PURCHASE_COSTS.blue);
+
+                // Check cash availability
+                if (orderCost > this.currentCash) {
+                    this.showNotification('Not enough cash to place this order. Need $' +
+                        orderCost.toFixed(2) + ', have $' + this.currentCash.toFixed(2), true);
+                    return;
+                }
+
+                // Create order record
+                const newOrder = {
+                    time: this.simulatedTime,
+                    redQuantity: redQuantity,
+                    blueQuantity: blueQuantity,
+                    cost: orderCost
+                };
+
+                this.orderHistory.push(newOrder);
+
+                // Update financial metrics
+                this.metrics.totalOrderCost += orderCost;
+                this.metrics.currentMinuteOrderCost += orderCost;
+                this.currentCash -= orderCost;
+
+                // Schedule order arrivals
+                if (redQuantity > 0) {
+                    this.pendingOrders.push({
+                        type: 'red',
+                        quantity: redQuantity,
+                        arrivalTime: this.simulatedTime + this.LEAD_TIMES.red
+                    });
+                }
+
+                if (blueQuantity > 0) {
+                    this.pendingOrders.push({
+                        type: 'blue',
+                        quantity: blueQuantity,
+                        arrivalTime: this.simulatedTime + this.LEAD_TIMES.blue
+                    });
+                }
+
+                // Update order history UI
+                this.updateOrderHistoryUI(newOrder);
+
+                // Update display and check inventory levels
+                this.updateDisplay();
+                this.checkInventoryLevels();
+
+                // Clear inputs
+                if (redOrderQtyElement) redOrderQtyElement.value = '';
+                if (blueOrderQtyElement) blueOrderQtyElement.value = '';
+
+                // Show confirmation
+                let confirmMessage = 'Order placed: ';
+                if (redQuantity > 0) {
+                    confirmMessage += redQuantity + ' Red';
+                }
+                if (redQuantity > 0 && blueQuantity > 0) {
+                    confirmMessage += ' & ';
+                }
+                if (blueQuantity > 0) {
+                    confirmMessage += blueQuantity + ' Blue';
+                }
+                confirmMessage += ' Hammers (arrives in 2 min)';
+
+                this.showNotification(confirmMessage);
+            } catch (error) {
+                console.error('Error in placeOrders:', error);
+                this.showNotification('Error placing order: ' + error.message, true);
+            }
+        }
+
+        // Update order history UI
+        updateOrderHistoryUI(newOrder) {
+            const orderHistoryTable = document.getElementById('orderHistory');
+            if (orderHistoryTable) {
+                const _ph = document.getElementById('orderHistPlaceholder'); if (_ph) _ph.remove();
+                const row = orderHistoryTable.insertRow(0);
+                row.style.backgroundColor = '#e6ffe6';
+
+                // Reset background color after 2 seconds
+                setTimeout(function() {
+                    row.style.backgroundColor = '';
+                }, 2000);
+
+                // Add cells
+                const timeCell = row.insertCell(0);
+                const redCell = row.insertCell(1);
+                const blueCell = row.insertCell(2);
+                const costCell = row.insertCell(3);
+                [timeCell, redCell, blueCell, costCell].forEach(c => c.style.cssText = 'padding:6px 8px;text-align:center;border-bottom:1px solid #eef0f3;color:#001641;');
+
+                // Set cell content and alignment
+                timeCell.textContent = newOrder.time;
+                timeCell.align = 'center';
+
+                redCell.textContent = newOrder.redQuantity || 0;
+                redCell.align = 'center';
+
+                blueCell.textContent = newOrder.blueQuantity || 0;
+                blueCell.align = 'center';
+
+                costCell.textContent = '$' + newOrder.cost.toFixed(2);
+                costCell.align = 'center';
+            }
+        }
+
+        // Update pending orders display
+        updatePendingOrdersDisplay() {
+            const noPendingMsg = document.getElementById('noPendingOrdersMsg');
+            const pendingRedDiv = document.getElementById('pendingRedOrders');
+            const pendingBlueDiv = document.getElementById('pendingBlueOrders');
+
+            if (!noPendingMsg || !pendingRedDiv || !pendingBlueDiv) {
+                console.error('Pending orders display elements not found');
+                return;
+            }
+
+            if (!this.pendingOrders) {
+                this.pendingOrders = [];
+            }
+
+            if (this.pendingOrders.length === 0) {
+                noPendingMsg.style.display = 'block';
+                pendingRedDiv.style.display = 'none';
+                pendingBlueDiv.style.display = 'none';
+                return;
+            }
+
+            noPendingMsg.style.display = 'none';
+
+            // Calculate pending order totals and arrival times
+            let redTotal = 0;
+            let blueTotal = 0;
+            let earliestRedArrival = Infinity;
+            let earliestBlueArrival = Infinity;
+
+            this.pendingOrders.forEach(order => {
+                if (order.type === 'red') {
+                    redTotal += order.quantity;
+                    earliestRedArrival = Math.min(earliestRedArrival, order.arrivalTime);
+                } else if (order.type === 'blue') {
+                    blueTotal += order.quantity;
+                    earliestBlueArrival = Math.min(earliestBlueArrival, order.arrivalTime);
+                }
+            });
+
+            // Update red pending display
+            if (redTotal > 0) {
+                const pendingRedQty = document.getElementById('pendingRedQty');
+                const pendingRedTime = document.getElementById('pendingRedTime');
+
+                if (pendingRedQty && pendingRedTime) {
+                    pendingRedQty.textContent = redTotal;
+                    pendingRedTime.textContent = earliestRedArrival - this.simulatedTime;
+                    pendingRedDiv.style.display = 'block';
+                }
+            } else {
+                pendingRedDiv.style.display = 'none';
+            }
+
+            // Update blue pending display
+            if (blueTotal > 0) {
+                const pendingBlueQty = document.getElementById('pendingBlueQty');
+                const pendingBlueTime = document.getElementById('pendingBlueTime');
+
+                if (pendingBlueQty && pendingBlueTime) {
+                    pendingBlueQty.textContent = blueTotal;
+                    pendingBlueTime.textContent = earliestBlueArrival - this.simulatedTime;
+                    pendingBlueDiv.style.display = 'block';
+                }
+            } else {
+                pendingBlueDiv.style.display = 'none';
+            }
+        }
+
+        // Surface discussion prompts as the clock advances (reveal in sequence on click)
+        checkInsights() {
+            let changed = false;
+            this.INSIGHTS.forEach((ins, i) => {
+                if (this.simulatedTime >= ins.min && this.questionsShown <= i) { this.questionsShown = i + 1; changed = true; }
+            });
+            if (changed) {
+                const ph = document.getElementById('insightsPlaceholder');
+                if (ph) ph.remove();
+                this.renderInsights();
+                this.showNotification('New discussion insight available', false, 2500);
+            }
+        }
+
+        renderInsights() {
+            const container = document.getElementById('insightsContainer');
+            if (!container || this.questionsShown === 0) return;
+            if (!this._insightsBound) {
+                this._insightsBound = true;
+                container.addEventListener('click', (e) => {
+                    const card = e.target.closest('[data-index]');
+                    if (card) this.revealInsight(parseInt(card.getAttribute('data-index'), 10));
+                });
+            }
+            const circleBase = 'min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8em;font-weight:700;flex-shrink:0;';
+            let html = '';
+            this.INSIGHTS.forEach((ins, i) => {
+                const num = i + 1;
+                if (i < this.insightsRevealed) {
+                    html += '<div style="padding:10px 12px;margin-bottom:6px;border-radius:6px;background:#fff;border:1px solid #e2e8f0;">'
+                         + '<div style="display:flex;gap:10px;align-items:flex-start;">'
+                         + '<div style="' + circleBase + 'background:#001641;color:#fff;">' + num + '</div>'
+                         + '<div style="flex:1;">'
+                         + '<div style="font-size:0.85em;color:#001641;margin-bottom:6px;">' + ins.q + '</div>'
+                         + '<div style="font-size:0.9em;color:#001641;font-weight:500;padding:6px 10px;background:#f0fdf4;border-left:3px solid #16A34A;border-radius:0 4px 4px 0;line-height:1.5;">' + ins.a + '</div>'
+                         + '</div></div></div>';
+                } else if (i < this.questionsShown) {
+                    const clickable = (i === this.insightsRevealed);
+                    html += '<div ' + (clickable ? 'data-index="' + i + '" ' : '') + 'style="padding:10px 12px;margin-bottom:6px;border-radius:6px;background:#F0E5D0;border:1px solid #A15A35;' + (clickable ? 'cursor:pointer;' : '') + '">'
+                         + '<div style="display:flex;gap:10px;align-items:flex-start;">'
+                         + '<div style="' + circleBase + 'background:#A15A35;color:#fff;">' + num + '</div>'
+                         + '<div style="flex:1;">'
+                         + '<div style="font-size:0.85em;color:#001641;margin-bottom:6px;">' + ins.q + '</div>'
+                         + (clickable ? '<div style="font-size:0.8em;color:#A15A35;font-weight:600;padding:4px 10px;background:#F0E5D0;border-radius:4px;display:inline-block;">Click to reveal answer</div>' : '<div style="font-size:0.8em;color:#94a3b8;font-style:italic;">(answer the previous question first)</div>')
+                         + '</div></div></div>';
+                } else {
+                    html += '<div style="padding:6px 12px;margin-bottom:6px;">'
+                         + '<div style="display:flex;gap:10px;align-items:center;">'
+                         + '<div style="' + circleBase + 'background:#e5e7eb;color:#94a3b8;">' + num + '</div>'
+                         + '<div style="font-size:0.82em;color:#cbd5e1;font-style:italic;">(not yet revealed)</div>'
+                         + '</div></div>';
+                }
+            });
+            container.innerHTML = html;
+            this.updateInsightsCounter();
+        }
+
+        revealInsight(idx) {
+            if (idx >= this.questionsShown || idx !== this.insightsRevealed) return;
+            this.insightsRevealed = idx + 1;
+            this.renderInsights();
+        }
+
+        updateInsightsCounter() {
+            const c = document.getElementById('insightsCounter');
+            if (c) c.textContent = this.questionsShown ? '(' + this.insightsRevealed + ' of ' + this.INSIGHTS.length + ')' : '';
+        }
+
+        // Toggle simulation start/pause
+        toggleSimulation() {
+            // Safety check for failureState
+            if (!this.failureState) {
+                this.failureState = {
+                    occurred: false,
+                    reason: null,
+                    message: null
+                };
+            }
+
+            // If failure has occurred, don't allow toggling
+            if (this.failureState.occurred) return;
+
+            this.isRunning = !this.isRunning;
+            const button = document.getElementById('toggleButton');
+            if (!button) return;
+
+            if (this.simulatedTime >= 60) {
+                // Simulation is complete
+                button.textContent = 'Complete';
+                button.disabled = true;
+                button.style.backgroundColor = '#e0e0e0';
+                button.style.cursor = 'not-allowed';
+                return;
+            }
+
+            if (this.isRunning) {
+                // Simulation is running
+                button.textContent = 'Pause';
+
+                // Get the current simulation speed from the dropdown
+                const speedDropdown = document.getElementById('simulationSpeed');
+                if (speedDropdown) {
+                    this.simulationSpeed = parseInt(speedDropdown.value);
+                } else {
+                    this.simulationSpeed = 2000; // Default fallback
+                }
+
+                // Immediately calculate current costs before starting interval
+                this.calculateCurrentCosts();
+
+                // Start the simulation interval
+                this.startSimulationInterval();
+            } else {
+                // Simulation is paused
+                clearInterval(this.simulationInterval);
+                button.textContent = 'Resume';
+            }
+        }
+
+        // Initialize charts for visualization
+        initializeCharts() {
+            if (window.Chart) { Chart.defaults.font.family = "'Montserrat', sans-serif"; Chart.defaults.color = '#5C657B'; }
+            const satisfactionChartCanvas = document.getElementById('satisfactionChart');
+            const waitTimeChartCanvas = document.getElementById('waitTimeChart');
+
+            if (!satisfactionChartCanvas || !waitTimeChartCanvas) {
+                console.error('Chart canvases not found');
+                return;
+            }
+
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (minutes)',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: true,
+                            color: '#e5e5e5',
+                            lineWidth: 0.5
+                        },
+                        border: {
+                            width: 1.5,
+                            color: '#333'
+                        },
+                        ticks: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: '#e5e5e5',
+                            lineWidth: 0.5
+                        },
+                        border: {
+                            width: 1.5,
+                            color: '#333'
+                        },
+                        ticks: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            generateLabels: function(chart) {
+                                const datasets = chart.data.datasets;
+                                return datasets.map((dataset, i) => ({
+                                    text: dataset.label,
+                                    fillStyle: dataset.borderColor,
+                                    strokeStyle: '#333',
+                                    lineWidth: 1,
+                                    hidden: !chart.isDatasetVisible(i),
+                                    index: i
+                                }));
+                            }
+                        }
+                    }
+                }
+            };
+
+            try {
+                const satCtx = satisfactionChartCanvas.getContext('2d');
+                this.satisfactionChart = new Chart(satCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Red Satisfaction',
+                            data: [],
+                            borderColor: '#ED0A00',
+                            borderWidth: 2,
+                            fill: false
+                        }, {
+                            label: 'Blue Satisfaction',
+                            data: [],
+                            borderColor: '#0033FF',
+                            borderWidth: 2,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        ...commonOptions,
+                        scales: {
+                            ...commonOptions.scales,
+                            y: {
+                                ...commonOptions.scales.y,
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Satisfaction (%)',
+                                    font: {
+                                        size: 16,
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                const waitCtx = waitTimeChartCanvas.getContext('2d');
+                this.waitTimeChart = new Chart(waitCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Red Wait Time',
+                            data: [],
+                            borderColor: '#ED0A00',
+                            borderWidth: 2,
+                            fill: false
+                        }, {
+                            label: 'Blue Wait Time',
+                            data: [],
+                            borderColor: '#0033FF',
+                            borderWidth: 2,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        ...commonOptions,
+                        scales: {
+                            ...commonOptions.scales,
+                            y: {
+                                ...commonOptions.scales.y,
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    precision: 0
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Wait Time (minutes)',
+                                    font: {
+                                        size: 16,
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+            }
+        }
+
+        // Check for failure conditions during simulation
+        checkFailureConditions() {
+            if (!this.failureState) {
+                this.failureState = {
+                    occurred: false,
+                    reason: null,
+                    message: null
+                };
+            }
+
+            if (this.failureState.occurred) return;
+
+            // Only start checking after at least 10 minutes of simulation
+            if (this.simulatedTime < 10) return;
+
+            // Check for bankruptcy
+            if (this.currentCash < this.FAILURE_THRESHOLDS.minCash) {
+                this.triggerFailure("bankruptcy", "Business Bankrupt: You've accumulated too much debt!");
+                return;
+            }
+
+            // Get current satisfaction metrics
+            const averages = this.calculateMovingAverages();
+
+            // Check red customer satisfaction
+            if (averages.satisfaction.red < this.FAILURE_THRESHOLDS.minSatisfaction.red) {
+                this.lowSatisfactionPeriods.red++;
+                if (this.lowSatisfactionPeriods.red >= this.FAILURE_THRESHOLDS.consecutiveLowSatisfactionPeriods) {
+                    this.triggerFailure("red-satisfaction", "Business Failed: Red customer satisfaction too low for extended period!");
+                    return;
+                }
+            } else {
+                this.lowSatisfactionPeriods.red = 0;
+            }
+
+            // Check blue customer satisfaction
+            if (averages.satisfaction.blue < this.FAILURE_THRESHOLDS.minSatisfaction.blue) {
+                this.lowSatisfactionPeriods.blue++;
+                if (this.lowSatisfactionPeriods.blue >= this.FAILURE_THRESHOLDS.consecutiveLowSatisfactionPeriods) {
+                    this.triggerFailure("blue-satisfaction", "Business Failed: Blue customer satisfaction too low for extended period!");
+                    return;
+                }
+            } else {
+                this.lowSatisfactionPeriods.blue = 0;
+            }
+        }
+
+        // Trigger simulation failure
+        triggerFailure(reason, message) {
+            this.failureState.occurred = true;
+            this.failureState.reason = reason;
+            this.failureState.message = message;
+
+            // Stop the simulation
+            clearInterval(this.simulationInterval);
+            this.isRunning = false;
+
+            // Update UI
+            const button = document.getElementById('toggleButton');
+            if (button) {
+                button.textContent = 'Failed';
+                button.disabled = true;
+                button.style.backgroundColor = '#e74c3c'; // Red background
+                button.style.color = 'white';
+                button.style.cursor = 'not-allowed';
+            }
+
+            // Display failure message
+            this.showNotification(message, true, 10000); // Show for 10 seconds
+
+            // Add a more prominent failure message on the simulation
+            try {
+                const failureMessage = document.createElement('div');
+                failureMessage.id = 'failureMessage';
+                failureMessage.style.position = 'absolute';
+                failureMessage.style.top = '30%';
+                failureMessage.style.left = '50%';
+                failureMessage.style.transform = 'translate(-50%, -50%)';
+                failureMessage.style.backgroundColor = 'rgba(231, 76, 60, 0.9)';
+                failureMessage.style.color = 'white';
+                failureMessage.style.padding = '20px';
+                failureMessage.style.borderRadius = '5px';
+                failureMessage.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                failureMessage.style.zIndex = '1000';
+                failureMessage.style.textAlign = 'center';
+                failureMessage.style.fontSize = '18px';
+                failureMessage.style.fontWeight = 'bold';
+                failureMessage.innerHTML = `<p>${message}</p><p>Simulation terminated.</p>`;
+
+                document.body.appendChild(failureMessage);
+            } catch (error) {
+                console.error('Error creating failure message:', error);
+            }
+        }
+
+        // Update the UI with current state
+        updateDisplay() {
+            // Safety checks for UI elements
+            const timeDisplay = document.getElementById('timeDisplay');
+            const redInventory = document.getElementById('redInventory');
+            const blueInventory = document.getElementById('blueInventory');
+
+            if (!timeDisplay || !redInventory || !blueInventory) {
+                console.error('Critical UI elements not found');
+                return;
+            }
+
+            // Update Time
+            timeDisplay.textContent = this.simulatedTime;
+
+            // Update Inventory
+            redInventory.textContent = this.inventory.red;
+            blueInventory.textContent = this.inventory.blue;
+
+            // Get financial metrics from the metrics object
+            const staffCostPerMin = this.metrics.currentMinuteStaffCost;
+            const holdingCostPerMin = this.metrics.currentMinuteHoldingCost;
+            const currentRevenue = this.metrics.currentMinuteRevenue;
+            const currentProfit = currentRevenue - staffCostPerMin - holdingCostPerMin;
+
+            // Update Financial Displays
+            const wagePerMinEl = document.getElementById('wagePerMin');
+            const holdingPerMinEl = document.getElementById('holdingPerMin');
+            const revenuePerMinEl = document.getElementById('revenuePerMin');
+            const profitPerMinEl = document.getElementById('profitPerMin');
+            const cashOnHandEl = document.getElementById('cashOnHand');
+
+            if (wagePerMinEl) wagePerMinEl.textContent = staffCostPerMin.toFixed(2);
+            if (holdingPerMinEl) holdingPerMinEl.textContent = holdingCostPerMin.toFixed(2);
+            if (revenuePerMinEl) revenuePerMinEl.textContent = currentRevenue.toFixed(2);
+            if (profitPerMinEl) profitPerMinEl.textContent = currentProfit.toFixed(2);
+            if (cashOnHandEl) cashOnHandEl.textContent = this.currentCash.toFixed(2);
+
+            // Calculate Customer Metrics
+            const averages = this.calculateMovingAverages();
+            const redQueueLength = this.queue.filter(customer => customer.type === 'red').length;
+            const blueQueueLength = this.queue.filter(customer => customer.type === 'blue').length;
+
+            // Update Customer Metrics Display
+            const redSatisfaction = document.getElementById('redSatisfaction');
+            const blueSatisfaction = document.getElementById('blueSatisfaction');
+            const redWaitTime = document.getElementById('redWaitTime');
+            const blueWaitTime = document.getElementById('blueWaitTime');
+            const redFillRate = document.getElementById('redFillRate');
+            const blueFillRate = document.getElementById('blueFillRate');
+            const redQueueLengthEl = document.getElementById('redQueueLength');
+            const blueQueueLengthEl = document.getElementById('blueQueueLength');
+
+            if (redSatisfaction) redSatisfaction.textContent = Math.round(averages.satisfaction.red);
+            if (blueSatisfaction) blueSatisfaction.textContent = Math.round(averages.satisfaction.blue);
+            if (redWaitTime) redWaitTime.textContent = averages.waitTime.red.toFixed(1);
+            if (blueWaitTime) blueWaitTime.textContent = averages.waitTime.blue.toFixed(1);
+            if (redFillRate) redFillRate.textContent = Math.round(averages.fillRate.red);
+            if (blueFillRate) blueFillRate.textContent = Math.round(averages.fillRate.blue);
+            if (redQueueLengthEl) redQueueLengthEl.textContent = redQueueLength;
+            if (blueQueueLengthEl) blueQueueLengthEl.textContent = blueQueueLength;
+
+            // Update Staff Display
+            this.updateStaffDisplay();
+
+            // Update pending orders display
+            this.updatePendingOrdersDisplay();
+        }
+
+        // Update display with charts
+        updateDisplayWithCharts() {
+            this.updateDisplay();
+
+            // Safety check for charts
+            if (!this.satisfactionChart || !this.waitTimeChart) {
+                console.error('Charts not initialized');
+                return;
+            }
+
+            const averages = this.calculateMovingAverages();
+            this.updateCharts(averages);
+        }
+
+        // Update charts with new data
+        updateCharts(averages) {
+            // Safety check for charts
+            if (!this.satisfactionChart || !this.waitTimeChart) {
+                console.error('Charts not initialized');
+                return;
+            }
+
+            try {
+                this.satisfactionChart.data.labels.push(this.simulatedTime);
+                this.satisfactionChart.data.datasets[0].data.push(averages.satisfaction.red);
+                this.satisfactionChart.data.datasets[1].data.push(averages.satisfaction.blue);
+
+                this.waitTimeChart.data.labels.push(this.simulatedTime);
+                this.waitTimeChart.data.datasets[0].data.push(averages.waitTime.red);
+                this.waitTimeChart.data.datasets[1].data.push(averages.waitTime.blue);
+
+                // Keep only last 20 data points for better visualization
+                if (this.satisfactionChart.data.labels.length > 20) {
+                    this.satisfactionChart.data.labels.shift();
+                    this.satisfactionChart.data.datasets.forEach(dataset => dataset.data.shift());
+                    this.waitTimeChart.data.labels.shift();
+                    this.waitTimeChart.data.datasets.forEach(dataset => dataset.data.shift());
+                }
+
+                this.satisfactionChart.update();
+                this.waitTimeChart.update();
+            } catch (error) {
+                console.error('Error updating charts:', error);
+            }
+        }
+
+        // Update staff status display
+        updateStaffDisplay() {
+            const regularStatusDiv = document.getElementById('regularStaffStatus');
+            const emergencyStatusDiv = document.getElementById('emergencyStaffStatus');
+
+            if (!regularStatusDiv || !emergencyStatusDiv) {
+                console.error('Staff status divs not found');
+                return;
+            }
+
+            // Clear both divs
+            regularStatusDiv.innerHTML = '';
+            emergencyStatusDiv.innerHTML = '';
+
+            // Create status box helper function
+            const createStatusBox = (staffMember) => {
+                const statusBox = document.createElement('div');
+                statusBox.style.width = '30px';
+                statusBox.style.height = '30px';
+                statusBox.style.backgroundColor = staffMember.busy ? '#001641' : '#E3F1F9'; // pastel orange for busy
+                statusBox.style.border = '1px solid #cfd4dd';
+                statusBox.style.borderRadius = '4px'; // slight rounding for squares
+                statusBox.style.margin = '2px';
+                statusBox.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                statusBox.style.transition = 'all 0.3s ease';
+                return statusBox;
+            };
+
+            // Add status boxes for each staff member
+            this.staff.forEach(staffMember => {
+                const statusBox = createStatusBox(staffMember);
+                if (staffMember.type === 'regular') {
+                    regularStatusDiv.appendChild(statusBox);
+                } else {
+                    emergencyStatusDiv.appendChild(statusBox);
+                }
+            });
+        }
+
+        // Initialize all event listeners
+        initializeEventListeners() {
+            const regularStaffCount = document.getElementById('regularStaffCount');
+            const emergencyStaffCount = document.getElementById('emergencyStaffCount');
+            const toggleButton = document.getElementById('toggleButton');
+            const resetButton = document.getElementById('resetButton');
+            const placeOrderButton = document.getElementById('placeOrderButton')
+            const speedDropdown = document.getElementById('simulationSpeed');
+
+            if (speedDropdown) {
+                this.simulationSpeed = parseInt(speedDropdown.value);
+                speedDropdown.addEventListener('change', (e) => {
+                    this.updateSimulationSpeed(e.target.value);
+                });
+            }
+
+            if (regularStaffCount) {
+                regularStaffCount.addEventListener('input', (e) => {
+                    const count = parseInt(e.target.value);
+                    const regularStaffValue = document.getElementById('regularStaffValue');
+                    if (regularStaffValue) regularStaffValue.textContent = count;
+                    this.updateStaff('regular', count);
+                    this.updateDisplay();
+                });
+            }
+
+            if (emergencyStaffCount) {
+                emergencyStaffCount.addEventListener('input', (e) => {
+                    const count = parseInt(e.target.value);
+                    const emergencyStaffValue = document.getElementById('emergencyStaffValue');
+                    if (emergencyStaffValue) emergencyStaffValue.textContent = count;
+                    this.updateStaff('emergency', count);
+                    this.updateDisplay();
+                });
+            }
+
+            if (toggleButton) {
+                toggleButton.addEventListener('click', () => this.toggleSimulation());
+            }
+
+            if (resetButton) {
+                resetButton.addEventListener('click', () => {
+                    location.reload();
+                });
+            }
+
+            if (placeOrderButton) {
+                placeOrderButton.addEventListener('click', () => this.placeOrders());
+            }
+        }
+    } // This is the end of the HammerShopSimulation class
+
+    // Initialize simulation when DOM is fully loaded - this should be OUTSIDE the class
+    document.addEventListener('DOMContentLoaded', () => {
+        window.simulation = new HammerShopSimulation();
+    });
+
 </script>
