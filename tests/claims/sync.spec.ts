@@ -10,14 +10,14 @@ import { docxTextHash } from '../helpers/docxHash';
 
 const MAPPINGS: { slug: string; docx: string; expected: string }[] = [
   { slug: '01-number-guessing', docx: '01 Number Guessing Game/Number Guessing game teaching notes.docx',         expected: 'efdc2d0a0bb2c6d8' },
-  { slug: '02-food-truck',      docx: '02 The (Un)Productive Food Truck/Food Truck Lesson Plan.docx',              expected: '757ac510c869724d' },
-  { slug: '03-coffee-shop',     docx: '03 Littles Coffee Shop/Coffee Shop and sequential littles law.docx',        expected: '8908aac325096acb' },
-  { slug: '04-supermarket',     docx: '04 Supermarket Checkout/Supermarket Checkout Lesson Plan.docx',             expected: '2065fb45f4d57065' },
-  { slug: '05-vending',         docx: '05 Vending Machine/Vending Machine Inventory Management Lesson Plan.docx', expected: '102162600c6c23bf' },
-  { slug: '06-mangoes',         docx: '06 Mangoes/Lesson Plan Mangoes Inventory Lean Game.docx',                   expected: 'c4de87a6ffe36e16' },
-  { slug: '07-supply-chain',    docx: '07 Supply Chain/Supply Chain Game Lesson plan.docx',                        expected: '410d95eaf5f3f629' },
-  { slug: '08-hammers',         docx: '08 Red and Blue Hammers/Red and Blue Hammers Lesson Plan v2.docx',          expected: 'b8966c5d8c123c1d' },
-  { slug: '09-garden',          docx: '09 Garden Project/project management sim doc v2.docx',                       expected: 'a5109cd76b53ff51' },
+  { slug: '02-food-truck',      docx: '02 The (Un)Productive Food Truck/Food Truck Lesson Plan.docx',              expected: '052c9a184787a67b' },
+  { slug: '03-coffee-shop',     docx: '03 Littles Coffee Shop/Coffee Shop and sequential littles law.docx',        expected: '14383f51a0f03596' },
+  { slug: '04-supermarket',     docx: '04 Supermarket Checkout/Supermarket Checkout Lesson Plan.docx',             expected: '79e11a05ddc276a7' },
+  { slug: '05-vending',         docx: '05 Vending Machine/Vending Machine Inventory Management Lesson Plan.docx', expected: '89eab38fc9aa61e1' },
+  { slug: '06-mangoes',         docx: '06 Mangoes/Lesson Plan Mangoes Inventory Lean Game.docx',                   expected: '71b246765df79590' },
+  { slug: '07-supply-chain',    docx: '07 Supply Chain/Supply Chain Game Lesson plan.docx',                        expected: 'e97484197ae36b85' },
+  { slug: '08-hammers',         docx: '08 Red and Blue Hammers/Red and Blue Hammers Lesson Plan v2.docx',          expected: '449a7f47d536151f' },
+  { slug: '09-garden',          docx: '09 Garden Project/project management sim doc v2.docx',                       expected: 'a81ee1dcfbad56d9' },
 ];
 
 for (const m of MAPPINGS) {

@@ -4,56 +4,83 @@
     {
       "id": "mangoes-eoq-formula",
       "source": "insight",
-      "statement": "EOQ = sqrt(2DS/H)",
+      "statement": "EOQ = sqrt(2DS/H); Phase 1 worked example (D=500/turn, S=$450, H=$0.20)",
       "type": "formula",
       "formula": "sqrt(2 * D * S / H)",
-      "inputs": { "D": 633, "S": 1000, "H": 0.1 },
-      "expected": 3558.09,
+      "inputs": { "D": 500, "S": 450, "H": 0.2 },
+      "expected": 1500,
       "tolerance": 1
     },
     {
-      "id": "mangoes-phase1-eoq-large",
+      "id": "mangoes-phase1-eoq",
       "phase": 1,
-      "source": "docx",
-      "statement": "In Phase 1 (Co=1000, Ch=0.1), EOQ is around 4000 (per lesson plan)",
+      "source": "insight",
+      "statement": "Phase 1 (Co=$450, Ch=$0.20): EOQ = 1,500",
       "type": "formula",
       "formula": "sqrt(2 * D * S / H)",
-      "inputs": { "D": 800, "S": 1000, "H": 0.1 },
-      "expected": 4000,
-      "tolerance": 100
+      "inputs": { "D": 500, "S": 450, "H": 0.2 },
+      "expected": 1500,
+      "tolerance": 1
     },
     {
-      "id": "mangoes-phase2-eoq-small",
-      "phase": 2,
-      "source": "docx",
-      "statement": "In Phase 2 (Co=150, Ch=0.7), EOQ is around 600 (per lesson plan)",
-      "type": "formula",
-      "formula": "sqrt(2 * D * S / H)",
-      "inputs": { "D": 840, "S": 150, "H": 0.7 },
-      "expected": 600,
-      "tolerance": 30
-    },
-    {
-      "id": "mangoes-phase2-dramatically-smaller",
+      "id": "mangoes-phase2-eoq",
       "phase": 2,
       "source": "insight",
-      "statement": "Phase 2 EOQ is dramatically smaller than Phase 1 EOQ",
+      "statement": "Phase 2 (Co=$1,000, Ch=$0.10): EOQ is about 3,162",
+      "type": "formula",
+      "formula": "sqrt(2 * D * S / H)",
+      "inputs": { "D": 500, "S": 1000, "H": 0.1 },
+      "expected": 3162.28,
+      "tolerance": 1
+    },
+    {
+      "id": "mangoes-phase3-eoq",
+      "phase": 3,
+      "source": "insight",
+      "statement": "Phase 3 (Co=$150, Ch=$0.70): EOQ is about 463",
+      "type": "formula",
+      "formula": "sqrt(2 * D * S / H)",
+      "inputs": { "D": 500, "S": 150, "H": 0.7 },
+      "expected": 462.91,
+      "tolerance": 1
+    },
+    {
+      "id": "mangoes-phase2-larger-than-phase1",
+      "phase": 2,
+      "source": "insight",
+      "statement": "Phase 2 EOQ exceeds Phase 1 (higher order cost, lower holding)",
       "type": "invariant",
-      "assertion": "eoq(D,150,0.7) / eoq(D,1000,0.1) < 0.2"
+      "assertion": "eoq(500,1000,0.1) > eoq(500,450,0.2)"
+    },
+    {
+      "id": "mangoes-phase3-smallest",
+      "phase": 3,
+      "source": "insight",
+      "statement": "Phase 3 EOQ is the smallest of the three (lean / near-JIT)",
+      "type": "invariant",
+      "assertion": "eoq(500,150,0.7) < eoq(500,450,0.2)"
     },
     {
       "id": "mangoes-ordering-fee-phase1",
       "phase": 1,
       "source": "insight",
-      "statement": "Fixed ordering fee per order is $1,000 in Phase 1",
+      "statement": "Fixed ordering fee per order is $450 in Phase 1",
       "type": "literal",
-      "expected": 1000
+      "expected": 450
     },
     {
       "id": "mangoes-ordering-fee-phase2",
       "phase": 2,
       "source": "insight",
-      "statement": "Fixed ordering fee per order is $150 in Phase 2",
+      "statement": "Fixed ordering fee per order is $1,000 in Phase 2",
+      "type": "literal",
+      "expected": 1000
+    },
+    {
+      "id": "mangoes-ordering-fee-phase3",
+      "phase": 3,
+      "source": "insight",
+      "statement": "Fixed ordering fee per order is $150 in Phase 3",
       "type": "literal",
       "expected": 150
     },
@@ -61,15 +88,23 @@
       "id": "mangoes-holding-cost-phase1",
       "phase": 1,
       "source": "insight",
-      "statement": "Holding cost is $0.10 per mango per turn in Phase 1",
+      "statement": "Holding cost is $0.20 per mango per turn in Phase 1",
       "type": "literal",
-      "expected": 0.1
+      "expected": 0.2
     },
     {
       "id": "mangoes-holding-cost-phase2",
       "phase": 2,
       "source": "insight",
-      "statement": "Holding cost is $0.70 per mango per turn in Phase 2",
+      "statement": "Holding cost is $0.10 per mango per turn in Phase 2",
+      "type": "literal",
+      "expected": 0.1
+    },
+    {
+      "id": "mangoes-holding-cost-phase3",
+      "phase": 3,
+      "source": "insight",
+      "statement": "Holding cost is $0.70 per mango per turn in Phase 3",
       "type": "literal",
       "expected": 0.7
     },
