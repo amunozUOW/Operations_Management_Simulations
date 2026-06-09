@@ -549,16 +549,40 @@ function generateDemand(phase, turn) {
 }
 
 /* ===== TURN PROCESSING ===== */
-/* Change 6: Receive orders BEFORE serving demand */
+/* Change 6: Receive orders BEFORE serving demand.
+   Order placement happens on the DISPLAYED day (before the day advances)
+   so "order on Day 2 with lead time 3 → arrive Day 5". */
 function processTurn(orderQty) {
     var phase = state.currentPhase;
+
+    /* 0. Place order on the DISPLAYED day (before advancing).
+       Attribute cost & qty to that day's history entry so the table
+       shows the order on the day the player actually clicked. */
+    var orderCostToday = 0;
+    var orderOnPrev = false;
+    if (orderQty > 0) {
+        var orderDay = state.phaseTurn;
+        state.ordersInTransit.push({ quantity: orderQty, arrivalDay: orderDay + CONFIG.leadTime });
+        orderCostToday = CONFIG.orderCost;
+
+        if (state.history.length > 0) {
+            var prev = state.history[state.history.length - 1];
+            prev.ordered = orderQty;
+            prev.orderCost = orderCostToday;
+            prev.profit -= orderCostToday;
+            state.cumulativeProfit -= orderCostToday;
+            orderOnPrev = true;
+        }
+    }
+
+    /* 1. Advance to the new day */
     state.phaseTurn++;
     var day = state.phaseTurn;
 
-    /* 1. Record pre-receive inventory */
+    /* 2. Record pre-receive inventory */
     var preReceiveInventory = state.inventory;
 
-    /* 2. Receive arriving orders FIRST */
+    /* 3. Receive arriving orders FIRST */
     var received = 0;
     var newTransit = [];
     state.ordersInTransit.forEach(function(o) {
@@ -572,23 +596,18 @@ function processTurn(orderQty) {
     });
     state.ordersInTransit = newTransit;
 
-    /* 3. Generate and serve demand (from inventory including received stock) */
+    /* 4. Generate and serve demand (from inventory including received stock) */
     var demand = generateDemand(phase, day);
     var sold = Math.min(demand, state.inventory);
     var unserved = demand - sold;
     state.inventory -= sold;
 
-    /* 4. Place new order */
-    var orderCostToday = 0;
-    if (orderQty > 0) {
-        state.ordersInTransit.push({ quantity: orderQty, arrivalDay: day + CONFIG.leadTime });
-        orderCostToday = CONFIG.orderCost;
-    }
-
+    /* Costs — order cost already attributed to previous day (unless first advance) */
+    var thisTurnOrderCost = orderOnPrev ? 0 : orderCostToday;
     var holdingCost = state.inventory * CONFIG.holdingCost;
     var stockoutCost = unserved * CONFIG.stockoutPenalty;
     var revenue = sold * CONFIG.unitPrice;
-    var profit = revenue - orderCostToday - holdingCost - stockoutCost;
+    var profit = revenue - thisTurnOrderCost - holdingCost - stockoutCost;
     state.cumulativeProfit += profit;
 
     var turnData = {
@@ -596,18 +615,18 @@ function processTurn(orderQty) {
         demand: demand,
         sold: sold,
         unserved: unserved,
-        ordered: orderQty,
+        ordered: orderOnPrev ? 0 : orderQty,
         received: received,
         preReceiveInventory: preReceiveInventory,
         endInventory: state.inventory,
         revenue: revenue,
         holdingCost: holdingCost,
-        orderCost: orderCostToday,
+        orderCost: thisTurnOrderCost,
         stockoutCost: stockoutCost,
         profit: profit
     };
     state.history.push(turnData);
-    return turnData;
+    return { turnData: turnData, orderOnPrev: orderOnPrev };
 }
 
 /* ===== METRIC HELPERS ===== */
@@ -634,7 +653,7 @@ function unlockMetric(id) {
 function fmt(n) { return '$' + n.toFixed(2); }
 
 /* ===== UI UPDATES ===== */
-function updateUI(turnData) {
+function updateUI(turnData, orderOnPrev) {
     var pc = PHASE_CONFIG[state.currentPhase];
     DOM.dayLabel.textContent = state.phaseTurn;
     DOM.maxDayLabel.textContent = pc.maxTurns;
@@ -651,36 +670,61 @@ function updateUI(turnData) {
     setMetric('metricPhaseProfit', 'Phase Profit', fmt(state.cumulativeProfit), '', state.cumulativeProfit >= 0 ? 'positive' : 'negative');
 
     if (state.eopUnlocked) {
-        setMetric('metricEOQ', 'EOQ Reference', '≈ 51 units', 'ROP ≈ 30 · Avg inv ≈ 26', '');
+        var avgInv = Math.round(state.history.reduce(function(s, t) { return s + t.endInventory; }, 0) / state.history.length);
+        var lastDemand = turnData.demand;
+        var rop = lastDemand * CONFIG.leadTime;
+        if (state.currentPhase === 1) {
+            setMetric('metricEOQ', 'EOQ Reference', '≈ 51 units', 'ROP ≈ ' + rop + ' · Avg inv ≈ ' + avgInv, '');
+        } else {
+            setMetric('metricEOQ', 'Inventory Reference', 'Avg inv ≈ ' + avgInv, 'ROP ≈ ' + rop + ' (last demand × ' + CONFIG.leadTime + ')', '');
+        }
     }
 
     updatePipeline();
     updateChart(turnData);
     addHistoryRow(turnData);
 
+    /* If order was attributed to the previous day, re-render that row */
+    if (orderOnPrev) refreshPreviousRow();
+
     DOM.chartSection.style.display = 'block';
     DOM.historySection.style.display = 'block';
 
     updateSliderMax();
 
-    /* Change 7: Phase advance shown when all turns complete */
+    /* Disable controls when all turns used; phase advance deferred until insights complete */
     if (state.phaseTurn >= pc.maxTurns) {
         DOM.btnAdvance.disabled = true;
         DOM.orderSlider.disabled = true;
-        showPhaseAdvance();
     }
 
     checkInsightUnlock();
+    checkPhaseAdvance();
     saveState();
 }
 
-/* Change 7: Show phase advance when turns complete (not when insights complete) */
-function showPhaseAdvance() {
+/* Show phase advance only when turns are complete AND all insights for the phase are revealed */
+function lastInsightForPhase(phase) {
+    var last = -1;
+    INSIGHTS.forEach(function(ins, i) { if (ins.phase === phase) last = i; });
+    return last;
+}
+
+function checkPhaseAdvance() {
+    var pc = PHASE_CONFIG[state.currentPhase];
     var nextPhase = state.currentPhase + 1;
-    if (nextPhase <= 3) {
-        DOM.phaseAdvanceMsg.textContent = 'Phase ' + state.currentPhase + ' complete! You can still answer any remaining discussion questions.';
+    if (nextPhase > 3) { DOM.phaseAdvance.style.display = 'none'; return; }
+
+    var turnsComplete = state.phaseTurn >= pc.maxTurns;
+    var lastIdx = lastInsightForPhase(state.currentPhase);
+    var insightsComplete = (lastIdx < 0) || (state.insightsRevealed > lastIdx);
+
+    if (turnsComplete && insightsComplete) {
+        DOM.phaseAdvanceMsg.textContent = 'Phase ' + state.currentPhase + ' complete!';
         DOM.btnPhaseAdvance.textContent = 'Continue to Phase ' + nextPhase + ' ▶';
         DOM.phaseAdvance.style.display = 'block';
+    } else {
+        DOM.phaseAdvance.style.display = 'none';
     }
 }
 
@@ -696,10 +740,9 @@ function updatePipeline() {
 }
 
 /* Change 1: Holding column always visible in history table */
-function addHistoryRow(t) {
+function buildRowHTML(t) {
     var td = 'padding:5px 8px;text-align:center;border-bottom:1px solid #e8e8e8;';
-    var row = '<tr>' +
-        '<td style="' + td + '">' + t.day + '</td>' +
+    return '<td style="' + td + '">' + t.day + '</td>' +
         '<td style="' + td + '">' + t.demand + '</td>' +
         '<td style="' + td + '">' + t.sold + (t.unserved > 0 ? ' <span style="color:#ED0A00">(' + t.unserved + ' lost)</span>' : '') + '</td>' +
         '<td style="' + td + '">' + (t.ordered > 0 ? t.ordered : '—') + '</td>' +
@@ -709,9 +752,21 @@ function addHistoryRow(t) {
         '<td style="' + td + '">' + fmt(t.holdingCost) + '</td>' +
         '<td style="' + td + '">' + (t.orderCost > 0 ? fmt(t.orderCost) : '—') + '</td>' +
         '<td style="' + td + '">' + (t.stockoutCost > 0 ? '<span style="color:#ED0A00">' + fmt(t.stockoutCost) + '</span>' : '—') + '</td>' +
-        '<td style="' + td + 'font-weight:600;color:' + (t.profit >= 0 ? '#2E7D32' : '#ED0A00') + '">' + fmt(t.profit) + '</td>' +
-        '</tr>';
-    DOM.historyBody.insertAdjacentHTML('beforeend', row);
+        '<td style="' + td + 'font-weight:600;color:' + (t.profit >= 0 ? '#2E7D32' : '#ED0A00') + '">' + fmt(t.profit) + '</td>';
+}
+
+function addHistoryRow(t) {
+    DOM.historyBody.insertAdjacentHTML('beforeend', '<tr>' + buildRowHTML(t) + '</tr>');
+}
+
+/* Re-render the previous table row after an order is attributed to it */
+function refreshPreviousRow() {
+    if (state.history.length < 2) return;
+    var rows = DOM.historyBody.querySelectorAll('tr');
+    var prevRow = rows[rows.length - 2];
+    if (!prevRow) return;
+    var prevData = state.history[state.history.length - 2];
+    prevRow.innerHTML = buildRowHTML(prevData);
 }
 
 function updateSliderMax() {
@@ -843,6 +898,7 @@ function revealInsight(index) {
     state.insightsRevealed = index + 1;
     if (INSIGHTS[index].action) INSIGHTS[index].action();
     checkInsightUnlock();
+    checkPhaseAdvance();
     if (state.history.length > 0) {
         updateUIFromTurnData(state.history[state.history.length - 1]);
     }
@@ -889,6 +945,7 @@ function advanceToPhase(targetPhase) {
     setMetric('metricProfit', "Today's Profit", '—', '', '');
     setMetric('metricPhaseProfit', 'Phase Profit', '$0.00', '', 'positive');
 
+    updatePipeline();
     renderInsights();
     saveState();
 }
@@ -924,7 +981,7 @@ function updateInstructions() {
 }
 
 /* ===== STATE PERSISTENCE ===== */
-var STORAGE_KEY = 'ops802_vending_machine_v2';
+var STORAGE_KEY = 'ops802_vending_machine_v5';
 function saveState() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
 }
@@ -965,10 +1022,10 @@ function restoreFromState() {
     if (state.phaseTurn >= PHASE_CONFIG[state.currentPhase].maxTurns) {
         DOM.btnAdvance.disabled = true;
         DOM.orderSlider.disabled = true;
-        showPhaseAdvance();
     }
 
     renderInsights();
+    checkPhaseAdvance();
     updateSliderMax();
 }
 
@@ -981,8 +1038,15 @@ function updateUIFromTurnData(t) {
     setMetric('metricOrderCost', "Today's Ordering Cost", t.orderCost > 0 ? fmt(t.orderCost) : '—', t.orderCost > 0 ? '1 order placed' : '', '');
     setMetric('metricProfit', "Today's Profit", fmt(t.profit), '', t.profit >= 0 ? 'positive' : 'negative');
     setMetric('metricPhaseProfit', 'Phase Profit', fmt(state.cumulativeProfit), '', state.cumulativeProfit >= 0 ? 'positive' : 'negative');
-    if (state.eopUnlocked) {
-        setMetric('metricEOQ', 'EOQ Reference', '≈ 51 units', 'ROP ≈ 30 · Avg inv ≈ 26', '');
+    if (state.eopUnlocked && state.history.length > 0) {
+        var avgInv = Math.round(state.history.reduce(function(s, t) { return s + t.endInventory; }, 0) / state.history.length);
+        var lastDemand = t.demand;
+        var rop = lastDemand * CONFIG.leadTime;
+        if (state.currentPhase === 1) {
+            setMetric('metricEOQ', 'EOQ Reference', '≈ 51 units', 'ROP ≈ ' + rop + ' · Avg inv ≈ ' + avgInv, '');
+        } else {
+            setMetric('metricEOQ', 'Inventory Reference', 'Avg inv ≈ ' + avgInv, 'ROP ≈ ' + rop + ' (last demand × ' + CONFIG.leadTime + ')', '');
+        }
     }
     updatePipeline();
     DOM.dayLabel.textContent = state.phaseTurn;
@@ -1001,8 +1065,8 @@ function bindEvents() {
 
     DOM.btnAdvance.addEventListener('click', function() {
         var orderQty = parseInt(DOM.orderSlider.value) || 0;
-        var turnData = processTurn(orderQty);
-        updateUI(turnData);
+        var result = processTurn(orderQty);
+        updateUI(result.turnData, result.orderOnPrev);
         DOM.orderSlider.value = 0;
         DOM.orderValue.textContent = '0';
     });
